@@ -42,7 +42,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] `time_blocks` table + RLS (also `profiles` + `categories`, with RLS on all three)
 - [x] Category picker + seeded categories on signup (trigger inserts 5 defaults on `auth.users` insert)
 - [x] Week view grid (time axis + 7 day columns) — replaced `/today` placeholder; read-only, prev/this/next week nav via `?week=` param, live NOW line, category color mapping that morphs with theme
-- [ ] Click-drag to create block
+- [x] Click-drag to create block — pointer-based drag on any empty slot, 15-min snap, live ghost preview with time label, min 15-min duration; persists via `createBlock` server action
 - [ ] Drag body to move, drag edges to resize (15-min snap)
 - [ ] Block editor popover (title, category, notes)
 - [ ] "Copy yesterday"

@@ -112,7 +112,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
               className="text-[11px] font-mono text-ink-muted pr-2 text-right leading-none pt-1"
               style={{ height: `${HOUR_HEIGHT_PX}px` }}
             >
-              {h === DAY_START_HOUR ? "" : formatHour(h)}
+              {formatHour(h)}
             </div>
           ))}
         </div>

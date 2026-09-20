@@ -46,19 +46,19 @@ export default async function TodayPage({ searchParams }: Props) {
         <nav className="ml-auto flex items-center gap-2 font-ui text-sm">
           <a
             href={`/today?week=${prev}`}
-            className="px-3 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary hover:bg-bg-alt transition"
+            className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
           >
             ‹ Prev
           </a>
           <a
             href="/today"
-            className="px-3 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary hover:bg-bg-alt transition"
+            className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
           >
             This week
           </a>
           <a
             href={`/today?week=${next}`}
-            className="px-3 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary hover:bg-bg-alt transition"
+            className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
           >
             Next ›
           </a>

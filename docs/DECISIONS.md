@@ -335,4 +335,31 @@ Popover editor. Click an existing block → edit title, pick category, optionall
 
 ---
 
+## 2026-09-20 — Session 11: Paw button + Phase 3 schema lands
+
+**Design touches:**
+- Sidebar `+ Create` swapped to a **paw-print icon** (`PawPrint` from lucide-react — no new deps). Minh found the plus sign hard to aim at and asked for something cute. Added a small `group-hover:rotate-[-8deg]` micro-tilt so the paw prints its way when you hover the button.
+
+**Phase 3 schema (Diary):**
+- `20260920215755_phase3_diary_entries.sql` — table + RLS + updated_at trigger.
+  - `mood` uses a Postgres enum `diary_mood` with the six values from `docs/DESIGN_SYSTEM.md` (radiant / calm / focused / tired / low / stormy).
+  - `content_json` (jsonb, default `'{}'`) holds the Tiptap document; `content_text` (text, default `''`) mirrors the plaintext extract for search + heatmap intensity.
+  - `unique (user_id, entry_date)` enforces one row per user per day — writes will use upsert with `on_conflict: 'user_id,entry_date'`.
+  - Index `(user_id, entry_date desc)` for fast day-nav queries and heatmap ranges.
+  - RLS `auth.uid() = user_id` for both select and modify.
+- `20260920215806_phase3_diary_touch_search_path.sql` — recreates the `touch_diary_entries_updated_at` function with `set search_path = public` to clear advisor 0011 (mutable search_path). All migrations mirrored under `supabase/migrations/`.
+
+**Advisors:** clean except the standing `auth_leaked_password_protection` warning (dashboard toggle, not blocking).
+
+**Deferred (parked, do not forget):**
+- **Copy Yesterday** — last Phase 2 box. A `copyYesterday()` server action that clones yesterday's blocks shifted +24h, wired to a button on the /today header. Small — pick up when Minh flags it.
+- **Mini-month calendar in sidebar** — was in the v10 mockup with autumn decorations. Split into two pieces: (a) the *functional* mini-month day-picker that navigates the week view — deferrable to a Phase-2 cleanup session; (b) the *decorated* version (leaves + latte + pumpkin + gourd + wheat + berries + acorns bands) — belongs squarely in Phase 9 with the rest of the design polish.
+
+**Next session — Session 12:**
+Wire `/diary/[date]` route. Server component reads `?date=YYYY-MM-DD` (default today), fetches the entry (may be null), renders shell with day nav ← / → arrows. Editor + mood + autosave land in Session 13.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

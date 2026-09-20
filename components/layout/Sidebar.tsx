@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Timer, Music, Plus, LogOut } from "lucide-react";
+import { Calendar, BookOpen, Timer, Music, PawPrint, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 
 const PAGES = [
@@ -38,9 +38,12 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <button className="self-start flex items-center gap-2.5 px-4 py-3 rounded-full bg-bg-elevated border border-[var(--border-strong)] text-ink-primary font-ui text-sm font-medium shadow-card hover:bg-accent-soft hover:border-accent transition">
-        <span className="w-5 h-5 rounded-full bg-accent text-cat-ink flex items-center justify-center font-bold text-sm">
-          <Plus size={14} strokeWidth={2.5} />
+      <button
+        aria-label="Create block"
+        className="self-start flex items-center gap-2.5 px-4 py-3 rounded-full bg-bg-elevated border border-[var(--border-strong)] text-ink-primary font-ui text-sm font-medium shadow-card hover:bg-accent-soft hover:border-accent transition group"
+      >
+        <span className="w-6 h-6 rounded-full bg-accent text-cat-ink flex items-center justify-center transition group-hover:rotate-[-8deg]">
+          <PawPrint size={14} strokeWidth={2.25} />
         </span>
         Create
       </button>

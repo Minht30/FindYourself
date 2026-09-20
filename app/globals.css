@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ FindYourself design tokens ============ */
+/* Sunny Cafe (day) — default */
+:root,
+:root[data-theme="sunny-cafe"] {
+  --bg-base: #FDF8EE;
+  --bg-elevated: #FFFFFF;
+  --bg-overlay: #FFF9EC;
+  --bg-window: #FFE9BE;
+  --bg-alt: #F9F2E3;
+
+  --ink-primary: #2A2018;
+  --ink-secondary: #6B5842;
+  --ink-muted: #957F65;
+
+  --accent: #F5C243;
+  --accent-soft: #FFE082;
+  --accent-strong: #B87700;
+
+  --cat-deep: #A8C4A2;
+  --cat-meeting: #F4B48A;
+  --cat-learn: #C7B8E0;
+  --cat-rest: #A8CDE0;
+  --cat-personal: #EBB0BC;
+  --cat-ink: #2A2018;
+
+  --success: #6E9F5B;
+  --warning: #C88A2A;
+  --danger: #B0553F;
+
+  --border: rgba(42, 32, 24, 0.08);
+  --border-strong: rgba(42, 32, 24, 0.16);
+  --glow: 0 0 24px rgba(245, 194, 67, 0.35);
+  --shadow-card: 0 2px 8px rgba(42, 32, 24, 0.06), 0 8px 24px rgba(42, 32, 24, 0.08);
+
+  --font-display: "Lora", Georgia, serif;
+  --font-body: "Lora", Georgia, serif;
+  --font-ui: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Netcafe After Dark (night) */
+:root[data-theme="netcafe-night"] {
+  --bg-base: #0B0F1A;
+  --bg-elevated: #131826;
+  --bg-overlay: #1B2135;
+  --bg-window: #1E2540;
+  --bg-alt: #10141F;
+
+  --ink-primary: #E8EEFF;
+  --ink-secondary: #9AA5C4;
+  --ink-muted: #6E7898;
+
+  --accent: #F4D03F;
+  --accent-soft: #FFF08A;
+  --accent-strong: #F4D03F;
+
+  --cat-deep: #7DD3FC;
+  --cat-meeting: #FDA4AF;
+  --cat-learn: #C4B5FD;
+  --cat-rest: #6EE7B7;
+  --cat-personal: #F0ABFC;
+  --cat-ink: #0B0F1A;
+
+  --success: #6EE7B7;
+  --warning: #F4D03F;
+  --danger: #FCA5A5;
+
+  --border: rgba(232, 238, 255, 0.10);
+  --border-strong: rgba(232, 238, 255, 0.20);
+  --glow: 0 0 20px rgba(244, 208, 63, 0.5), 0 0 40px rgba(244, 208, 63, 0.2);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(232, 238, 255, 0.04);
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-ui: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Base */
+html {
+  color-scheme: light;
+}
+:root[data-theme="netcafe-night"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  line-height: 1.55;
+  transition: background 350ms ease, color 350ms ease;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Netcafe subtle scanline */
+:root[data-theme="netcafe-night"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(232, 238, 255, 0.015) 0,
+    rgba(232, 238, 255, 0.015) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}

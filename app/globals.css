@@ -36,10 +36,10 @@
   --glow: 0 0 24px rgba(245, 194, 67, 0.35);
   --shadow-card: 0 2px 8px rgba(42, 32, 24, 0.06), 0 8px 24px rgba(42, 32, 24, 0.08);
 
-  --font-display: "Lora", Georgia, serif;
-  --font-body: "Lora", Georgia, serif;
-  --font-ui: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: var(--font-lora), Georgia, serif;
+  --font-body: var(--font-lora), Georgia, serif;
+  --font-ui: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 /* Netcafe After Dark (night) */
@@ -74,10 +74,10 @@
   --glow: 0 0 20px rgba(244, 208, 63, 0.5), 0 0 40px rgba(244, 208, 63, 0.2);
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(232, 238, 255, 0.04);
 
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-body: "Space Grotesk", system-ui, sans-serif;
-  --font-ui: "Space Grotesk", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-ui: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 /* Base */

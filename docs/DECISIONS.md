@@ -362,4 +362,30 @@ Wire `/diary/[date]` route. Server component reads `?date=YYYY-MM-DD` (default t
 
 ---
 
+## 2026-09-20 — Session 11.1: Copy Yesterday — Phase 2 complete
+
+Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this session backfills the last unchecked box before the fresh chat for Phase 3.
+
+**What landed:**
+- `copyDayBlocks(input: CopyDayInput)` server action in `app/(app)/today/actions.ts`. Signature is generic (source date range + offsetMs) rather than hard-coded to "yesterday → today" so it can be reused later for "copy last Monday", "copy this to next week", etc.
+  - Reads with `.gte("starts_at", sourceStart).lt("starts_at", sourceEnd)` — half-open range keeps the endpoints from double-counting.
+  - Clones preserve `title`, `notes`, `category_id`; shifts both `starts_at` and `ends_at` by the offset.
+  - Bulk insert in one `.insert(clones).select("id")` — one round-trip regardless of how many blocks yesterday held.
+  - Returns `{ ok: true, count }` or `{ ok: false, error }`.
+- `components/timetable/CopyYesterdayButton.tsx` — client component. Computes yesterday's local day-range using `new Date(y, m, d - 1)` (respects user's tz), sends a fixed `86_400_000 ms` offset. DST-transition days will be off by 1 h; acceptable for MVP, noted for later.
+  - Status button copy cycles: `Copy yesterday` → `Copying…` → `Copied N` (or `Nothing yesterday` if the source day was empty) → resets after 3 s.
+  - On error: label flips to `Failed — retry`, title attr surfaces the actual message on hover.
+- Placed in the `/today` header nav row, left of the Prev/This week/Next pills, styled with the same accent-tinted pill look for consistency.
+
+**Design decisions worth remembering:**
+- Client sends fully-resolved instants + offset. Alternative (send date-only strings and let server compute in user's tz) requires the server to know the tz from the profile — cheap in principle, but ties every server action to a tz lookup. Client-computed instants keep the action pure.
+- Copy Yesterday ADDS to today; it does not replace existing blocks. If the user already has meetings on today, cloning yesterday's blocks piles on top. That's the expected behavior — deletion is one click on the block editor.
+- No dedup / overlap check. Users can create overlapping blocks by design (a "Deep Work" block behind a "Meetings" block is realistic scheduling). Copy Yesterday preserves that.
+
+**Verified:** `npm run build` green. `/today` route 5.59 → 6.09 kB.
+
+**Phase 2 complete.** Fresh chat for Phase 3 — session should read this file + `docs/ROADMAP.md` (schema already done: `[x] diary_entries table + RLS`), then start with the `/diary/[date]` shell + day nav.
+
+---
+
 <!-- New entries append below with date + session number -->

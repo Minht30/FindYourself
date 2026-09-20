@@ -98,6 +98,59 @@ export async function moveBlock(input: MoveBlockInput): Promise<ActionResult> {
   return { ok: true };
 }
 
+export type CopyDayInput = {
+  // Client-computed range in ISO UTC covering the source day in the user's tz.
+  sourceStart: string;
+  sourceEnd: string;
+  // Milliseconds to shift each cloned block by. Typically +24h to copy
+  // "yesterday" onto "today"; kept generic so we can reuse for other shifts.
+  offsetMs: number;
+};
+
+export async function copyDayBlocks(
+  input: CopyDayInput,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  if (!Number.isFinite(input.offsetMs)) return { ok: false, error: "invalid_offset" };
+  const sourceStartMs = Date.parse(input.sourceStart);
+  const sourceEndMs = Date.parse(input.sourceEnd);
+  if (!Number.isFinite(sourceStartMs) || !Number.isFinite(sourceEndMs)) {
+    return { ok: false, error: "invalid_dates" };
+  }
+
+  const { data: source, error: readErr } = await supabase
+    .from("time_blocks")
+    .select("title, notes, category_id, starts_at, ends_at")
+    .gte("starts_at", input.sourceStart)
+    .lt("starts_at", input.sourceEnd);
+
+  if (readErr) return { ok: false, error: readErr.message };
+  if (!source || source.length === 0) return { ok: true, count: 0 };
+
+  const clones = source.map((b) => ({
+    user_id: user.id,
+    title: b.title,
+    notes: b.notes,
+    category_id: b.category_id,
+    starts_at: new Date(Date.parse(b.starts_at) + input.offsetMs).toISOString(),
+    ends_at: new Date(Date.parse(b.ends_at) + input.offsetMs).toISOString(),
+  }));
+
+  const { data: inserted, error } = await supabase
+    .from("time_blocks")
+    .insert(clones)
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/today");
+  return { ok: true, count: inserted?.length ?? 0 };
+}
+
 export async function deleteBlock(id: string): Promise<ActionResult> {
   const supabase = createClient();
   const {

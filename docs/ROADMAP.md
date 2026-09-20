@@ -45,9 +45,13 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Click-drag to create block — pointer-based drag on any empty slot, 15-min snap, live ghost preview with time label, min 15-min duration; persists via `createBlock` server action. Drag threshold (6px) prevents stray-click blocks; Esc cancels mid-drag.
 - [x] Block editor popover (title, category, notes) — click any block; portal-rendered dialog with title input, category dropdown, notes textarea, save + two-step delete + cancel; close on outside click or Esc; positions to the right of the block, falls back to left, then clamps.
 - [x] Drag body to move + drag top/bottom edges to resize — same-day only, 15-min snap, 6px drag threshold (so a stray click still opens the popover), Esc cancels mid-drag, live optimistic offset with `ring-2 ring-accent/70` while dragging, `moveBlock` server action persists. Cross-day move is a follow-up.
-- [ ] "Copy yesterday"
+- [x] "Copy yesterday" — button in the /today header. Client sends yesterday's day-range (in the user's tz) + 24h offset; `copyDayBlocks` server action reads matching blocks, inserts clones shifted +24h. Reports `Copied N` or `Nothing yesterday`.
 
-**Exit criteria:** author uses the timetable for one real day.
+**Exit criteria:** author uses the timetable for one real day. ✓ **Phase 2 complete.**
+
+**Deferred inside Phase 2** (do before Phase 9 polish):
+- Cross-day drag-move
+- Mini-month calendar in sidebar (functional day-picker)
 
 ---
 

@@ -42,3 +42,6 @@ yarn-error.log*
 
 # scratchpad
 /scratchpad
+
+# playwright MCP scratch output
+/.playwright-mcp

@@ -39,12 +39,12 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 2 — Timetable MVP (est. 2–3 sessions)
 
-- [ ] `time_blocks` table + RLS
-- [ ] Day view with time axis
+- [x] `time_blocks` table + RLS (also `profiles` + `categories`, with RLS on all three)
+- [x] Category picker + seeded categories on signup (trigger inserts 5 defaults on `auth.users` insert)
+- [ ] Week view grid (time axis + 7 day columns) — replace `/today` placeholder
 - [ ] Click-drag to create block
-- [ ] Drag body to move, drag edges to resize
-- [ ] Category picker + seeded categories on signup
-- [ ] Block editor popover
+- [ ] Drag body to move, drag edges to resize (15-min snap)
+- [ ] Block editor popover (title, category, notes)
 - [ ] "Copy yesterday"
 
 **Exit criteria:** author uses the timetable for one real day.

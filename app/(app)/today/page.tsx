@@ -72,8 +72,8 @@ export default async function TodayPage({ searchParams }: Props) {
       />
 
       <p className="text-ink-muted text-xs font-ui">
-        Tip: click-drag on any empty slot in a day column to create a block. Rename & delete land
-        in Session 9.
+        Tip: <strong>click and drag</strong> on any empty slot to create a block. A stray click
+        won&apos;t create anything — press <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> mid-drag to cancel. Rename & delete land in Session 9.
       </p>
     </div>
   );

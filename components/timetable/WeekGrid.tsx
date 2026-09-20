@@ -49,6 +49,9 @@ const CATEGORY_TOKEN: Record<string, string> = {
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const SNAP_MIN = 15;
 const DEFAULT_DURATION_MIN = 30;
+// Pointer must travel this many pixels before we treat pointerdown as an
+// intent to create a block. Prevents accidental blocks from stray clicks.
+const DRAG_THRESHOLD_PX = 6;
 
 function snap(min: number): number {
   return Math.round(min / SNAP_MIN) * SNAP_MIN;
@@ -99,27 +102,34 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
   const hourRows = Array.from({ length: HOURS_IN_VIEW + 1 }, (_, i) => DAY_START_HOUR + i);
 
   function beginDrag(e: React.PointerEvent<HTMLDivElement>, dayIndex: number) {
-    console.log("[WeekGrid] pointerdown", { dayIndex, button: e.button, target: (e.target as HTMLElement).tagName });
     if (e.button !== 0) return;
-    if ((e.target as HTMLElement).closest("[data-block]")) {
-      console.log("[WeekGrid] pointerdown on existing block — ignoring for drag");
-      return;
-    }
+    if ((e.target as HTMLElement).closest("[data-block]")) return;
     e.preventDefault();
 
     const col = e.currentTarget;
     const colRect = col.getBoundingClientRect();
-    const yPx = e.clientY - colRect.top;
+    const originClientY = e.clientY;
+    const yPx = originClientY - colRect.top;
     const startMin = clamp(snap(pxToMinutes(yPx)), DAY_START_HOUR * 60, DAY_END_HOUR * 60 - SNAP_MIN);
     const endMin = Math.min(startMin + DEFAULT_DURATION_MIN, DAY_END_HOUR * 60);
-    console.log("[WeekGrid] drag start", { dayIndex, startMin, endMin, yPx, colTop: colRect.top });
 
+    // Ghost is not shown yet — we're still deciding whether this is a drag or
+    // a stray click. `armed` flips true once the pointer travels past
+    // DRAG_THRESHOLD_PX, and only then do we render the preview + eventually
+    // submit on pointerup.
+    let armed = false;
     dragRef.current = { dayIndex, startMin, endMin, colRect };
-    setDragPreview({ dayIndex, startMin, endMin });
 
     const onMove = (ev: PointerEvent) => {
       const d = dragRef.current;
       if (!d) return;
+
+      if (!armed) {
+        if (Math.abs(ev.clientY - originClientY) < DRAG_THRESHOLD_PX) return;
+        armed = true;
+        setDragPreview({ dayIndex: d.dayIndex, startMin: d.startMin, endMin: d.endMin });
+      }
+
       const yPx = ev.clientY - d.colRect.top;
       const rawMin = pxToMinutes(yPx);
       const snapped = clamp(snap(rawMin), DAY_START_HOUR * 60, DAY_END_HOUR * 60);
@@ -131,15 +141,15 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
     };
 
     const onUp = () => {
-      document.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerup", onUp);
-      document.removeEventListener("pointercancel", onUp);
-
+      cleanup();
       const d = dragRef.current;
       dragRef.current = null;
       setDragPreview(null);
       if (!d) return;
-      console.log("[WeekGrid] drag end", { startMin: d.startMin, endMin: d.endMin, dur: d.endMin - d.startMin });
+
+      // Stray click, not a real drag — do nothing so users can click around
+      // without leaving accidental blocks everywhere.
+      if (!armed) return;
       if (d.endMin - d.startMin < SNAP_MIN) return;
 
       const day = days[d.dayIndex];
@@ -155,9 +165,25 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
       });
     };
 
+    // Esc mid-drag cancels without creating anything.
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== "Escape") return;
+      cleanup();
+      dragRef.current = null;
+      setDragPreview(null);
+    };
+
+    function cleanup() {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+      document.removeEventListener("keydown", onKey);
+    }
+
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
+    document.addEventListener("keydown", onKey);
   }
 
   async function submitBlock(input: {

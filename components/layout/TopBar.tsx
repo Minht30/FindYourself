@@ -28,7 +28,7 @@ export default function TopBar() {
 
   return (
     <header className="sticky top-0 z-50 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] bg-bg-elevated border-b border-[var(--border)] isolate">
-      <button aria-label="Menu" className="w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition">
+      <button aria-label="Menu" className="w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Menu size={20} />
       </button>
 
@@ -44,10 +44,10 @@ export default function TopBar() {
       </button>
 
       <div className="flex gap-1">
-        <button aria-label="Previous" className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition">
+        <button aria-label="Previous" className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
           <ChevronLeft size={16} />
         </button>
-        <button aria-label="Next" className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition">
+        <button aria-label="Next" className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
           <ChevronRight size={16} />
         </button>
       </div>
@@ -56,10 +56,10 @@ export default function TopBar() {
 
       <div className="flex-1" />
 
-      <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition">
+      <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Search size={16} />
       </button>
-      <button aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition">
+      <button aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Settings size={16} />
       </button>
 

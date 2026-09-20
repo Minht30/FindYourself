@@ -305,4 +305,34 @@ Popover editor. Click an existing block → edit title, pick category, optionall
 
 ---
 
+## 2026-09-20 — Session 10: Drag to move + edge-resize existing blocks
+
+**What landed:**
+- `moveBlock` server action in `app/(app)/today/actions.ts` — auth check, ISO validate, 15-min minimum, updates `starts_at` + `ends_at` scoped by id (RLS enforces user), `revalidatePath("/today")`. Kept separate from `updateBlock` (title/category/notes) so time-only edits don't touch content fields.
+- `BlockCard` rewritten with pointer-based drag:
+  - Zone detection on pointerdown: top 8px = resize-start, bottom 8px = resize-end, middle = move.
+  - Same 6-px drag threshold as create-drag — a click that doesn't cross threshold falls through to `onOpen` (popover). So click-to-edit still works even though the card is now a drag surface.
+  - Same-day only for now. Cross-day move needs day-column hit-testing during drag — deferring to a small Session 10.5.
+  - 15-min snap applied to the delta (not the target), so drag origin is respected. Body-move clamps the whole block inside the view window; edge-resize clamps each edge and enforces a 15-min minimum duration.
+  - Optimistic UI: `dragOffset` overrides `baseStartMin/baseEndMin` while dragging + while `moveBlock` is in flight. `useEffect` on `[block.starts_at, block.ends_at]` clears the offset once the RSC refetch delivers the new times — avoids the snap-back flash.
+  - Cursor: `cursor-grab` at rest, `cursor-grabbing` while dragging (via `dragOffset` state), `cursor-ns-resize` on the two edge handles. Small blocks (< 24 px = 3 × handle) skip resize handles so top/bottom don't collide with body.
+  - Esc mid-drag cancels the visual offset without submitting.
+  - `stopPropagation` on the block's pointerdown so the day-column's create-drag doesn't fire at the same time.
+- Tip line under the grid updated: create · edit · move · resize · Esc.
+- Server-side error surfaced via the parent grid's existing errorMsg banner (BlockCard calls `onError`).
+
+**Decisions worth remembering:**
+- The delta approach (snap the pixel delta, add to the original start/end) is more forgiving than snap-the-target — the block moves in exact 15-min increments regardless of where the pointer started inside the block.
+- Two server actions (`updateBlock` for content, `moveBlock` for time) beat one big action with optional fields — clearer intent, smaller payload, easier to reason about which fields the DB touches.
+- Edge handles are just 8-px absolute divs overlaid on the block; cursor styling per handle. Handler stays on the parent card and uses `e.currentTarget.getBoundingClientRect()` for zone math — no separate handlers, no re-composition on resize.
+- Cross-day move deferred: it needs `document.elementFromPoint` (or a pointer-over check against each day-column ref) during pointermove to pick the new day, plus rendering the block outside its parent day column. Worthwhile but distinct scope.
+
+**Verified:** `npm run build` green. `/today` route 5.06 → **5.59 kB**.
+
+**Next session — Session 11:** "Copy yesterday" button. Server action `copyYesterday()` selects all of yesterday's blocks for the user, inserts clones shifted +24h. Placed at the top-right of the grid header. Then Phase 2 is complete and we move to Phase 3 — Diary.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

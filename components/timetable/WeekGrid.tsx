@@ -13,7 +13,7 @@ import {
   minutesToPx,
   weekDays,
 } from "@/lib/dates";
-import { createBlock } from "@/app/(app)/today/actions";
+import { createBlock, moveBlock } from "@/app/(app)/today/actions";
 import BlockPopover from "./BlockPopover";
 
 export type TimeBlockDTO = {
@@ -311,6 +311,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
                   day={day}
                   category={b.category_id ? catById.get(b.category_id) : undefined}
                   onOpen={(anchor) => setEditing({ block: b, anchor })}
+                  onError={setErrorMsg}
                 />
               ))}
 
@@ -385,37 +386,174 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
   );
 }
 
+const EDGE_HANDLE_PX = 8;
+
 function BlockCard({
   block,
   day,
   category,
   onOpen,
+  onError,
 }: {
   block: TimeBlockDTO;
   day: Date;
   category: CategoryDTO | undefined;
   onOpen: (anchor: DOMRect) => void;
+  onError: (msg: string | null) => void;
 }) {
-  const start = new Date(block.starts_at);
-  const end = new Date(block.ends_at);
-  const startMin = minutesFromDayStart(start, day);
-  const endMin = minutesFromDayStart(end, day);
+  const router = useRouter();
+
+  const baseStartMin = minutesFromDayStart(new Date(block.starts_at), day);
+  const baseEndMin = minutesFromDayStart(new Date(block.ends_at), day);
+
+  // Optimistic offset shown while the user is dragging or the server call is
+  // in flight. Cleared once the RSC refetch delivers the new times.
+  const [dragOffset, setDragOffset] = useState<{ startMin: number; endMin: number } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // New authoritative times arrived — drop the optimistic offset.
+    setDragOffset(null);
+  }, [block.starts_at, block.ends_at]);
+
+  const startMin = dragOffset?.startMin ?? baseStartMin;
+  const endMin = dragOffset?.endMin ?? baseEndMin;
   const top = Math.max(minutesToPx(startMin), 0);
   const heightPx = Math.max(minutesToPx(endMin) - minutesToPx(startMin), 20);
 
   const colorVar =
     (category && CATEGORY_TOKEN[category.name]) || category?.color || "var(--cat-deep)";
 
-  const timeLabel = `${fmtClock(start)} – ${fmtClock(end)}`;
+  const timeLabel = `${fmtMin(startMin)} – ${fmtMin(endMin)}`;
+  const canResize = heightPx >= 3 * EDGE_HANDLE_PX;
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.button !== 0) return;
+    if (saving) return;
+    e.stopPropagation();
+    e.preventDefault();
+
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const zone: "top" | "body" | "bottom" = !canResize
+      ? "body"
+      : offsetY < EDGE_HANDLE_PX
+        ? "top"
+        : offsetY > rect.height - EDGE_HANDLE_PX
+          ? "bottom"
+          : "body";
+
+    const originClientY = e.clientY;
+    let armed = false;
+    let pendingStart = baseStartMin;
+    let pendingEnd = baseEndMin;
+
+    const onMove = (ev: PointerEvent) => {
+      const dy = ev.clientY - originClientY;
+      if (!armed) {
+        if (Math.abs(dy) < DRAG_THRESHOLD_PX) return;
+        armed = true;
+      }
+      // 15-min snap on delta
+      const dMin = snap(Math.round((dy / HOUR_HEIGHT_PX) * 60));
+
+      if (zone === "body") {
+        pendingStart = baseStartMin + dMin;
+        pendingEnd = baseEndMin + dMin;
+        // clamp both ends inside view
+        if (pendingStart < DAY_START_HOUR * 60) {
+          const shift = DAY_START_HOUR * 60 - pendingStart;
+          pendingStart += shift;
+          pendingEnd += shift;
+        }
+        if (pendingEnd > DAY_END_HOUR * 60) {
+          const shift = pendingEnd - DAY_END_HOUR * 60;
+          pendingStart -= shift;
+          pendingEnd -= shift;
+        }
+      } else if (zone === "top") {
+        pendingStart = clamp(
+          baseStartMin + dMin,
+          DAY_START_HOUR * 60,
+          baseEndMin - SNAP_MIN,
+        );
+        pendingEnd = baseEndMin;
+      } else {
+        pendingStart = baseStartMin;
+        pendingEnd = clamp(
+          baseEndMin + dMin,
+          baseStartMin + SNAP_MIN,
+          DAY_END_HOUR * 60,
+        );
+      }
+      setDragOffset({ startMin: pendingStart, endMin: pendingEnd });
+    };
+
+    const onUp = () => {
+      cleanup();
+      if (!armed) {
+        setDragOffset(null);
+        onOpen(el.getBoundingClientRect());
+        return;
+      }
+      // No-op if nothing changed
+      if (pendingStart === baseStartMin && pendingEnd === baseEndMin) {
+        setDragOffset(null);
+        return;
+      }
+
+      const startDate = minutesToDate(day, pendingStart);
+      const endDate = minutesToDate(day, pendingEnd);
+
+      setSaving(true);
+      onError(null);
+      moveBlock({
+        id: block.id,
+        startsAt: startDate.toISOString(),
+        endsAt: endDate.toISOString(),
+      })
+        .then((res) => {
+          if (!res.ok) {
+            onError(res.error);
+            setDragOffset(null);
+            return;
+          }
+          router.refresh();
+        })
+        .catch((err) => {
+          onError(err instanceof Error ? err.message : String(err));
+          setDragOffset(null);
+        })
+        .finally(() => setSaving(false));
+    };
+
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== "Escape") return;
+      cleanup();
+      setDragOffset(null);
+    };
+
+    function cleanup() {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+      document.removeEventListener("keydown", onKey);
+    }
+
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+    document.addEventListener("keydown", onKey);
+  }
 
   return (
     <div
       data-block
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpen(e.currentTarget.getBoundingClientRect());
-      }}
-      className="absolute left-1 right-1 rounded-lg px-2 py-1.5 overflow-hidden text-cat-ink shadow-sm border-l-4 cursor-pointer hover:brightness-105 transition"
+      onPointerDown={handlePointerDown}
+      className={`absolute left-1 right-1 rounded-lg overflow-hidden text-cat-ink shadow-sm border-l-4 hover:brightness-105 transition ${
+        dragOffset ? "cursor-grabbing ring-2 ring-accent/70" : "cursor-grab"
+      } ${saving ? "opacity-70" : ""}`}
       style={{
         top: `${top}px`,
         height: `${heightPx}px`,
@@ -424,10 +562,26 @@ function BlockCard({
       }}
       title={`${block.title}\n${timeLabel}`}
     >
-      <div className="text-[12px] font-ui font-semibold leading-tight truncate">
-        {block.title || "(untitled)"}
+      <div className="px-2 py-1.5">
+        <div className="text-[12px] font-ui font-semibold leading-tight truncate">
+          {block.title || "(untitled)"}
+        </div>
+        <div className="text-[10px] font-mono opacity-80 leading-tight">{timeLabel}</div>
       </div>
-      <div className="text-[10px] font-mono opacity-80 leading-tight">{timeLabel}</div>
+      {canResize && (
+        <>
+          <div
+            className="absolute top-0 left-0 right-0 cursor-ns-resize"
+            style={{ height: `${EDGE_HANDLE_PX}px` }}
+            aria-hidden
+          />
+          <div
+            className="absolute bottom-0 left-0 right-0 cursor-ns-resize"
+            style={{ height: `${EDGE_HANDLE_PX}px` }}
+            aria-hidden
+          />
+        </>
+      )}
     </div>
   );
 }

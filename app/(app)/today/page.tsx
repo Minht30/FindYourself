@@ -72,8 +72,8 @@ export default async function TodayPage({ searchParams }: Props) {
       />
 
       <p className="text-ink-muted text-xs font-ui">
-        <strong>Click and drag</strong> on any empty slot to create a block ·{" "}
-        <strong>click a block</strong> to rename, change category, add notes, or delete ·{" "}
+        <strong>Drag empty space</strong> to create · <strong>click a block</strong> to edit ·{" "}
+        <strong>drag the body</strong> to move · <strong>drag top/bottom edges</strong> to resize ·{" "}
         <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> cancels
       </p>
     </div>

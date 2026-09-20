@@ -70,6 +70,34 @@ export async function updateBlock(input: UpdateBlockInput): Promise<ActionResult
   return { ok: true };
 }
 
+export type MoveBlockInput = {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+};
+
+export async function moveBlock(input: MoveBlockInput): Promise<ActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  const startMs = Date.parse(input.startsAt);
+  const endMs = Date.parse(input.endsAt);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return { ok: false, error: "invalid_dates" };
+  if (endMs - startMs < 15 * 60 * 1000) return { ok: false, error: "too_short" };
+
+  const { error } = await supabase
+    .from("time_blocks")
+    .update({ starts_at: input.startsAt, ends_at: input.endsAt })
+    .eq("id", input.id);
+
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/today");
+  return { ok: true };
+}
+
 export async function deleteBlock(id: string): Promise<ActionResult> {
   const supabase = createClient();
   const {

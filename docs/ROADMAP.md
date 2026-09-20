@@ -44,7 +44,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Week view grid (time axis + 7 day columns) — replaced `/today` placeholder; read-only, prev/this/next week nav via `?week=` param, live NOW line, category color mapping that morphs with theme
 - [x] Click-drag to create block — pointer-based drag on any empty slot, 15-min snap, live ghost preview with time label, min 15-min duration; persists via `createBlock` server action. Drag threshold (6px) prevents stray-click blocks; Esc cancels mid-drag.
 - [x] Block editor popover (title, category, notes) — click any block; portal-rendered dialog with title input, category dropdown, notes textarea, save + two-step delete + cancel; close on outside click or Esc; positions to the right of the block, falls back to left, then clamps.
-- [ ] Drag body to move, drag edges to resize (15-min snap)
+- [x] Drag body to move + drag top/bottom edges to resize — same-day only, 15-min snap, 6px drag threshold (so a stray click still opens the popover), Esc cancels mid-drag, live optimistic offset with `ring-2 ring-accent/70` while dragging, `moveBlock` server action persists. Cross-day move is a follow-up.
 - [ ] "Copy yesterday"
 
 **Exit criteria:** author uses the timetable for one real day.

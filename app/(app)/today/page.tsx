@@ -28,7 +28,7 @@ export default async function TodayPage({ searchParams }: Props) {
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
-      .select("id, title, starts_at, ends_at, category_id")
+      .select("id, title, starts_at, ends_at, category_id, notes")
       .gte("starts_at", weekStart.toISOString())
       .lt("starts_at", weekEnd.toISOString())
       .order("starts_at"),
@@ -72,8 +72,9 @@ export default async function TodayPage({ searchParams }: Props) {
       />
 
       <p className="text-ink-muted text-xs font-ui">
-        Tip: <strong>click and drag</strong> on any empty slot to create a block. A stray click
-        won&apos;t create anything — press <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> mid-drag to cancel. Rename & delete land in Session 9.
+        <strong>Click and drag</strong> on any empty slot to create a block ·{" "}
+        <strong>click a block</strong> to rename, change category, add notes, or delete ·{" "}
+        <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> cancels
       </p>
     </div>
   );

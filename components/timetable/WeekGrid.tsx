@@ -14,6 +14,7 @@ import {
   weekDays,
 } from "@/lib/dates";
 import { createBlock } from "@/app/(app)/today/actions";
+import BlockPopover from "./BlockPopover";
 
 export type TimeBlockDTO = {
   id: string;
@@ -21,6 +22,7 @@ export type TimeBlockDTO = {
   starts_at: string; // ISO
   ends_at: string;   // ISO
   category_id: string | null;
+  notes?: string | null;
 };
 
 export type CategoryDTO = {
@@ -85,6 +87,9 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Popover-editor state
+  const [editing, setEditing] = useState<{ block: TimeBlockDTO; anchor: DOMRect } | null>(null);
 
   // Drag-to-create state. Preview is the ghost the user sees; ref tracks the
   // authoritative values across pointermove closures.
@@ -305,6 +310,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
                   block={b}
                   day={day}
                   category={b.category_id ? catById.get(b.category_id) : undefined}
+                  onOpen={(anchor) => setEditing({ block: b, anchor })}
                 />
               ))}
 
@@ -362,6 +368,19 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
           </button>
         </div>
       )}
+
+      {editing && (
+        <BlockPopover
+          block={editing.block}
+          anchor={editing.anchor}
+          categories={categories}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -370,10 +389,12 @@ function BlockCard({
   block,
   day,
   category,
+  onOpen,
 }: {
   block: TimeBlockDTO;
   day: Date;
   category: CategoryDTO | undefined;
+  onOpen: (anchor: DOMRect) => void;
 }) {
   const start = new Date(block.starts_at);
   const end = new Date(block.ends_at);
@@ -390,7 +411,11 @@ function BlockCard({
   return (
     <div
       data-block
-      className="absolute left-1 right-1 rounded-lg px-2 py-1.5 overflow-hidden text-cat-ink shadow-sm border-l-4 cursor-pointer"
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen(e.currentTarget.getBoundingClientRect());
+      }}
+      className="absolute left-1 right-1 rounded-lg px-2 py-1.5 overflow-hidden text-cat-ink shadow-sm border-l-4 cursor-pointer hover:brightness-105 transition"
       style={{
         top: `${top}px`,
         height: `${heightPx}px`,

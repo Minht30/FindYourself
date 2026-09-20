@@ -71,12 +71,10 @@ export default async function TodayPage({ searchParams }: Props) {
         categories={(categories ?? []) as CategoryDTO[]}
       />
 
-      {(!blocks || blocks.length === 0) && (
-        <p className="text-ink-muted text-sm font-ui">
-          No blocks yet this week. Click-drag to create will land next session — for now the grid
-          is read-only.
-        </p>
-      )}
+      <p className="text-ink-muted text-xs font-ui">
+        Tip: click-drag on any empty slot in a day column to create a block. Rename & delete land
+        in Session 9.
+      </p>
     </div>
   );
 }

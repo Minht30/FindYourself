@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   DAY_END_HOUR,
@@ -80,7 +80,8 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
   const catById = new Map(categories.map((c) => [c.id, c]));
 
   const router = useRouter();
-  const [pending, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Drag-to-create state. Preview is the ghost the user sees; ref tracks the
   // authoritative values across pointermove closures.
@@ -98,8 +99,12 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
   const hourRows = Array.from({ length: HOURS_IN_VIEW + 1 }, (_, i) => DAY_START_HOUR + i);
 
   function beginDrag(e: React.PointerEvent<HTMLDivElement>, dayIndex: number) {
+    console.log("[WeekGrid] pointerdown", { dayIndex, button: e.button, target: (e.target as HTMLElement).tagName });
     if (e.button !== 0) return;
-    if ((e.target as HTMLElement).closest("[data-block]")) return;
+    if ((e.target as HTMLElement).closest("[data-block]")) {
+      console.log("[WeekGrid] pointerdown on existing block — ignoring for drag");
+      return;
+    }
     e.preventDefault();
 
     const col = e.currentTarget;
@@ -107,6 +112,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
     const yPx = e.clientY - colRect.top;
     const startMin = clamp(snap(pxToMinutes(yPx)), DAY_START_HOUR * 60, DAY_END_HOUR * 60 - SNAP_MIN);
     const endMin = Math.min(startMin + DEFAULT_DURATION_MIN, DAY_END_HOUR * 60);
+    console.log("[WeekGrid] drag start", { dayIndex, startMin, endMin, yPx, colTop: colRect.top });
 
     dragRef.current = { dayIndex, startMin, endMin, colRect };
     setDragPreview({ dayIndex, startMin, endMin });
@@ -133,6 +139,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
       dragRef.current = null;
       setDragPreview(null);
       if (!d) return;
+      console.log("[WeekGrid] drag end", { startMin: d.startMin, endMin: d.endMin, dur: d.endMin - d.startMin });
       if (d.endMin - d.startMin < SNAP_MIN) return;
 
       const day = days[d.dayIndex];
@@ -140,24 +147,43 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
       const endDate = minutesToDate(day, d.endMin);
       const defaultCategoryId = categories[0]?.id ?? null;
 
-      startTransition(async () => {
-        const res = await createBlock({
-          startsAt: startDate.toISOString(),
-          endsAt: endDate.toISOString(),
-          categoryId: defaultCategoryId,
-          title: "New block",
-        });
-        if ("error" in res) {
-          console.error("createBlock failed:", res.error);
-          return;
-        }
-        router.refresh();
+      void submitBlock({
+        startsAt: startDate.toISOString(),
+        endsAt: endDate.toISOString(),
+        categoryId: defaultCategoryId,
+        title: "New block",
       });
     };
 
     document.addEventListener("pointermove", onMove);
     document.addEventListener("pointerup", onUp);
     document.addEventListener("pointercancel", onUp);
+  }
+
+  async function submitBlock(input: {
+    startsAt: string;
+    endsAt: string;
+    categoryId: string | null;
+    title: string;
+  }) {
+    setSaving(true);
+    setErrorMsg(null);
+    console.log("[WeekGrid] submitBlock →", input);
+    try {
+      const res = await createBlock(input);
+      console.log("[WeekGrid] submitBlock ←", res);
+      if ("error" in res) {
+        setErrorMsg(res.error);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[WeekGrid] submitBlock threw:", err);
+      setErrorMsg(msg);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -290,9 +316,24 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
         })}
       </div>
 
-      {pending && (
+      {saving && (
         <div className="px-4 py-2 text-[11px] font-mono text-ink-muted bg-bg-alt border-t border-[var(--border)]">
           Saving block...
+        </div>
+      )}
+      {errorMsg && (
+        <div className="px-4 py-2 text-[12px] font-ui text-danger bg-bg-alt border-t border-[var(--border)] flex items-center justify-between gap-4">
+          <span>
+            <strong className="font-mono uppercase text-[10px] tracking-wider mr-2">Error</strong>
+            {errorMsg}
+          </span>
+          <button
+            onClick={() => setErrorMsg(null)}
+            className="text-ink-muted hover:text-ink-primary text-[11px] font-ui"
+            aria-label="Dismiss error"
+          >
+            Dismiss
+          </button>
         </div>
       )}
     </div>

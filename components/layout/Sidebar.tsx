@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Timer, Music, Plus } from "lucide-react";
+import { Calendar, BookOpen, Timer, Music, Plus, LogOut } from "lucide-react";
+import { signOut } from "@/app/(auth)/actions";
 
 const PAGES = [
   { href: "/today", label: "Timetable", Icon: Calendar },
@@ -61,6 +62,17 @@ export default function Sidebar() {
           </div>
         ))}
       </div>
+
+      {/* Sign out — pushed to the bottom */}
+      <form action={signOut} className="mt-auto pt-4 border-t border-[var(--border)]">
+        <button
+          type="submit"
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full font-ui text-sm text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
+      </form>
     </aside>
   );
 }

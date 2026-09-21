@@ -388,4 +388,24 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-21 — Session 11.2: Paw moved to drag ghost + TopBar arrows wired
+
+**Minh clarified two things at once:**
+1. The paw belonged in the *drag-to-create* moment (the ghost you draw with), not the sidebar. Restore the sidebar Create button to a plain `+`, put a PawPrint icon in the ghost.
+2. The `< >` arrows in the TopBar were placeholder pills that did nothing on click.
+
+**What landed:**
+- **Sidebar** — reverted `PawPrint` to `Plus` in the Create button; button geometry back to the original `w-5 h-5` yellow disk with a bold `+`.
+- **WeekGrid drag ghost** — inline `<PawPrint size={11}>` next to the time-range label inside a rounded pill on the ghost. Added a `shadow-[0_0_0_4px_var(--accent-soft)]` outer glow so the ghost reads as "here's where the block will land" rather than a plain dashed rectangle.
+- **TopBar arrows** — `< >` now use `useRouter` + `usePathname` + `useSearchParams` to compute `?week=` deltas. `Today` button navigates to `/today` (drops any `?week=`). Because `useSearchParams` triggers dynamic rendering, TopBar is wrapped in `<Suspense>` inside `app/(app)/layout.tsx` — `/chill`, `/diary`, `/focus` stay statically rendered.
+- The chevrons remain functional-shaped even on non-timetable routes; they push to `/today?week=...` for now, so a user isn't stuck with inert controls before diary/focus have their own prev/next.
+
+**Design skill scope note:** `/design-taste-frontend` explicitly excludes dense product UI (Section 13). Applied only its universal quality rules (color/shape consistency, motion motivated, em-dash ban) to this product surface. Full landing-page polish deferred to Phase 9 as before.
+
+**Verified:** `npm run build` green. `/today` route 6.09 → **6.62 kB**.
+
+**Still deferred:** cross-day drag-move, functional mini-month day-picker in the sidebar.
+
+---
+
 <!-- New entries append below with date + session number -->

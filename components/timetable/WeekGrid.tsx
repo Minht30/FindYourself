@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { PawPrint } from "lucide-react";
 import {
   DAY_END_HOUR,
   DAY_START_HOUR,
@@ -315,16 +316,17 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
                 />
               ))}
 
-              {/* drag ghost */}
+              {/* drag ghost — paw prints where you're drawing */}
               {preview && (
                 <div
-                  className="absolute left-1 right-1 rounded-lg border-2 border-dashed border-accent bg-accent-soft/60 pointer-events-none flex items-center justify-center z-10"
+                  className="absolute left-1 right-1 rounded-lg border-2 border-dashed border-accent bg-accent-soft/70 pointer-events-none flex items-center justify-center z-10 shadow-[0_0_0_4px_var(--accent-soft)]"
                   style={{
                     top: `${minutesToPx(preview.startMin)}px`,
                     height: `${minutesToPx(preview.endMin) - minutesToPx(preview.startMin)}px`,
                   }}
                 >
-                  <span className="text-[10px] font-mono font-semibold text-accent-strong px-1.5 py-0.5 rounded bg-bg-elevated/80">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono font-semibold text-accent-strong px-2 py-1 rounded-full bg-bg-elevated/90 border border-accent/40">
+                    <PawPrint size={11} strokeWidth={2.25} aria-hidden />
                     {fmtRange(preview.startMin, preview.endMin)}
                   </span>
                 </div>

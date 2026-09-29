@@ -1,8 +1,10 @@
-export default function DiaryPage() {
-  return (
-    <div className="max-w-3xl">
-      <h1 className="font-display text-3xl mb-4">Diary</h1>
-      <p className="text-ink-secondary">Coming in Phase 3.</p>
-    </div>
-  );
+import { redirect } from "next/navigation";
+import { getUserToday } from "@/lib/today";
+
+// /diary always lands on the user's today. Dynamic because "today" depends on
+// the request's timezone cookie and the current clock.
+export const dynamic = "force-dynamic";
+
+export default function DiaryIndexPage() {
+  redirect(`/diary/${getUserToday()}`);
 }

@@ -83,3 +83,48 @@ export function toISODateOnly(d: Date): string {
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
+
+// ── Day-level helpers (diary) ────────────────────────────────────────────────
+// Diary days are calendar dates, not instants, so they travel as plain
+// "YYYY-MM-DD" strings. All arithmetic below is done in UTC on purpose: a
+// date string has no timezone, and UTC math never hits a DST gap.
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Strict YYYY-MM-DD check. Rejects shapes like "2026-9-1" and impossible
+// dates like "2026-02-31" (which Date would silently roll into March).
+export function isValidISODate(s: string | undefined | null): s is string {
+  if (!s || !ISO_DATE_RE.test(s)) return false;
+  const [y, m, d] = s.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+
+export function shiftISODate(iso: string, days: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+// Today's calendar date in an IANA timezone. Falls back to UTC if the zone
+// name is unknown to the runtime.
+export function todayInTimeZone(timeZone: string, now: Date = new Date()): string {
+  try {
+    // en-CA formats as YYYY-MM-DD.
+    return new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
+  } catch {
+    return now.toISOString().slice(0, 10);
+  }
+}
+
+// "Tuesday, September 29, 2026"
+export function formatLongDate(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, m - 1, d)));
+}

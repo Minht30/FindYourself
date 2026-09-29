@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu, ChevronLeft, ChevronRight, Search, Settings } from "lucide-react";
-import { addDays, parseWeekParam, toISODateOnly } from "@/lib/dates";
+import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } from "@/lib/dates";
 
 const VIEWS = ["Day", "Week", "Month"] as const;
 type View = (typeof VIEWS)[number];
@@ -16,19 +16,32 @@ export default function TopBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // The topbar arrows navigate weeks when we're on /today. Other pages will
-  // wire the same buttons to their own concept of "prev/next" (a day for
-  // /diary, a session for /focus). Until those exist, the arrows short-circuit
-  // to /today so the user is never staring at inert controls.
+  // The topbar arrows step weeks on /today and days on /diary. Pages without
+  // their own prev/next yet (/focus, /chill) short-circuit to /today so the
+  // user is never staring at inert controls.
   const isTimetable = pathname?.startsWith("/today");
+  const isDiary = pathname === "/diary" || pathname?.startsWith("/diary/");
 
   function goWeek(deltaDays: number) {
     const current = parseWeekParam(searchParams?.get("week") ?? undefined);
     const target = toISODateOnly(addDays(current, deltaDays));
     router.push(`/today?week=${target}`);
   }
+  function goDay(delta: number) {
+    const fromPath = pathname?.split("/")[2];
+    const current = isValidISODate(fromPath) ? fromPath : toISODateOnly(new Date());
+    router.push(`/diary/${shiftISODate(current, delta)}`);
+  }
+  function goPrev() {
+    if (isDiary) goDay(-1);
+    else goWeek(-7);
+  }
+  function goNext() {
+    if (isDiary) goDay(1);
+    else goWeek(7);
+  }
   function goToday() {
-    router.push("/today");
+    router.push(isDiary ? "/diary" : "/today");
   }
 
   useEffect(() => {
@@ -69,15 +82,15 @@ export default function TopBar() {
 
       <div className="flex gap-1">
         <button
-          onClick={() => goWeek(-7)}
-          aria-label={isTimetable ? "Previous week" : "Previous"}
+          onClick={goPrev}
+          aria-label={isTimetable ? "Previous week" : isDiary ? "Previous day" : "Previous"}
           className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
         >
           <ChevronLeft size={16} />
         </button>
         <button
-          onClick={() => goWeek(7)}
-          aria-label={isTimetable ? "Next week" : "Next"}
+          onClick={goNext}
+          aria-label={isTimetable ? "Next week" : isDiary ? "Next day" : "Next"}
           className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
         >
           <ChevronRight size={16} />

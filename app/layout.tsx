@@ -52,6 +52,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `(function(){try{var t=localStorage.getItem('fy-theme');if(t){document.documentElement.setAttribute('data-theme',t);}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','netcafe-night');}}catch(e){}})();`,
           }}
         />
+        {/* Tell the server the browser's timezone so it can resolve "today" (see lib/today.ts) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var z=Intl.DateTimeFormat().resolvedOptions().timeZone;if(z){document.cookie='fy-tz='+encodeURIComponent(z)+';path=/;max-age=31536000;samesite=lax';}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>

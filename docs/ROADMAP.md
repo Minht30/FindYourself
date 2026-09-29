@@ -58,10 +58,10 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 3 — Diary (est. 1–2 sessions)
 
 - [x] `diary_entries` table + RLS — mood enum (radiant/calm/focused/tired/low/stormy), content_json + content_text, unique (user_id, entry_date), updated_at auto-touch trigger with pinned search_path
+- [x] `/diary/[date]` route shell + day nav ← / → — `/diary` redirects to the user's today (tz from `fy-tz` cookie); `/diary/YYYY-MM-DD` fetches the entry (may be null), Prev / Today / Next pills (Next stops at today), TopBar arrows step days on /diary; friendly empty state, existing entry rendered as plaintext
 - [ ] Tiptap editor
 - [ ] Mood picker
 - [ ] Anchored prompts
-- [ ] Day nav ← / →
 - [ ] Autosave debounce 3s
 - [ ] Heatmap of past entries
 

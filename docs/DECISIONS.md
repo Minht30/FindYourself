@@ -408,4 +408,32 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 12: `/diary/[date]` shell + day nav (Phase 3 begins)
+
+**What landed:**
+- `app/(app)/diary/page.tsx` — now just `redirect("/diary/<today>")`. `force-dynamic` because "today" depends on the clock and the request's timezone cookie.
+- `app/(app)/diary/[date]/page.tsx` — async server component.
+  - Validates `params.date` strictly (`isValidISODate`: shape + round-trip, so `2026-02-31` is rejected rather than rolling into March). Invalid → redirect to `/diary`.
+  - Fetches `id, entry_date, mood, content_text, updated_at` with `.eq("user_id", user.id).eq("entry_date", date).maybeSingle()`. RLS already scopes by user; the explicit `user_id` filter matches the `(user_id, entry_date)` unique index and documents intent.
+  - Header: `Diary` + long date (`Tuesday, September 29, 2026`) + Prev / Today / Next pills (same pill style as the timetable header). `Today` renders as an inert pill with `aria-current="date"` when you're on today; `Next` is disabled at today (no writing ahead).
+  - Body card: existing entry → mood chip + `content_text` with `whitespace-pre-wrap` + "Last edited" in the user's tz. No entry → `EmptyDay` with three variants (today / past / future). Query error → quiet `role="alert"` line.
+- **TopBar arrows** now step ±1 day on `/diary/*` (and `Today` goes to `/diary`), ±1 week on `/today`, as the Session 11.2 comment anticipated. `aria-label`s read "Previous day" / "Next day" on the diary.
+- **Timezone plumbing** — new `lib/today.ts` (`getUserTimeZone`, `getUserToday`). The root layout's head gets a second tiny inline script that writes `Intl.DateTimeFormat().resolvedOptions().timeZone` into a `fy-tz` cookie (1 year, `samesite=lax`). Server reads it, validates it against `Intl` (the cookie is user-controlled), falls back to UTC.
+- `lib/dates.ts` gains date-string helpers: `isValidISODate`, `shiftISODate`, `todayInTimeZone`, `formatLongDate`. All arithmetic is done in UTC on `YYYY-MM-DD` strings, so there are no DST gaps.
+
+**Decisions worth remembering:**
+- **Diary days are strings, not instants.** `entry_date` is a Postgres `date`; keeping it as `YYYY-MM-DD` end-to-end avoids the classic "server in UTC, user in Toronto, entry lands on the wrong day" bug. `YYYY-MM-DD` also compares correctly as a plain string (`date > today`).
+- **Cookie over `profiles.timezone`.** The profile column exists but defaults to `'UTC'` and nothing sets it yet. The cookie tracks the device you're actually on (travel just works). If a settings page ever lets users pin a zone, the resolution order becomes profile → cookie → UTC.
+- The very first request, before the cookie exists, resolves "today" in UTC. It's one request at most, and the next navigation corrects it.
+- `Link` (client nav) for the day pills rather than `<a>` like `/today` uses. Day-stepping is a rapid, repeated action, and a soft navigation keeps the shell mounted.
+- Future dates render (with a "hasn't happened yet" empty state) instead of redirecting: a bookmarked or typed URL shouldn't bounce.
+
+**Verified:** `npm run typecheck` + `npm run build` green. `/diary` → ƒ 146 B, `/diary/[date]` → ƒ 186 B. Date helpers exercised in Node (invalid Feb 31, leap day, year/month rollovers, `Asia/Ho_Chi_Minh` vs `America/Los_Angeles` across UTC midnight, bogus zone → UTC). In the browser pane, unauthenticated `/diary` → `/login?next=/diary` and the `fy-tz` cookie is set (`America/Toronto`). The authenticated render was **not** eyeballed this session (no signed-in session in the preview pane). Check `/diary` on prod after deploy.
+
+**Next session — Session 13:** Tiptap editor + autosave (3 s debounce). Upsert `diary_entries` via server action with `onConflict: "user_id,entry_date"`, writing both `content_json` and the `content_text` extract. Replace the plaintext render in `[date]/page.tsx` with the editor, seeded from `content_json`.
+
+**Blocked on:** nothing. (Side note: the Supabase MCP connected in this session points at an empty project, not FindYourself's. Worth re-pointing before any schema work.)
+
+---
+
 <!-- New entries append below with date + session number -->

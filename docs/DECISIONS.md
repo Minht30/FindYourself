@@ -432,7 +432,46 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 **Next session — Session 13:** Tiptap editor + autosave (3 s debounce). Upsert `diary_entries` via server action with `onConflict: "user_id,entry_date"`, writing both `content_json` and the `content_text` extract. Replace the plaintext render in `[date]/page.tsx` with the editor, seeded from `content_json`.
 
-**Blocked on:** nothing. (Side note: the Supabase MCP connected in this session points at an empty project, not FindYourself's. Worth re-pointing before any schema work.)
+**Blocked on:** nothing. (Side note: the Supabase MCP returned an empty project this session. Re-checked in Session 13: it was a stale connection; the MCP points at the right project.)
+
+---
+
+## 2026-09-29 — Session 13: Tiptap editor + 3 s autosave
+
+**What landed:**
+- Deps: `@tiptap/react`, `@tiptap/pm`, `@tiptap/starter-kit`, `@tiptap/extensions` (all `^3.31.3`, React 18 peer OK).
+- `app/(app)/diary/actions.ts`: `saveDiaryEntry({ date, contentJson, contentText })`.
+  - Auth check; strict date; refuses future dates (against the `fy-tz` today); `contentJson` must be a Tiptap `doc`; 512 KB JSON cap; `content_text` sliced to 100k chars.
+  - `upsert(..., { onConflict: "user_id,entry_date" })` lists only `user_id, entry_date, content_json, content_text`, so a mood written by the upcoming picker is never clobbered by an autosave.
+  - Returns `updated_at` for the "Saved 9:41 PM" label; `revalidatePath("/diary/<date>")`.
+- `components/diary/DiaryEditor.tsx` (client):
+  - `useEditor` with `immediatelyRender: false` (SSR-safe in Next 14) and `shouldRerenderOnTransaction: false` (no React re-render per keystroke). StarterKit with headings limited to h2/h3 (the page owns h1), Placeholder varies by today vs. past.
+  - Autosave: `onUpdate` marks dirty + restarts a 3 s timer. `flush()` **snapshots the doc synchronously**, then appends the request to a promise chain so saves land strictly in order. A version counter means only the newest save may announce "Saved".
+  - Flush triggers: debounce, unmount (stepping to another day / leaving the route), `visibilitychange → hidden`, Ctrl/Cmd+S. `beforeunload` shows the browser's leave prompt only while there are unsaved words.
+  - Status line (`aria-live="polite"`): Unsaved changes / Saving… / Saved h:mm / Last saved h:mm / Couldn't save + Retry. Footer hints the markdown shortcuts (`#`, `-`, `>`).
+  - Placeholder `div` of the same min-height renders until the editor mounts, so the card doesn't jump.
+- `app/(app)/diary/[date]/page.tsx`: now also selects `content_json`; today + past days render the editor keyed by `date`; future days keep the empty state (now `FutureDay`). `toEditorContent` lifts plaintext into paragraphs if a row has text but no doc.
+- `app/globals.css`: `.diary-prose` scale (Lora body, h2/h3, lists, quote with accent rule, code, hr, placeholder), all from theme tokens, so Sunny Cafe and Netcafe both work.
+
+**Decisions worth remembering:**
+- **Snapshot-then-chain beats "skip if in flight".** Dropping a save while one is in flight loses the unmount flush (the component is gone by the time the first request returns). Snapshotting synchronously and chaining means every flush gets written, in order, even after unmount.
+- **`revalidatePath` is load-bearing, not cosmetic.** Next 14 keeps dynamic pages in the client router cache for 30 s. Without the purge, Prev → Next within 30 s would seed the editor with the pre-edit doc, and the next autosave would overwrite newer words with older ones. Cost: one RSC re-render per save, which is fine at a 3 s debounce. The editor ignores the refreshed `initialContent` prop (content is only read at creation), so the cursor never jumps.
+- No toolbar yet: markdown input rules cover headings/lists/quotes. A bubble menu can come with Phase 9 polish if needed.
+- A row is only created on the first edit. Opening a day never writes, so the heatmap won't count visited-but-empty days.
+- **Bundle:** `/diary/[date]` went 186 B → **129 kB** (ProseMirror). Noted for the Phase 9 Lighthouse pass. `next/dynamic` code-splitting of the editor is the first lever.
+
+**Verified:**
+- `npm run typecheck` + `npm run build` green.
+- Editor mounted on a throwaway unprotected route in the preview pane (deleted before commit):
+  - typing works; `## ` + space becomes `<h2>` (Lora, 23.2px); clearing the doc shows the placeholder via `::before`.
+  - The status goes Unsaved changes → (3 s) → Couldn't save + Retry (expected: no session → `unauthenticated`). Ctrl+S flushes immediately.
+  - No console or server errors.
+- Upsert semantics checked in Supabase as the `authenticated` role with the real user's JWT claims, inside `begin … rollback`: two upserts on the same `(user_id, entry_date)` produce 1 row, a mood set in between survives, and `updated_at` is touched. Rolled back; `diary_entries` still has 0 rows.
+- **Not eyeballed:** the signed-in `/diary/<date>` page itself. First real entry on prod is the acceptance test.
+
+**Next session — Session 14:** mood picker. Six moods from the enum as a pill row above the editor; `setDiaryMood(date, mood | null)` server action upserting **only** `mood` (so it composes with autosave). Click the active mood again to clear it.
+
+**Blocked on:** nothing.
 
 ---
 

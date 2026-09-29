@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { NotebookPen } from "lucide-react";
+import type { JSONContent } from "@tiptap/react";
 import { createClient } from "@/lib/supabase/server";
+import DiaryEditor from "@/components/diary/DiaryEditor";
 import { getUserTimeZone } from "@/lib/today";
 import { formatLongDate, isValidISODate, shiftISODate, todayInTimeZone } from "@/lib/dates";
 
@@ -14,6 +16,7 @@ type DiaryEntryDTO = {
   id: string;
   entry_date: string;
   mood: string | null;
+  content_json: JSONContent | Record<string, never>;
   content_text: string;
   updated_at: string;
 };
@@ -35,7 +38,7 @@ export default async function DiaryDayPage({ params }: Props) {
 
   const { data: entry, error } = await supabase
     .from("diary_entries")
-    .select("id, entry_date, mood, content_text, updated_at")
+    .select("id, entry_date, mood, content_json, content_text, updated_at")
     .eq("user_id", user.id)
     .eq("entry_date", date)
     .maybeSingle<DiaryEntryDTO>();
@@ -83,55 +86,60 @@ export default async function DiaryDayPage({ params }: Props) {
           <p role="alert" className="font-ui text-sm text-ink-secondary">
             Couldn&apos;t load this day&apos;s entry. Try refreshing.
           </p>
-        ) : entry ? (
-          <article className="space-y-4">
-            {entry.mood && (
+        ) : isFuture ? (
+          <FutureDay />
+        ) : (
+          <div className="space-y-4">
+            {entry?.mood && (
               <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-cat-ink font-ui text-xs font-medium capitalize">
                 {entry.mood}
               </span>
             )}
-            {entry.content_text.trim() ? (
-              <p className="font-body text-ink-primary leading-relaxed whitespace-pre-wrap">
-                {entry.content_text}
-              </p>
-            ) : (
-              <p className="font-body text-ink-muted italic">This entry has a mood but no words yet.</p>
-            )}
-            <p className="font-mono text-xs text-ink-muted">
-              Last edited{" "}
-              <time dateTime={entry.updated_at}>
-                {new Intl.DateTimeFormat("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  timeZone,
-                }).format(new Date(entry.updated_at))}
-              </time>
-            </p>
-          </article>
-        ) : (
-          <EmptyDay isToday={isToday} isFuture={isFuture} />
+            <DiaryEditor
+              key={date}
+              date={date}
+              initialContent={toEditorContent(entry)}
+              placeholder={
+                isToday
+                  ? "How did today feel? Start anywhere."
+                  : "What do you remember about this day?"
+              }
+              timeZone={timeZone}
+              initialUpdatedAt={entry?.updated_at ?? null}
+            />
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function EmptyDay({ isToday, isFuture }: { isToday: boolean; isFuture: boolean }) {
-  const [title, body] = isFuture
-    ? ["This page is still blank.", "This day hasn't happened yet. Come back when it has a story."]
-    : isToday
-      ? ["A fresh page for today.", "How did today feel? Pour a warm drink; the page will be here when you're ready."]
-      : ["Nothing written this day.", "Some days pass quietly, and that's okay."];
+// Tiptap doc if we have one; otherwise lift any plaintext into paragraphs so
+// a row written without JSON (e.g. by hand in SQL) still opens editable.
+function toEditorContent(entry: DiaryEntryDTO | null): JSONContent | null {
+  if (!entry) return null;
+  if ((entry.content_json as JSONContent).type === "doc") return entry.content_json as JSONContent;
+  const text = entry.content_text.trim();
+  if (!text) return null;
+  return {
+    type: "doc",
+    content: text.split(/\n{2,}/).map((para) => ({
+      type: "paragraph",
+      content: [{ type: "text", text: para }],
+    })),
+  };
+}
 
+function FutureDay() {
   return (
     <div className="h-full min-h-[256px] flex flex-col items-center justify-center text-center gap-3">
       <div className="w-12 h-12 rounded-full bg-accent-soft text-cat-ink flex items-center justify-center">
         <NotebookPen size={22} aria-hidden />
       </div>
-      <h2 className="font-display text-xl text-ink-primary">{title}</h2>
-      <p className="font-ui text-sm text-ink-secondary max-w-sm">{body}</p>
+      <h2 className="font-display text-xl text-ink-primary">This page is still blank.</h2>
+      <p className="font-ui text-sm text-ink-secondary max-w-sm">
+        This day hasn&apos;t happened yet. Come back when it has a story.
+      </p>
     </div>
   );
 }

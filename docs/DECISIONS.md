@@ -506,4 +506,32 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 15: Anchored prompts
+
+**Spec correction first:** Session 14's "next" note suggested new prompts ("One small win", "What drained me"…). The PRD (§6.3) and US-3.1 already pin them down: **two anchored prompts, always visible above the editor — "What am I thinking today?" and "What am I trying to do?" — click inserts a heading at the cursor.** Built to spec.
+
+**What landed:**
+- `components/diary/PromptChips.tsx` (the `PromptChip` from DESIGN_SYSTEM §components). `DIARY_PROMPTS` constant, rendered inside `DiaryEditor` above a dashed divider, so the prompts share the editor instance without lifting state.
+  - Typography per DESIGN_SYSTEM type scale: "diary prompt" = **2xl / 1.75rem**, Lora italic, -0.01em tracking. Hover/focus draws an accent underline; a small mono hint reads `+ add` or `↓ jump`.
+  - **Click inserts** `h2(prompt) + empty paragraph` at the cursor via `insertContent`, so the caret lands ready to write under the heading.
+  - **Already present → jump, not duplicate.** `findSection` scans top-level nodes for an exact-text heading and returns its span (to the next heading or doc end); clicking moves the caret to the end of that section with `TextSelection.near(…, -1)` and scrolls it into view. The `aria-label` flips between `Insert heading: …` and `Jump to: …`.
+  - `useEditorState` with a selector that returns a small `"true,false"` string, so the prompt row re-renders only when a prompt heading appears or disappears, not per keystroke (the editor itself runs with `shouldRerenderOnTransaction: false`).
+- No schema change, no new server action: the headings are just content and ride the existing autosave.
+
+**Bug caught in verification (and the fix worth remembering):**
+- First pass: after clicking a prompt, the next keystrokes landed at the **old** caret (end of the first paragraph), and the second prompt inserted *above* the first. Cause: mousedown on the button blurs the editor; Tiptap's `focus()` restores DOM focus in a `requestAnimationFrame`, so input in that window goes to the stale DOM caret.
+- Fix: `onMouseDown={e => e.preventDefault()}` on the prompt buttons. The editor never loses focus on click, and keyboard activation (Tab → Enter) still goes through `onClick`. This is the standard toolbar-button pattern and should be reused for any future editor toolbar/bubble menu.
+
+**Verified (throwaway route in the preview pane, deleted before commit):**
+- Both prompts render enabled, labelled `Insert heading: …`.
+- Type → click prompt 1 → type → click prompt 2 → type → click prompt 1 again → type produced `<p>Morning words</p><h2>What am I thinking today?</h2><p>thinking stuff (jumped)</p><h2>What am I trying to do?</h2><p>doing stuff</p>`: correct order, no duplicate, the jump landed at the end of the right section, and the editor kept focus throughout. Labels flipped to `Jump to: …`.
+- Keyboard: focus the prompt button → Enter → typing lands at the end of its section.
+- No console or server errors. `npm run typecheck` + `npm run build` green.
+
+**Next session — Session 16:** heatmap of past entries: last-N-weeks grid (GitHub-style) on `/diary`, intensity from `length(content_text)`, mood tint on hover, click a cell to jump to `/diary/<date>` (US-3.2). One range query on the `(user_id, entry_date desc)` index. Last box of Phase 3.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

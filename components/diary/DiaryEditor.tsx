@@ -5,6 +5,7 @@ import { EditorContent, useEditor, type Editor, type JSONContent } from "@tiptap
 import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { saveDiaryEntry } from "@/app/(app)/diary/actions";
+import PromptChips from "@/components/diary/PromptChips";
 
 const AUTOSAVE_MS = 3000;
 
@@ -136,6 +137,8 @@ export default function DiaryEditor({ date, initialContent, placeholder, timeZon
 
   return (
     <div className="space-y-3" onKeyDown={onKeyDown}>
+      <PromptChips editor={editor} />
+      <div className="border-t border-dashed border-[var(--border-strong)]" aria-hidden />
       {editor ? (
         <EditorContent editor={editor} />
       ) : (

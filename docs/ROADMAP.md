@@ -61,7 +61,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] `/diary/[date]` route shell + day nav ← / → — `/diary` redirects to the user's today (tz from `fy-tz` cookie); `/diary/YYYY-MM-DD` fetches the entry (may be null), Prev / Today / Next pills (Next stops at today), TopBar arrows step days on /diary; friendly empty state, existing entry rendered as plaintext
 - [x] Tiptap editor — StarterKit (h2/h3, lists, quote, code) + Placeholder, markdown shortcuts, `diary-prose` styles from theme tokens
 - [x] Mood picker — six emoji + label toggle pills above the editor (click active to clear), optimistic with rollback, `setDiaryMood` writes only `mood`
-- [ ] Anchored prompts
+- [x] Anchored prompts — "What am I thinking today?" / "What am I trying to do?" always visible above the editor; click inserts an h2 at the cursor, or jumps to its section if already present
 - [x] Autosave debounce 3s — serialized save chain, flush on unmount / tab hide / Ctrl+S, beforeunload guard, Saved / Saving / Retry status
 - [ ] Heatmap of past entries
 

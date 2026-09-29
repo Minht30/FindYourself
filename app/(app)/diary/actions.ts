@@ -10,7 +10,10 @@ type ActionResult = { ok: true; updatedAt: string } | { ok: false; error: string
 
 export type SaveDiaryInput = {
   date: string;        // YYYY-MM-DD
-  contentJson: unknown; // Tiptap document
+  // Tiptap document as a JSON *string*. ProseMirror builds node attrs as
+  // null-prototype objects (e.g. a heading's { level: 2 }), which React's
+  // server-action serializer rejects outright, so the client stringifies.
+  contentJson: string;
   contentText: string; // plaintext extract (search + heatmap intensity)
 };
 
@@ -32,8 +35,15 @@ export async function saveDiaryEntry(input: SaveDiaryInput): Promise<ActionResul
 
   if (!isValidISODate(input.date)) return { ok: false, error: "invalid_date" };
   if (input.date > getUserToday()) return { ok: false, error: "future_date" };
-  if (!isTiptapDoc(input.contentJson)) return { ok: false, error: "invalid_content" };
-  if (JSON.stringify(input.contentJson).length > MAX_JSON_BYTES) return { ok: false, error: "too_large" };
+  if (typeof input.contentJson !== "string") return { ok: false, error: "invalid_content" };
+  if (input.contentJson.length > MAX_JSON_BYTES) return { ok: false, error: "too_large" };
+  let doc: unknown;
+  try {
+    doc = JSON.parse(input.contentJson);
+  } catch {
+    return { ok: false, error: "invalid_content" };
+  }
+  if (!isTiptapDoc(doc)) return { ok: false, error: "invalid_content" };
   if (typeof input.contentText !== "string") return { ok: false, error: "invalid_content" };
 
   // Upsert touches only the columns listed, so a mood set elsewhere survives.
@@ -43,7 +53,7 @@ export async function saveDiaryEntry(input: SaveDiaryInput): Promise<ActionResul
       {
         user_id: user.id,
         entry_date: input.date,
-        content_json: input.contentJson,
+        content_json: doc,
         content_text: input.contentText.slice(0, MAX_TEXT_CHARS),
       },
       { onConflict: "user_id,entry_date" }

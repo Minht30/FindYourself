@@ -97,6 +97,7 @@ export default async function DiaryDayPage({ params }: Props) {
               key={date}
               date={date}
               initialContent={toEditorContent(entry)}
+              initialText={entry?.content_text ?? ""}
               placeholder={
                 isToday
                   ? "How did today feel? Start anywhere."

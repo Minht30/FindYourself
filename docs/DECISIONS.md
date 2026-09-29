@@ -534,4 +534,30 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 16: Entry heatmap (Phase 3 boxes complete)
+
+**Minh's layout direction (recorded before building):** a big part of the page can be decoration, maybe pixel animation, but **keep it blank for now** so we can brainstorm it properly later. So the heatmap lives *in the diary column* (under the editor card, same `max-w-3xl`), and the wide area to the right stays empty. Added a "Decoration zones brainstorm" box to Phase 9.
+
+**What landed:**
+- Migration `20260929193449_phase3_diary_content_chars.sql` (applied via MCP + mirrored): `content_chars integer generated always as (char_length(content_text)) stored`. The heatmap needs length, not text; a generated column keeps it in sync with zero app code and is selectable through PostgREST, so a year of data is ~365 tiny rows instead of a year of diary text. Advisors: unchanged (only the standing leaked-password toggle).
+- `/diary/[date]` now runs two queries in parallel: the day's entry, plus `entry_date, mood, content_chars` for the 53-week window (`yearStart` = this week's Monday − 52 weeks, up to today in the user's tz). It re-renders after each autosave (`revalidatePath`), so today's cell deepens as you write.
+- `components/diary/EntryHeatmap.tsx` (client):
+  - GitHub-style grid, **Monday-first** like the timetable, 53 × 7, future cells in the current week left blank.
+  - Intensity by length: 0 / <200 / <600 / <1500 / 1500+ chars. Colors via `color-mix(var(--accent) N%, var(--bg-alt))` (Tailwind opacity modifiers don't work on plain-var tokens), top step `--heat-max`, a new per-theme token: honey-brown in Sunny, bright neon `accent-soft` in Netcafe ("more" should glow at night; with `accent-strong` levels 3 and 4 were indistinguishable there).
+  - Each cell is a `Link` to `/diary/<date>` (`prefetch={false}`: 366 viewport prefetches would be absurd) with `aria-label`/`title` like "Monday, September 28, 2026: 🎯 Focused, about 75 words". Mood is conveyed in text, not color.
+  - **ARIA grid with a roving tab stop:** one tabbable cell (the open day), ↑/↓ = ±1 day, ←/→ = ±1 week, clamped to the window; Enter follows the link. Rows are real flex rows (`display: contents` rows can vanish from the a11y tree).
+  - Month labels: a label wherever a month starts; the partial first month's label is dropped if the next month begins within 3 columns (they collided in the first render).
+  - Header "Your year in pages" + "N days written in the last 12 months" (mood-only days don't count) + Less → More legend.
+  - Scrolls horizontally inside its card on narrow screens (starts scrolled to the recent end); the page itself never scrolls sideways. On desktop the 717 px grid fits the 718 px card interior.
+
+**Verified (throwaway route, deleted):** 7 rows × 53 cells, 366 links from Mon 2025-09-29; single tab stop on the selected day; arrows ↑ → 09-27, → into the future blocked, ← → 09-20, ↓ → 09-21; labels/intensities as expected; month row "Oct … Sep" with no collision; `--heat-max` resolves #B87700 / #FFF08A per theme (verified with transitions disabled: the hidden preview pane freezes CSS transitions, so a mid-fade read looked like a bug but wasn't). No console or server errors from the page. `typecheck` + `lint` + `build` green; `/diary/[date]` 132 → **134 kB**. (One build failed with `next/font … reading '1'`: a transient Google Fonts download failure. `curl` showed the CSS reachable a minute later and the rebuild passed. If it recurs on Vercel, self-host the fonts.)
+
+**Phase 3 status:** every box is built. Exit criterion ("author writes 3 diary entries in a row") is Minh's to hit, and the hotfix (15.1) is what makes it possible.
+
+**Next — Phase 4 (Tasks + Restrictions), Session 17:** `tasks` table + RLS (bucket enum today/tomorrow/backlog, `done_at`, `restricted` flag, sort order). Read PRD §6.4 and §6.6 and the ERD first.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

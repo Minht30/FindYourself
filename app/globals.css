@@ -159,3 +159,9 @@ body {
   font-style: italic;
   pointer-events: none;
 }
+
+/* Diary heatmap: the "most written" step. Sunny deepens toward honey-brown;
+   Netcafe brightens toward the soft neon, since at night "more" should glow. */
+:root,
+:root[data-theme="sunny-cafe"] { --heat-max: var(--accent-strong); }
+:root[data-theme="netcafe-night"] { --heat-max: var(--accent-soft); }

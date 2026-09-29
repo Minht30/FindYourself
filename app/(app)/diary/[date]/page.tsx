@@ -5,9 +5,10 @@ import type { JSONContent } from "@tiptap/react";
 import { createClient } from "@/lib/supabase/server";
 import DiaryEditor from "@/components/diary/DiaryEditor";
 import MoodPicker from "@/components/diary/MoodPicker";
+import EntryHeatmap, { type HeatmapDay } from "@/components/diary/EntryHeatmap";
 import type { DiaryMood } from "@/lib/moods";
 import { getUserTimeZone } from "@/lib/today";
-import { formatLongDate, isValidISODate, shiftISODate, todayInTimeZone } from "@/lib/dates";
+import { formatLongDate, isValidISODate, isoWeekdayMon0, shiftISODate, todayInTimeZone } from "@/lib/dates";
 
 // Always fresh — the entry may have been written a moment ago.
 export const dynamic = "force-dynamic";
@@ -38,15 +39,32 @@ export default async function DiaryDayPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/diary/${date}`);
 
-  const { data: entry, error } = await supabase
-    .from("diary_entries")
-    .select("id, entry_date, mood, content_json, content_text, updated_at")
-    .eq("user_id", user.id)
-    .eq("entry_date", date)
-    .maybeSingle<DiaryEntryDTO>();
-
   const timeZone = getUserTimeZone();
   const today = todayInTimeZone(timeZone);
+  // Heatmap window: 53 Monday-first weeks ending with this week.
+  const yearStart = shiftISODate(today, -isoWeekdayMon0(today) - 52 * 7);
+
+  const [{ data: entry, error }, { data: yearRows }] = await Promise.all([
+    supabase
+      .from("diary_entries")
+      .select("id, entry_date, mood, content_json, content_text, updated_at")
+      .eq("user_id", user.id)
+      .eq("entry_date", date)
+      .maybeSingle<DiaryEntryDTO>(),
+    // content_chars (generated column) keeps this light: no text leaves the DB.
+    supabase
+      .from("diary_entries")
+      .select("entry_date, mood, content_chars")
+      .eq("user_id", user.id)
+      .gte("entry_date", yearStart)
+      .lte("entry_date", today)
+      .returns<{ entry_date: string; mood: DiaryMood | null; content_chars: number }[]>(),
+  ]);
+
+  const heatmap: Record<string, HeatmapDay> = {};
+  for (const row of yearRows ?? []) {
+    heatmap[row.entry_date] = { mood: row.mood, chars: row.content_chars };
+  }
   const isToday = date === today;
   const isFuture = date > today; // YYYY-MM-DD compares correctly as a string
   const prev = shiftISODate(date, -1);
@@ -108,6 +126,10 @@ export default async function DiaryDayPage({ params }: Props) {
             />
           </div>
         )}
+      </section>
+
+      <section className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-5 md:p-6">
+        <EntryHeatmap today={today} selected={date} entries={heatmap} />
       </section>
     </div>
   );

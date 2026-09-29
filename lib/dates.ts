@@ -128,3 +128,9 @@ export function formatLongDate(iso: string): string {
     timeZone: "UTC",
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
+
+// Monday = 0 … Sunday = 6 for a YYYY-MM-DD string (weeks start Monday app-wide).
+export function isoWeekdayMon0(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number);
+  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+}

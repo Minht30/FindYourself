@@ -63,9 +63,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Mood picker — six emoji + label toggle pills above the editor (click active to clear), optimistic with rollback, `setDiaryMood` writes only `mood`
 - [x] Anchored prompts — "What am I thinking today?" / "What am I trying to do?" always visible above the editor; click inserts an h2 at the cursor, or jumps to its section if already present
 - [x] Autosave debounce 3s — serialized save chain, flush on unmount / tab hide / Ctrl+S, beforeunload guard, Saved / Saving / Retry status
-- [ ] Heatmap of past entries
+- [x] Heatmap of past entries — 53-week Monday-first grid under the editor, intensity from `content_chars` (generated column), mood + ~words in each cell label, click / arrow keys + Enter to jump (US-3.2)
 
-**Exit criteria:** author writes 3 diary entries in a row.
+**Exit criteria:** author writes 3 diary entries in a row. *(All boxes built; exit criterion is Minh's to hit.)*
 
 ---
 
@@ -139,6 +139,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [ ] Empty states (every page)
 - [ ] Error boundaries
 - [ ] Reduced-motion pass
+- [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
 - [ ] Lighthouse ≥ 90 on all axes
 - [ ] Delete-account flow
 - [ ] README polish with GIFs

@@ -60,7 +60,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] `diary_entries` table + RLS — mood enum (radiant/calm/focused/tired/low/stormy), content_json + content_text, unique (user_id, entry_date), updated_at auto-touch trigger with pinned search_path
 - [x] `/diary/[date]` route shell + day nav ← / → — `/diary` redirects to the user's today (tz from `fy-tz` cookie); `/diary/YYYY-MM-DD` fetches the entry (may be null), Prev / Today / Next pills (Next stops at today), TopBar arrows step days on /diary; friendly empty state, existing entry rendered as plaintext
 - [x] Tiptap editor — StarterKit (h2/h3, lists, quote, code) + Placeholder, markdown shortcuts, `diary-prose` styles from theme tokens
-- [ ] Mood picker
+- [x] Mood picker — six emoji + label toggle pills above the editor (click active to clear), optimistic with rollback, `setDiaryMood` writes only `mood`
 - [ ] Anchored prompts
 - [x] Autosave debounce 3s — serialized save chain, flush on unmount / tab hide / Ctrl+S, beforeunload guard, Saved / Saving / Retry status
 - [ ] Heatmap of past entries

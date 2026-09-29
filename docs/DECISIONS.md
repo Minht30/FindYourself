@@ -475,4 +475,35 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 14: Mood picker
+
+**What landed:**
+- `lib/moods.ts`: `MOODS` (value / emoji / label), `DiaryMood` type, `isDiaryMood` guard. Values checked against the live `diary_mood` enum (`radiant, calm, focused, tired, low, stormy`, exact match). Emoji set leans on weather to fit the cafe feel: 🌞 🍃 🎯 😴 🌧️ ⛈️.
+- `setDiaryMood(date, mood | null)` in `app/(app)/diary/actions.ts`. Same guards as `saveDiaryEntry` (auth, strict date, no future) plus enum validation.
+  - Setting a mood upserts **only** `mood`.
+  - Clearing uses a plain `update … set mood = null`, so clearing on a day with no row writes nothing instead of creating an empty entry.
+- `components/diary/MoodPicker.tsx`: six toggle pills (`aria-pressed`, `role="group"` labelled "Mood"). The emoji is `aria-hidden`, so screen readers announce just "Stormy, toggle button, pressed".
+  - Click to set; click the active one again to clear. Optimistic.
+  - Requests go through the same serialized promise chain as the editor, and on failure the UI rolls back to the last server-confirmed mood with a `role="alert"` line. Only the newest click controls post-failure UI.
+  - Active pill: `bg-accent-soft` + accent border + `shadow-glow`, emoji nudged to `scale-110`.
+- `/diary/[date]`: the static mood chip is replaced by `<MoodPicker key={date}>` above the editor. Future days still show neither.
+
+**Decisions worth remembering:**
+- **Mood and content are independent writes.** Two actions that each upsert only their own columns compose freely. No race between a mood click and an in-flight autosave can clobber the other field. Verified in SQL (below).
+- Toggle buttons over a radiogroup: a radiogroup can't be "cleared" by re-selecting, and "no mood" is a legitimate state. Six tab stops is fine for six options.
+- Dropped `cn()` from the picker: it pulled `tailwind-merge` (~6 kB) into a route that didn't otherwise need it. Plain template literals are enough when no classes conflict. `/diary/[date]` 129 → **130 kB**.
+
+**Verified:**
+- `npm run typecheck` + `npm run build` green.
+- Supabase, as the `authenticated` role with the real user's claims inside `begin … rollback`: a mood-only upsert on an empty day creates the row; a following content upsert keeps the mood (`focused / words`); clear-on-missing-day touches nothing. Rolled back.
+- **Prod autosave confirmed working:** Minh's first real entry exists for 2026-09-29 (created 19:12 UTC, autosaved again 22 s later). Content not read.
+- Picker on a throwaway route: initial `Calm` pressed. Clicking `Stormy` lit it immediately (optimistic), then it rolled back to `Calm` with the alert (no session there). No console errors. Route deleted before commit.
+- Gotcha logged: running `next dev` right after `next build` without clearing `.next` produced `Failed to find Server Action` in dev. That was stale manifests, not a code bug; `rm -rf .next` fixed it.
+
+**Next session — Session 15:** anchored prompts: a few gentle prompt chips ("One small win", "What drained me", "Tomorrow I'll…") that insert a heading + empty paragraph at the cursor in the editor. Client-only; no schema change.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

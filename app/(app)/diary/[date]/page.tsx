@@ -4,6 +4,8 @@ import { NotebookPen } from "lucide-react";
 import type { JSONContent } from "@tiptap/react";
 import { createClient } from "@/lib/supabase/server";
 import DiaryEditor from "@/components/diary/DiaryEditor";
+import MoodPicker from "@/components/diary/MoodPicker";
+import type { DiaryMood } from "@/lib/moods";
 import { getUserTimeZone } from "@/lib/today";
 import { formatLongDate, isValidISODate, shiftISODate, todayInTimeZone } from "@/lib/dates";
 
@@ -15,7 +17,7 @@ type Props = { params: { date: string } };
 type DiaryEntryDTO = {
   id: string;
   entry_date: string;
-  mood: string | null;
+  mood: DiaryMood | null;
   content_json: JSONContent | Record<string, never>;
   content_text: string;
   updated_at: string;
@@ -89,12 +91,8 @@ export default async function DiaryDayPage({ params }: Props) {
         ) : isFuture ? (
           <FutureDay />
         ) : (
-          <div className="space-y-4">
-            {entry?.mood && (
-              <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-cat-ink font-ui text-xs font-medium capitalize">
-                {entry.mood}
-              </span>
-            )}
+          <div className="space-y-5">
+            <MoodPicker key={date} date={date} initialMood={entry?.mood ?? null} />
             <DiaryEditor
               key={date}
               date={date}

@@ -560,4 +560,41 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 17: `tasks` table + RLS (Phase 4 begins)
+
+**Migrations** (applied via MCP, mirrored with matching versions):
+- `20260929233739_phase4_tasks.sql`: `task_priority` enum, `tasks` table, 4 indexes, RLS, `touch_tasks_updated_at` trigger (pinned `search_path`), plus **`time_blocks.linked_task_id`** (FK on delete set null + partial index), as the Phase 2 migration promised.
+- `20260929233847_phase4_tasks_split_policies.sql`: replaced the `for all` modify policy with separate insert / update / delete policies.
+
+**Design decision: buckets are derived from a date, not stored (deviates from ERD; ERD updated).**
+- The ERD had `bucket enum(today, tomorrow, backlog, done)`. Two problems:
+  1. A stored "tomorrow" is wrong the moment midnight passes. Something would have to rewrite every row daily.
+  2. `done` as a bucket loses where the task came from, but US-4.3 says unchecking returns it *to its bucket*.
+- Instead: `scheduled_for date` (null = Backlog; = today → Today; = today+1 → Tomorrow; < today and open → overdue, which is exactly the population the end-of-day roll, US-4.4, needs) and `completed_at` (done is a *state*). Tomorrow becomes Today on its own at the user's midnight, since "today" comes from the `fy-tz` cookie like the diary does.
+- The board UI stays Today / Tomorrow / Backlog exactly as the PRD describes; only storage changed.
+
+**Other decisions:**
+- `sort_order double precision`: fractional indexing. A drop between neighbours writes `(a+b)/2`, so one row changes per reorder. Floats allow ~50 successive halvings at one spot before precision runs out; the board session should renormalize a bucket when a gap drops below ~1e-9.
+- `priority` default `med`; `description` default `''` (NOT NULL, avoids null/empty ambiguity); title 1–200 chars after trim, description ≤ 5000 (check constraints, so bad input fails in the DB, not just the UI).
+- **RLS hardening beyond the older tables:**
+  - `(select auth.uid())` so the uid is evaluated once per statement (advisor 0003).
+  - Per-command policies so SELECT has exactly one policy (advisor 0006).
+  - Insert/update `with check` also requires `category_id` to be null or **the caller's own category**. The FK alone would accept another user's category id.
+- Partial indexes match the three hot queries: open tasks by bucket + order, completed-by-time ("Done today", streaks, weekly wins), and "any open restricted task" (header chip, US-4.5).
+
+**Verified (Supabase, `begin … rollback`, as `authenticated` with real JWT claims, plus a throwaway second `auth.users` row, which the signup trigger seeded with 5 categories):**
+- Insert plain ✓. Insert with own category ✓. Foreign category rejected `42501` on insert *and* on update. Inserting for / reassigning to another user rejected `42501`. Blank title rejected `23514`.
+- Second user sees 0 of the first user's tasks; their blanket `update` / `delete` affected nothing (title still `mine`).
+- Own update / delete work. Deleting a task nulls `time_blocks.linked_task_id`.
+- `updated_at` trigger: back-dated row → update → `updated_at = now()`. My first check compared two `now()`s inside one transaction, which are always equal, so that was a test bug, not a trigger bug.
+- Advisors: `tasks` clean for 0003 and 0006. Security advisors unchanged (standing leaked-password toggle only). Everything rolled back; no test rows remain.
+
+**Spun off (not this box):** the older tables (`profiles`, `categories`, `time_blocks`, `diary_entries`) still trigger advisors 0003 / 0006, and `time_blocks.category_id` lacks an index. Queued as a separate task ("Harden RLS policies on pre-Phase-4 tables").
+
+**Next session — Session 18:** three-bucket board (Today / Tomorrow / Backlog). `/tasks` route, or a right-side drawer per PRD §5 ("Tasks live in a right-side drawer"); decide at the start of the session. Server-side bucket derivation from `scheduled_for` + user today, "+ Add task" per bucket (US-4.1), checkbox complete with a "Done today" section (US-4.3). Drag-and-drop (dnd-kit) is the box after.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

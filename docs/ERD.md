@@ -82,20 +82,27 @@ Index: `(user_id, starts_at)`
 Unique: `(user_id, entry_date)`
 
 ### `tasks`
+*(Revised in Phase 4, Session 17: buckets are derived from a date instead of a `bucket` enum. See DECISIONS.)*
+
 | column | type | notes |
 |---|---|---|
 | id | uuid PK |  |
-| user_id | uuid FK |  |
-| title | text |  |
-| description | text |  |
-| bucket | text | enum: today, tomorrow, backlog, done |
-| priority | text | enum: low, med, high |
-| category_id | uuid FK nullable |  |
-| deadline | timestamptz nullable |  |
+| user_id | uuid FK profiles | on delete cascade |
+| title | text | 1–200 chars after trim (check) |
+| description | text | default `''`, ≤ 5000 chars |
+| priority | enum `task_priority` | low, med, high; default med |
+| category_id | uuid FK categories nullable | on delete set null; must be the caller's own category (RLS) |
+| scheduled_for | date nullable | **null = Backlog**; today = Today; today+1 = Tomorrow; past + open = overdue (end-of-day roll) |
+| deadline | timestamptz nullable | optional hard time, e.g. "today at 18:00" |
 | is_restriction | bool | default false |
-| completed_at | timestamptz nullable |  |
-| sort_order | int |  |
+| completed_at | timestamptz nullable | set = done; clearing it returns the task to its bucket |
+| sort_order | float8 | fractional ordering within a bucket |
 | created_at | timestamptz |  |
+| updated_at | timestamptz | touch trigger |
+
+Indexes: `(user_id, scheduled_for, sort_order) where completed_at is null`, `(user_id, completed_at desc) where completed_at is not null`, `(user_id) where is_restriction and completed_at is null`, `(category_id)`.
+
+`time_blocks.linked_task_id` → `tasks(id)` on delete set null (added in the same migration).
 
 ### `focus_sessions`
 | column | type | notes |

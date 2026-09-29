@@ -71,7 +71,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 4 — Tasks + Restrictions (est. 2 sessions)
 
-- [ ] `tasks` table + RLS
+- [x] `tasks` table + RLS — buckets derived from `scheduled_for` (null = Backlog), `completed_at` = done, fractional `sort_order`, per-command RLS incl. own-category check; `time_blocks.linked_task_id` added
 - [ ] Three-bucket board (Today/Tomorrow/Backlog)
 - [ ] dnd-kit drag between buckets
 - [ ] Complete → "Done today"

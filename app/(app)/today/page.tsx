@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import WeekGrid, { CategoryDTO, TimeBlockDTO } from "@/components/timetable/WeekGrid";
 import CopyYesterdayButton from "@/components/timetable/CopyYesterdayButton";
+import { TasksShell, TasksToggle, DRAWER_COOKIE } from "@/components/tasks/TasksShell";
+import TaskBoard from "@/components/tasks/TaskBoard";
+import { TASK_COLUMNS, type TaskDTO } from "@/lib/tasks";
+import { getUserToday } from "@/lib/today";
 import {
   addDays,
   formatWeekRange,
@@ -25,7 +30,7 @@ export default async function TodayPage({ searchParams }: Props) {
   const weekStart = parseWeekParam(searchParams.week);
   const weekEnd = addDays(weekStart, 7);
 
-  const [{ data: categories }, { data: blocks }] = await Promise.all([
+  const [{ data: categories }, { data: blocks }, { data: openTasks }] = await Promise.all([
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
@@ -33,18 +38,31 @@ export default async function TodayPage({ searchParams }: Props) {
       .gte("starts_at", weekStart.toISOString())
       .lt("starts_at", weekEnd.toISOString())
       .order("starts_at"),
+    supabase
+      .from("tasks")
+      .select(TASK_COLUMNS)
+      .eq("user_id", user.id)
+      .is("completed_at", null)
+      .returns<TaskDTO[]>(),
   ]);
+  const tasks = openTasks ?? [];
+  // Drawer defaults to open; the cookie remembers a user who closed it.
+  const drawerOpen = cookies().get(DRAWER_COOKIE)?.value !== "0";
 
   const prev = toISODateOnly(addDays(weekStart, -7));
   const next = toISODateOnly(addDays(weekStart, 7));
   const thisWeek = toISODateOnly(weekStart);
 
   return (
-    <div className="space-y-4">
+    <TasksShell
+      initialOpen={drawerOpen}
+      drawer={<TaskBoard tasks={tasks} categories={categories ?? []} today={getUserToday()} />}
+    >
       <div className="flex items-baseline gap-4 flex-wrap">
         <h1 className="font-display text-3xl">Timetable</h1>
         <span className="font-mono text-sm text-ink-muted">{formatWeekRange(weekStart)}</span>
-        <div className="ml-auto flex items-center gap-2 font-ui text-sm">
+        <div className="ml-auto flex items-center gap-2 font-ui text-sm flex-wrap">
+          <TasksToggle openCount={tasks.length} />
           <CopyYesterdayButton />
           <nav className="flex items-center gap-2">
             <a
@@ -80,6 +98,6 @@ export default async function TodayPage({ searchParams }: Props) {
         <strong>drag the body</strong> to move · <strong>drag top/bottom edges</strong> to resize ·{" "}
         <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> cancels
       </p>
-    </div>
+    </TasksShell>
   );
 }

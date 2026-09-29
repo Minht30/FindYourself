@@ -16,6 +16,7 @@ import {
 } from "@/lib/dates";
 import { createBlock, moveBlock } from "@/app/(app)/today/actions";
 import BlockPopover from "./BlockPopover";
+import { categoryColor } from "@/lib/categories";
 
 export type TimeBlockDTO = {
   id: string;
@@ -36,17 +37,6 @@ type Props = {
   weekStart: string;      // ISO date-only, e.g. "2026-09-14"
   blocks: TimeBlockDTO[];
   categories: CategoryDTO[];
-};
-
-// Map seeded category names to CSS-variable-backed tokens so blocks re-color
-// when the theme flips. Falls back to the DB `color` hex for anything the user
-// has renamed.
-const CATEGORY_TOKEN: Record<string, string> = {
-  "Deep Work": "var(--cat-deep)",
-  "Meetings": "var(--cat-meeting)",
-  "Learning": "var(--cat-learn)",
-  "Rest": "var(--cat-rest)",
-  "Personal": "var(--cat-personal)",
 };
 
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -423,8 +413,7 @@ function BlockCard({
   const top = Math.max(minutesToPx(startMin), 0);
   const heightPx = Math.max(minutesToPx(endMin) - minutesToPx(startMin), 20);
 
-  const colorVar =
-    (category && CATEGORY_TOKEN[category.name]) || category?.color || "var(--cat-deep)";
+  const colorVar = categoryColor(category);
 
   const timeLabel = `${fmtMin(startMin)} – ${fmtMin(endMin)}`;
   const canResize = heightPx >= 3 * EDGE_HANDLE_PX;

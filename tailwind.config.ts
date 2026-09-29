@@ -1,5 +1,12 @@
 import type { Config } from "tailwindcss";
 
+// Theme colors are plain CSS variables (hex values that flip per theme), so
+// Tailwind can't split them into channels for opacity modifiers like
+// `border-accent/60`, and before this helper those classes emitted no CSS at
+// all. color-mix() applies the alpha at runtime instead; with no modifier,
+// <alpha-value> is 1 and the color is unchanged.
+const tone = (cssVar: string) => `color-mix(in srgb, var(${cssVar}) calc(<alpha-value> * 100%), transparent)`;
+
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   darkMode: ["class", "[data-theme='netcafe-night']"],
@@ -7,33 +14,33 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          base: "var(--bg-base)",
-          elevated: "var(--bg-elevated)",
-          overlay: "var(--bg-overlay)",
-          window: "var(--bg-window)",
-          alt: "var(--bg-alt)",
+          base: tone("--bg-base"),
+          elevated: tone("--bg-elevated"),
+          overlay: tone("--bg-overlay"),
+          window: tone("--bg-window"),
+          alt: tone("--bg-alt"),
         },
         ink: {
-          primary: "var(--ink-primary)",
-          secondary: "var(--ink-secondary)",
-          muted: "var(--ink-muted)",
+          primary: tone("--ink-primary"),
+          secondary: tone("--ink-secondary"),
+          muted: tone("--ink-muted"),
         },
         accent: {
-          DEFAULT: "var(--accent)",
-          soft: "var(--accent-soft)",
-          strong: "var(--accent-strong)",
+          DEFAULT: tone("--accent"),
+          soft: tone("--accent-soft"),
+          strong: tone("--accent-strong"),
         },
         cat: {
-          deep: "var(--cat-deep)",
-          meeting: "var(--cat-meeting)",
-          learn: "var(--cat-learn)",
-          rest: "var(--cat-rest)",
-          personal: "var(--cat-personal)",
-          ink: "var(--cat-ink)",
+          deep: tone("--cat-deep"),
+          meeting: tone("--cat-meeting"),
+          learn: tone("--cat-learn"),
+          rest: tone("--cat-rest"),
+          personal: tone("--cat-personal"),
+          ink: tone("--cat-ink"),
         },
-        success: "var(--success)",
-        warning: "var(--warning)",
-        danger: "var(--danger)",
+        success: tone("--success"),
+        warning: tone("--warning"),
+        danger: tone("--danger"),
       },
       fontFamily: {
         display: ["var(--font-display)"],

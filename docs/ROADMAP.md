@@ -72,7 +72,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 4 — Tasks + Restrictions (est. 2 sessions)
 
 - [x] `tasks` table + RLS — buckets derived from `scheduled_for` (null = Backlog), `completed_at` = done, fractional `sort_order`, per-command RLS incl. own-category check; `time_blocks.linked_task_id` added
-- [ ] Three-bucket board (Today/Tomorrow/Backlog)
+- [x] Three-bucket board (Today/Tomorrow/Backlog) — right-side drawer on /today (PRD §6.0), cookie-remembered open state, quick-add per bucket, overdue flagged under Today, two-step delete
 - [ ] dnd-kit drag between buckets
 - [ ] Complete → "Done today"
 - [ ] Restriction badge + persistent header chip

@@ -597,4 +597,54 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-09-29 — Session 18: Three-bucket task board (drawer on the Timetable)
+
+**Placement decision:** PRD §6.0 says *"Tasks live in a right-side drawer"* on the Timetable. So there's no `/tasks` route: the board is an `<aside>` beside the week grid.
+- On `lg+` it is 340 px, sticky under the TopBar, and scrolls on its own. Below `lg` it stacks under the grid (no overlay or focus-trap machinery needed).
+- Open/closed is a `fy-tasks-drawer` cookie, read server-side, so the first paint is right (no flash). The default is open, and the cookie remembers a user who closed it.
+- A small client context (`TasksShell`) lets the header toggle and the drawer share state while the page stays a server component.
+
+**What landed:**
+- `lib/tasks.ts`: `Bucket` type, labels, `TaskDTO`, `TASK_COLUMNS`, `bucketOf(scheduled_for, today)`, `scheduledForBucket` (its inverse, for writes), `isOverdue`. This is the single place the date → bucket rule lives.
+  - Overdue tasks (dated before today, still open) show under **Today**, first, flagged "Overdue · Sep 27", until the end-of-day roll box re-homes them.
+  - Tasks dated after tomorrow group under Tomorrow with their date (the UI never creates them; this is defensive).
+- `app/(app)/today/task-actions.ts`:
+  - `createTask(bucket, title)`: the client sends a *bucket*; the server converts it to a date with `getUserToday()`, so a tab left open across midnight can't misfile. Trims and validates the title (1–200). Appends at `max(sort_order) + 1` within the bucket.
+  - `deleteTask(id)`.
+  - Both `revalidatePath("/today")`.
+- `components/tasks/TaskBoard.tsx`:
+  - Three `<section aria-labelledby>` buckets with counts.
+  - Cards show the title plus a meta row: overdue, later date, `↑ High` / `Low` (med is the quiet default), and category dot + name via the shared color helper.
+  - **Quick-add:** "+ Add task" → input (Enter adds and stays open for rapid entry, Esc closes). An optimistic "Adding…" row shows while the request runs. Errors show a specific reason and put the typed title back.
+  - Two-step delete ("Delete?"), reset on blur or mouse-leave. Same pattern as timetable blocks.
+- `/today` fetches open tasks in the same `Promise.all` as categories + blocks. The header gains a **Tasks** toggle with the open count.
+- `lib/categories.ts`: the category name → theme-token map moved out of `WeekGrid` so blocks and tasks share one source.
+
+**App-wide bug found and fixed along the way: Tailwind opacity modifiers were silently dead.**
+- Theme colors are `var(--x)` strings, so Tailwind can't add alpha. **Every** `border-accent/60`, `bg-accent-soft/40`, `ring-accent/70`, etc. (21 usages: timetable and diary nav pills, mood pills, the drag ring on blocks…) compiled to *no CSS at all*. Confirmed by grepping the built stylesheet.
+- Fix in `tailwind.config.ts`: a `tone()` helper defines every color as `color-mix(in srgb, var(--x) calc(<alpha-value> * 100%), transparent)`. Tailwind 3.4 fills `<alpha-value>` (1 when there's no modifier, so plain `bg-accent` is unchanged), and each `/NN` now emits real CSS. The pills finally get the soft accent borders they were designed with.
+
+**Accessibility:**
+- "High" priority uses `ink-secondary` bold + ↑ rather than `--warning` (#C88A2A is ~2.9:1 on white, failing AA for small text).
+- The "Delete?" pill uses `--bg-base` text on `--danger`: white failed in Netcafe (1.9:1 on #FCA5A5); now 4.70:1 in Sunny and 10.08:1 in Netcafe.
+- Toggle has `aria-expanded` + `aria-controls` (only while the drawer exists). Delete buttons have per-task labels ("Delete task: …" / "Confirm delete: …"). The add input is labelled per bucket.
+
+**Verified (throwaway route with sample tasks; deleted before commit):**
+- Bucketing: Today = [overdue (Sep 27, first), high-priority + Deep Work]; Tomorrow = [tomorrow Low, "Oct 3"]; Backlog = [undated].
+- Toggle closes/opens the drawer and writes `fy-tasks-drawer=0/1`.
+- Add: "Adding…" appeared, the POST was sent, and the server's answer was surfaced as **"You're signed out. Sign in again to add tasks."** (the expected `unauthenticated`, asserted per the Session 15.1 lesson). Title restored, focus kept.
+- Delete step 1 → "Delete?" with a confirm label.
+- 1440 px: drawer 340 px, sticky, beside the grid; 800 px: stacked. Netcafe screenshot checked.
+- The compiled CSS now contains `.border-accent\/60{border-color:color-mix(...)}` and friends.
+- No console errors. `typecheck` + `lint` + `build` green. `/today` 6.72 → **9.17 kB**.
+- DB side of create/delete is the RLS already proven in Session 17 (insert own row, delete own row).
+
+**Not yet (next boxes):** drag between buckets (dnd-kit), checkbox → "Done today", editing fields (description / priority / deadline / category / restriction). The restriction badge + header chip is its own box.
+
+**Next session — Session 19:** dnd-kit drag between buckets + reorder within a bucket, using fractional `sort_order` (`(a+b)/2`, renormalize if the gap < 1e-9) and a `moveTask(id, bucket, sortOrder)` action.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

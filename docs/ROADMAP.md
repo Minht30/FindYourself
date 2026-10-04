@@ -74,7 +74,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] `tasks` table + RLS — buckets derived from `scheduled_for` (null = Backlog), `completed_at` = done, fractional `sort_order`, per-command RLS incl. own-category check; `time_blocks.linked_task_id` added
 - [x] Three-bucket board (Today/Tomorrow/Backlog) — right-side drawer on /today (PRD §6.0), cookie-remembered open state, quick-add per bucket, overdue flagged under Today, two-step delete
 - [x] dnd-kit drag between buckets — plus reorder within a bucket; mouse (6 px), touch (long-press), keyboard via grip; server-computed fractional order from neighbour ids
-- [ ] Complete → "Done today"
+- [x] Complete → "Done today" — checkbox with a 350 ms strike-through linger, collapsible "Done today" (completed between the user's local midnights, DST-safe), uncheck returns the task to its bucket
 - [ ] Restriction badge + persistent header chip
 - [ ] End-of-day roll modal
 

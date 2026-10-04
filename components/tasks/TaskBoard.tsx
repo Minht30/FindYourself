@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical, PawPrint, Plus, X } from "lucide-react";
+import { ChevronDown, GripVertical, PawPrint, Plus, X } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -27,7 +27,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { createTask, deleteTask, moveTask } from "@/app/(app)/today/task-actions";
+import { createTask, deleteTask, moveTask, setTaskDone } from "@/app/(app)/today/task-actions";
 import { categoryColor } from "@/lib/categories";
 import {
   BUCKETS,
@@ -46,15 +46,26 @@ type Columns = Record<Bucket, TaskDTO[]>;
 
 type Props = {
   tasks: TaskDTO[]; // open tasks only
+  doneToday: TaskDTO[]; // completed within the user's today, newest first
   categories: Category[];
   today: string;
+  timeZone: string;
 };
+
+// How long a checked card lingers, struck through, before it moves to
+// "Done today" (0 under reduced motion).
+const COMPLETE_LINGER_MS = 350;
 
 const ERROR_COPY: Record<string, string> = {
   unauthenticated: "You're signed out. Sign in again to change tasks.",
   empty_title: "Give the task a name first.",
   title_too_long: "Keep the title under 200 characters.",
 };
+
+function errorText(code: string, doing: string): string {
+  if (code === "network") return `Couldn't reach the server to ${doing}.`;
+  return ERROR_COPY[code] ?? `Couldn't ${doing} (${code}).`;
+}
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 const shortDate = (iso: string) => SHORT_DATE.format(new Date(`${iso}T00:00:00Z`));
@@ -71,12 +82,13 @@ function groupTasks(tasks: TaskDTO[], today: string): Columns {
   return cols;
 }
 
-export default function TaskBoard({ tasks, categories, today }: Props) {
+export default function TaskBoard({ tasks, doneToday, categories, today, timeZone }: Props) {
   const router = useRouter();
   const serverColumns = useMemo(() => groupTasks(tasks, today), [tasks, today]);
   const [columns, setColumns] = useState<Columns>(serverColumns);
+  const [done, setDone] = useState<TaskDTO[]>(doneToday);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [moveError, setMoveError] = useState<string | null>(null);
+  const [boardError, setBoardError] = useState<string | null>(null);
   const origin = useRef<{ bucket: Bucket; index: number } | null>(null);
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
@@ -98,6 +110,44 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
   useEffect(() => {
     if (!dragging) setColumns(serverColumns);
   }, [serverColumns, dragging]);
+  useEffect(() => setDone(doneToday), [doneToday]);
+
+  // Checkbox → "Done today". Optimistic: the card leaves its bucket right
+  // away (after the strike-through linger) and the request runs behind it;
+  // a failure puts both lists back as the server has them.
+  async function complete(task: TaskDTO) {
+    setBoardError(null);
+    setColumns((cols) => {
+      const b = bucketOf(task.scheduled_for, today);
+      return { ...cols, [b]: cols[b].filter((t) => t.id !== task.id) };
+    });
+    setDone((d) => [{ ...task, completed_at: new Date().toISOString() }, ...d]);
+    const res = await setTaskDone(task.id, true).catch(() => ({ ok: false, error: "network" }) as const);
+    if (res.ok) router.refresh();
+    else {
+      setColumns(serverColumns);
+      setDone(doneToday);
+      setBoardError(errorText(res.error, "complete the task"));
+    }
+  }
+
+  // Unchecking returns the task to the bucket its date still names.
+  async function uncomplete(task: TaskDTO) {
+    setBoardError(null);
+    const back = { ...task, completed_at: null };
+    setDone((d) => d.filter((t) => t.id !== task.id));
+    setColumns((cols) => {
+      const b = bucketOf(task.scheduled_for, today);
+      return { ...cols, [b]: groupTasks([...cols[b], back], today)[b] };
+    });
+    const res = await setTaskDone(task.id, false).catch(() => ({ ok: false, error: "network" }) as const);
+    if (res.ok) router.refresh();
+    else {
+      setColumns(serverColumns);
+      setDone(doneToday);
+      setBoardError(errorText(res.error, "reopen the task"));
+    }
+  }
 
   const sensors = useSensors(
     // 6 px, like every other drag in the app: a click still clicks.
@@ -124,7 +174,7 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
     if (!b) return;
     origin.current = { bucket: b, index: columns[b].findIndex((t) => t.id === active.id) };
     setActiveId(String(active.id));
-    setMoveError(null);
+    setBoardError(null);
   }
 
   // Crossing into another bucket: move the card there live, at the hovered
@@ -188,11 +238,7 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
       router.refresh();
     } else {
       setColumns(serverColumns);
-      setMoveError(
-        res.error === "network"
-          ? "Couldn't reach the server. The task is back where it was."
-          : `${ERROR_COPY[res.error] ?? `Couldn't move the task (${res.error}).`} The task is back where it was.`
-      );
+      setBoardError(`${errorText(res.error, "move the task")} The task is back where it was.`);
     }
   }
 
@@ -228,12 +274,16 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
         <h2 className="font-display text-xl">Tasks</h2>
         <span className="font-mono text-xs text-ink-muted">{openCount} open</span>
       </div>
-      {moveError && (
+      {boardError && (
         <p role="alert" className="text-[11px] text-[var(--danger)]">
-          {moveError}
+          {boardError}
         </p>
       )}
       <DndContext
+        // Stable id: dnd-kit otherwise numbers its a11y ids from a module
+        // counter that keeps counting across server requests, so the SSR'd
+        // aria-describedby stops matching the client after the first render.
+        id="task-board"
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={onDragStart}
@@ -249,7 +299,16 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
         }}
       >
         {BUCKETS.map((b) => (
-          <BucketSection key={b} bucket={b} tasks={columns[b]} today={today} catById={catById} dragging={dragging} />
+          <BucketSection
+            key={b}
+            bucket={b}
+            tasks={columns[b]}
+            today={today}
+            catById={catById}
+            dragging={dragging}
+            lingerMs={reduceMotion ? 0 : COMPLETE_LINGER_MS}
+            onComplete={complete}
+          />
         ))}
         <DragOverlay dropAnimation={reduceMotion ? null : { duration: 180, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
           {active ? (
@@ -264,7 +323,64 @@ export default function TaskBoard({ tasks, categories, today }: Props) {
           ) : null}
         </DragOverlay>
       </DndContext>
+      <DoneSection tasks={done} timeZone={timeZone} onUncomplete={uncomplete} />
     </div>
+  );
+}
+
+// Collapsed by default (US-4.3): the count says "you did things" without the
+// list competing with what's still open.
+function DoneSection({
+  tasks,
+  timeZone,
+  onUncomplete,
+}: {
+  tasks: TaskDTO[];
+  timeZone: string;
+  onUncomplete: (task: TaskDTO) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone });
+  if (tasks.length === 0) return null;
+  return (
+    <section aria-labelledby="bucket-done" className="pt-3 border-t border-dashed border-[var(--border-strong)]">
+      <h3 id="bucket-done">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls="done-today-list"
+          className="w-full flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-ink-muted hover:text-ink-primary transition"
+        >
+          Done today
+          <span className="font-mono normal-case tracking-normal">{tasks.length}</span>
+          <ChevronDown size={13} aria-hidden className={`ml-auto transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      </h3>
+      {open && (
+        <ul id="done-today-list" className="mt-2 space-y-1">
+          {tasks.map((t) => (
+            <li key={t.id} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-bg-alt transition">
+              <input
+                type="checkbox"
+                checked
+                onChange={() => onUncomplete(t)}
+                aria-label={`Mark not done: ${t.title}`}
+                className="w-4 h-4 shrink-0 cursor-pointer accent-[var(--accent-strong)]"
+              />
+              <span className="flex-1 min-w-0 text-sm text-ink-muted line-through decoration-[var(--ink-muted)] break-words">
+                {t.title}
+              </span>
+              {t.completed_at && (
+                <time dateTime={t.completed_at} className="font-mono text-[10px] text-ink-muted shrink-0">
+                  {time.format(new Date(t.completed_at))}
+                </time>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -274,12 +390,16 @@ function BucketSection({
   today,
   catById,
   dragging,
+  lingerMs,
+  onComplete,
 }: {
   bucket: Bucket;
   tasks: TaskDTO[];
   today: string;
   catById: Map<string, Category>;
   dragging: boolean;
+  lingerMs: number;
+  onComplete: (task: TaskDTO) => void;
 }) {
   const headingId = `bucket-${bucket}`;
   // The list itself is a drop target, so an empty bucket still accepts cards.
@@ -307,6 +427,8 @@ function BucketSection({
               task={t}
               today={today}
               category={t.category_id ? catById.get(t.category_id) : undefined}
+              lingerMs={lingerMs}
+              onComplete={onComplete}
             />
           ))}
         </ul>
@@ -316,10 +438,31 @@ function BucketSection({
   );
 }
 
-function SortableTaskCard({ task, today, category }: { task: TaskDTO; today: string; category: Category | undefined }) {
+function SortableTaskCard({
+  task,
+  today,
+  category,
+  lingerMs,
+  onComplete,
+}: {
+  task: TaskDTO;
+  today: string;
+  category: Category | undefined;
+  lingerMs: number;
+  onComplete: (task: TaskDTO) => void;
+}) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+
+  // Strike through first, then hand off to the board, which moves the card
+  // into "Done today".
+  function onCheck() {
+    if (leaving) return;
+    setLeaving(true);
+    window.setTimeout(() => onComplete(task), lingerMs);
+  }
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -351,7 +494,24 @@ function SortableTaskCard({ task, today, category }: { task: TaskDTO; today: str
       }`}
       onMouseLeave={() => setConfirming(false)}
     >
-      <TaskCardBody task={task} today={today} category={category} />
+      <TaskCardBody
+        task={task}
+        today={today}
+        category={category}
+        leaving={leaving}
+        leading={
+          <input
+            type="checkbox"
+            checked={leaving}
+            onChange={onCheck}
+            // A press on the checkbox must never become a drag.
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            aria-label={`Mark done: ${task.title}`}
+            className="mt-0.5 w-4 h-4 shrink-0 cursor-pointer accent-[var(--accent-strong)]"
+          />
+        }
+      />
       <button
         type="button"
         ref={setActivatorNodeRef}
@@ -384,28 +544,56 @@ function SortableTaskCard({ task, today, category }: { task: TaskDTO; today: str
 }
 
 // Presentational card, shared by the list item and the drag overlay.
-function TaskCardBody({ task, today, category }: { task: TaskDTO; today: string; category: Category | undefined }) {
+function TaskCardBody({
+  task,
+  today,
+  category,
+  leading,
+  leaving = false,
+}: {
+  task: TaskDTO;
+  today: string;
+  category: Category | undefined;
+  leading?: React.ReactNode;
+  leaving?: boolean;
+}) {
   const overdue = isOverdue(task, today);
   const later = task.scheduled_for !== null && task.scheduled_for > shiftISODate(today, 1);
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-bg-base pl-5 pr-3 py-2 transition group-hover:border-[var(--border-strong)]">
-      <p className="text-sm text-ink-primary pr-6 break-words">{task.title}</p>
-      {(overdue || later || task.priority !== "med" || category) && (
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-muted">
-          {overdue && (
-            <span className="font-medium text-[var(--danger)]">Overdue · {shortDate(task.scheduled_for!)}</span>
-          )}
-          {later && <span title={formatLongDate(task.scheduled_for!)}>{shortDate(task.scheduled_for!)}</span>}
-          {task.priority === "high" && <span className="font-semibold text-ink-secondary">↑ High</span>}
-          {task.priority === "low" && <span>Low</span>}
-          {category && (
-            <span className="flex items-center gap-1">
-              <span aria-hidden className="w-2 h-2 rounded-full" style={{ background: categoryColor(category) }} />
-              {category.name}
-            </span>
-          )}
-        </div>
+    <div
+      className={`flex items-start gap-2 rounded-xl border border-[var(--border)] bg-bg-base pl-5 pr-3 py-2 transition-opacity duration-300 group-hover:border-[var(--border-strong)] ${
+        leaving ? "opacity-50" : ""
+      }`}
+    >
+      {leading ?? (
+        // Static stand-in for the drag overlay, so the preview matches the card.
+        <span aria-hidden className="mt-0.5 w-4 h-4 shrink-0 rounded-[4px] border border-[var(--border-strong)]" />
       )}
+      <div className="min-w-0 flex-1">
+        <p
+          className={`text-sm pr-6 break-words ${
+            leaving ? "line-through text-ink-muted decoration-[var(--ink-muted)]" : "text-ink-primary"
+          }`}
+        >
+          {task.title}
+        </p>
+        {(overdue || later || task.priority !== "med" || category) && (
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-muted">
+            {overdue && (
+              <span className="font-medium text-[var(--danger)]">Overdue · {shortDate(task.scheduled_for!)}</span>
+            )}
+            {later && <span title={formatLongDate(task.scheduled_for!)}>{shortDate(task.scheduled_for!)}</span>}
+            {task.priority === "high" && <span className="font-semibold text-ink-secondary">↑ High</span>}
+            {task.priority === "low" && <span>Low</span>}
+            {category && (
+              <span className="flex items-center gap-1">
+                <span aria-hidden className="w-2 h-2 rounded-full" style={{ background: categoryColor(category) }} />
+                {category.name}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

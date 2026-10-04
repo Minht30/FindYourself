@@ -707,4 +707,39 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-04 — Session 20: Complete → "Done today" (+ a dnd-kit hydration fix)
+
+**What landed:**
+- `setTaskDone(id, done)` in `task-actions.ts` sets or clears `completed_at` and never touches `scheduled_for`. So "done" stays a state, and unchecking puts the task straight back in the bucket its date still names (US-4.3). Returns `not_found` if no row matched (e.g. deleted elsewhere).
+- `lib/dates.ts → zonedDayStartUTC(iso, timeZone)`: the UTC instant at which a calendar day begins in an IANA zone. It reads the offset with `Intl…formatToParts` and **re-checks it at the candidate instant**, so days that start or end on a DST switch still land on local midnight.
+  - Node-tested 10 cases: Toronto EDT/EST, both 2026 switch days (Mar 8 starts in EST, Nov 1 starts in EDT) and the days after, Ho Chi Minh (+7), Kolkata (+5:30), UTC, and London's BST start day. All pass.
+- `/today` fetches **done-today** = `completed_at ∈ [local midnight, next local midnight)` for the `fy-tz` zone, newest first, in the same `Promise.all`. The board gets `doneToday` and `timeZone`.
+- `TaskBoard`:
+  - **Checkbox** (native `<input type="checkbox">`, `accent-color: var(--accent-strong)`, labelled "Mark done: …"). It stops `mousedown`/`touchstart`, so pressing it can never start a drag.
+  - Checking strikes the title through and fades the card for **350 ms** (0 under reduced motion), then the board moves it into "Done today" optimistically while the request runs. Any failure restores both lists from the server copy with a specific message.
+  - **"Done today"**: a section below the buckets, **collapsed by default** per US-4.3, with a header button (`aria-expanded` / `aria-controls`) showing the count. Rows show a checked box ("Mark not done: …"), the struck-through title, and the completion time in the user's zone. Hidden entirely when nothing's done yet.
+  - Unchecking moves the task back into its bucket at its sorted position, optimistically, with rollback on failure.
+  - Errors now go through one `errorText(code, doing)` helper and a single board-level alert (complete / reopen / move).
+  - The drag overlay shows a static checkbox stand-in so the preview matches the card.
+
+**Bug found in Session 19's code: SSR/client id mismatch in dnd-kit.**
+- The console showed `aria-describedby` server `DndDescribedBy-1` vs client `DndDescribedBy-0`. dnd-kit numbers its accessibility ids from a **module-level counter**. On the server that counter keeps counting across requests, so from the second request on (i.e. on prod, always) each grip's `aria-describedby` pointed at an element id that didn't exist on the client, and screen readers lost the drag instructions.
+- Session 19's check missed it because it ran on a freshly started server, where both sides happened to be at 0.
+- Fix: `<DndContext id="task-board">` (dnd-kit's documented SSR fix). Verified by loading the page three times on one server: the grip's `aria-describedby="task-board"` resolves to the instructions element, ids are unique, and there's no new warning. (The live region keeps its own id and is client-only, so it can't mismatch.)
+- **Lesson:** when checking hydration, render the page *more than once* on the same server; anything counter-based only diverges after the first request.
+
+**Verified (throwaway routes, real server actions, signed out; deleted before commit):**
+- "Done today" collapsed by default; expanding shows "Delta already done · 10:05 AM" (14:05 UTC in Toronto ✓).
+- Check timeline (sampled every 10 ms): 7 ms struck through and still in Today → **373 ms** moved to Done (count 2) → 418 ms server answered `unauthenticated`, both lists restored, alert "You're signed out. Sign in again to change tasks."
+- Uncheck timeline: 10 ms Delta back in Backlog (it has no date), Done emptied → 43 ms rejection restored it.
+- `typecheck` + `lint` + `build` green. `/today` 27.6 → **28.4 kB**.
+
+**Still to do in Phase 4:** restriction badge + header chip, end-of-day roll modal. Editing task fields (description / priority / deadline / category / restriction toggle) has no box of its own yet but the restriction box needs at least the restriction toggle. Fold a small task editor popover into Session 21.
+
+**Next session — Session 21:** task editor popover (title, description, priority, deadline, category, restriction), reusing the BlockPopover pattern, then the restriction badge on cards plus the persistent "🔒 Focus first: [task]" chip in the TopBar (US-4.5).
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

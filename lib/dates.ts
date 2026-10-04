@@ -134,3 +134,32 @@ export function isoWeekdayMon0(iso: string): number {
   const [y, m, d] = iso.split("-").map(Number);
   return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
 }
+
+// Offset (ms) of an IANA zone from UTC at a given instant: local wall time
+// minus UTC. Positive east of Greenwich.
+function zoneOffsetMs(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return asUTC - (instant - (instant % 1000));
+}
+
+// The UTC instant at which calendar day `iso` begins in `timeZone`, e.g. for
+// "completed today" range queries. Re-checks the offset at the candidate so
+// days that start or end on a DST switch still land on local midnight.
+export function zonedDayStartUTC(iso: string, timeZone: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  const wall = Date.UTC(y, m - 1, d);
+  let guess = wall - zoneOffsetMs(wall, timeZone);
+  guess = wall - zoneOffsetMs(guess, timeZone);
+  return new Date(guess);
+}

@@ -6,12 +6,15 @@ import CopyYesterdayButton from "@/components/timetable/CopyYesterdayButton";
 import { TasksShell, TasksToggle, DRAWER_COOKIE } from "@/components/tasks/TasksShell";
 import TaskBoard from "@/components/tasks/TaskBoard";
 import { TASK_COLUMNS, type TaskDTO } from "@/lib/tasks";
-import { getUserToday } from "@/lib/today";
+import { getUserTimeZone } from "@/lib/today";
 import {
   addDays,
   formatWeekRange,
   parseWeekParam,
+  shiftISODate,
   toISODateOnly,
+  todayInTimeZone,
+  zonedDayStartUTC,
 } from "@/lib/dates";
 
 // Always fresh — reflects newly-created blocks immediately.
@@ -30,7 +33,13 @@ export default async function TodayPage({ searchParams }: Props) {
   const weekStart = parseWeekParam(searchParams.week);
   const weekEnd = addDays(weekStart, 7);
 
-  const [{ data: categories }, { data: blocks }, { data: openTasks }] = await Promise.all([
+  // "Done today" = completed between the user's local midnights.
+  const timeZone = getUserTimeZone();
+  const today = todayInTimeZone(timeZone);
+  const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
+  const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
+
+  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }] = await Promise.all([
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
@@ -44,6 +53,14 @@ export default async function TodayPage({ searchParams }: Props) {
       .eq("user_id", user.id)
       .is("completed_at", null)
       .returns<TaskDTO[]>(),
+    supabase
+      .from("tasks")
+      .select(TASK_COLUMNS)
+      .eq("user_id", user.id)
+      .gte("completed_at", dayStart)
+      .lt("completed_at", dayEnd)
+      .order("completed_at", { ascending: false })
+      .returns<TaskDTO[]>(),
   ]);
   const tasks = openTasks ?? [];
   // Drawer defaults to open; the cookie remembers a user who closed it.
@@ -56,7 +73,15 @@ export default async function TodayPage({ searchParams }: Props) {
   return (
     <TasksShell
       initialOpen={drawerOpen}
-      drawer={<TaskBoard tasks={tasks} categories={categories ?? []} today={getUserToday()} />}
+      drawer={
+        <TaskBoard
+          tasks={tasks}
+          doneToday={doneTasks ?? []}
+          categories={categories ?? []}
+          today={today}
+          timeZone={timeZone}
+        />
+      }
     >
       <div className="flex items-baseline gap-4 flex-wrap">
         <h1 className="font-display text-3xl">Timetable</h1>

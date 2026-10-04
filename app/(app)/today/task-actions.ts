@@ -152,3 +152,26 @@ export async function moveTask(
   revalidatePath("/today");
   return { ok: true };
 }
+
+// Checkbox. Done is a state (completed_at), not a bucket: scheduled_for is
+// left alone, so unchecking puts the task straight back where it was (US-4.3).
+export async function setTaskDone(id: string, done: boolean): Promise<ActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+  if (typeof done !== "boolean") return { ok: false, error: "invalid_state" };
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ completed_at: done ? new Date().toISOString() : null })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "not_found" };
+
+  revalidatePath("/today");
+  return { ok: true };
+}

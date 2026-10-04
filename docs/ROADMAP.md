@@ -76,9 +76,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] dnd-kit drag between buckets — plus reorder within a bucket; mouse (6 px), touch (long-press), keyboard via grip; server-computed fractional order from neighbour ids
 - [x] Complete → "Done today" — checkbox with a 350 ms strike-through linger, collapsible "Done today" (completed between the user's local midnights, DST-safe), uncheck returns the task to its bucket
 - [x] Restriction badge + persistent header chip — task editor popover (title, description, priority, deadline, category, 🔒 Focus first), badge on cards, "🔒 Focus first: [task]" chip with live countdown in the TopBar (hidden on /chill). *Deferred: PRD 6.6 "darken the app slightly when active" → Phase 9 visual pass.*
-- [ ] End-of-day roll modal
+- [x] End-of-day roll modal — "A few things carried over" for overdue tasks on a new day, "Winding down" from 23:00 for open Today tasks; per-task Tomorrow / Backlog / Today-or-Keep, bulk "Everything to", batch `rollTasks`, once per day per device
 
-**Exit criteria:** every task the author does in a week goes through the app.
+**Exit criteria:** every task the author does in a week goes through the app. *(All boxes built 2026-10-04; exit criterion is Minh's to hit, and nothing in Phase 4 has been used with a real session yet.)*
 
 ---
 

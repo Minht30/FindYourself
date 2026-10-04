@@ -227,3 +227,54 @@ export async function updateTask(input: UpdateTaskInput): Promise<ActionResult> 
   revalidatePath("/today");
   return { ok: true };
 }
+
+export type RollChoice = { id: string; to: Bucket };
+
+// End-of-day roll (US-4.4): re-home several open tasks at once. Each choice
+// names a bucket; the server turns it into a date with the user's today and
+// appends the task to the end of that bucket, preserving the order the
+// choices arrive in.
+export async function rollTasks(choices: RollChoice[]): Promise<ActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+  if (!Array.isArray(choices) || choices.length === 0) return { ok: true };
+  if (choices.length > 200) return { ok: false, error: "too_many" };
+  if (!choices.every((c) => typeof c?.id === "string" && isBucket(c.to))) {
+    return { ok: false, error: "invalid_choice" };
+  }
+
+  const today = getUserToday();
+  const nextOrder = new Map<Bucket, number>();
+  for (const bucket of new Set(choices.map((c) => c.to))) {
+    const scheduledFor = scheduledForBucket(bucket, today);
+    let q = supabase
+      .from("tasks")
+      .select("sort_order")
+      .eq("user_id", user.id)
+      .is("completed_at", null)
+      .order("sort_order", { ascending: false })
+      .limit(1);
+    q = scheduledFor === null ? q.is("scheduled_for", null) : q.eq("scheduled_for", scheduledFor);
+    const { data, error } = await q.maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    nextOrder.set(bucket, (data?.sort_order ?? 0) + 1);
+  }
+
+  for (const c of choices) {
+    const order = nextOrder.get(c.to)!;
+    nextOrder.set(c.to, order + 1);
+    const { error } = await supabase
+      .from("tasks")
+      .update({ scheduled_for: scheduledForBucket(c.to, today), sort_order: order })
+      .eq("id", c.id)
+      .eq("user_id", user.id)
+      .is("completed_at", null);
+    if (error) return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/today");
+  return { ok: true };
+}

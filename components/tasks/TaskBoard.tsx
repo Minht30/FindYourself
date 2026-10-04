@@ -28,6 +28,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import TaskPopover from "@/components/tasks/TaskPopover";
+import EndOfDayRoll from "@/components/tasks/EndOfDayRoll";
 import { createTask, deleteTask, moveTask, setTaskDone } from "@/app/(app)/today/task-actions";
 import { categoryColor } from "@/lib/categories";
 import {
@@ -357,6 +358,7 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
         </DragOverlay>
       </DndContext>
       <DoneSection tasks={done} timeZone={timeZone} onUncomplete={uncomplete} />
+      <EndOfDayRoll tasks={tasks} today={today} />
       {editing && (
         <TaskPopover
           key={editing.task.id}

@@ -790,4 +790,49 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-04 — Session 22: End-of-day roll (Phase 4 boxes complete)
+
+**What landed:**
+- `rollTasks(choices: { id, to: Bucket }[])` in `task-actions.ts`: a batch re-home.
+  - Validates every choice (≤ 200). The server maps each bucket to a date with `getUserToday()`.
+  - It reads the current last `sort_order` once per target bucket, then appends tasks **in the order the choices arrive** (the board's order). Only open tasks are touched.
+- `components/tasks/RollModal.tsx`, a real modal dialog:
+  - `role="dialog"` + `aria-modal="true"`, labelled and described by its heading and body.
+  - Focus moves inside on open, **Tab / Shift+Tab wrap inside**, Esc = "Decide later", and focus returns to the previously focused element on close.
+  - Backdrop click = "Decide later". The latest `onLater` is kept in a ref so the focus effect doesn't re-run each render.
+  - Two modes with their own copy:
+    - **overdue**: "A few things carried over / These didn't get done on their day. Where should they go now?", each task tagged "from Oct 2"; options Tomorrow / Backlog / **Today** (re-dates to today).
+    - **evening**: "Winding down / It's getting late. Anything to move off today before you rest?"; options Tomorrow / Backlog / **Keep** (no write).
+  - Per-task segmented radios (default Tomorrow), "Everything to: …" bulk buttons, and specific errors ("You're signed out. Sign in again to move these.").
+  - If every choice is Keep in evening mode, Done closes without a request.
+- `components/tasks/EndOfDayRoll.tsx` decides *when*:
+  - **overdue** whenever open tasks are dated before today (which in practice means the first visit of a new day), taking precedence over evening.
+  - **evening** when the local hour is ≥ 23 and tasks are still open on today. The hour is re-read every 60 s, so it can appear while the app is left open.
+  - The task list is **snapshotted** when the modal opens, so it can't shift under the user, and ordered like the board (date, then `sort_order`).
+  - Each mode is offered at most **once per day per device**: both Done and Decide later set `fy-roll-handled:<today>:<mode>` in localStorage. That's a convenience flag, so a second device asking again is acceptable.
+  - Mounted inside `TaskBoard`, which only renders on `/today`, so the roll appears where the tasks are.
+
+**Why "once per day per device" in localStorage rather than the DB:** it's a nag-suppression preference, not data. If it's lost (private window, cleared storage), the worst case is being asked once more, which is harmless. Revisit if a settings page ever wants "never ask".
+
+**Verified (throwaway routes, real `rollTasks`, signed out; deleted before commit):**
+- Overdue page (tasks from Oct 2 and Oct 3 + one today):
+  - The modal opened for **only the two overdue tasks**, tagged "from Oct 2 / Oct 3", defaulting to Tomorrow.
+  - Focus started inside; Tab from last → first and Shift+Tab from first → last.
+  - "Everything to: Today" set both to keep.
+  - Done → the batch request was sent → the modal stayed open with **"You're signed out. Sign in again to move these."**
+  - Esc closed it, set `fy-roll-handled:2026-10-04:overdue`, and the modal **did not reappear on reload**.
+- Evening page (two tasks dated today):
+  - At the real hour (≈ 1 AM) nothing showed.
+  - After overriding `Date.prototype.getHours` to 23, the next 60 s tick opened **"Winding down"** with the third option labelled **Keep**, in board order (fixed during the session: it first used raw server order).
+  - Keep-all + Done closed it **without a save request** (the only fetch was the page refresh) and set the evening flag.
+- No new console errors. `typecheck` + `lint` + `build` green. `/today` 30.2 → **31.6 kB**.
+
+**Phase 4 status:** every box is built (table + RLS, board, drag, done-today, restriction badge + chip, end-of-day roll). The exit criterion, "every task the author does in a week goes through the app", is Minh's to hit, and **none of Phase 4 has been exercised with a real session yet** (prod `tasks` is still empty).
+
+**Next — Phase 5 (Pomodoro + Focus Mode):** timer widget + zustand store. Read PRD §6.5 and US-5.x first. Before that, worth a real-session pass over diary + tasks on prod.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

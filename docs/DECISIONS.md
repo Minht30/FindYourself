@@ -647,4 +647,28 @@ Minh clarified he wanted Phase 2 wrapped before jumping into Phase 3, so this se
 
 ---
 
+## 2026-10-04 — Session 18.1: RLS hardening on the pre-Phase-4 tables
+
+Closes the task spun off in Session 17. The older tables now use the same policy shape as `tasks`.
+
+**Migration** `20261004044827_harden_rls_pre_phase4_tables.sql` (applied via MCP, mirrored with the matching version):
+- **Advisor 0003 (`auth_rls_initplan`):** every policy on `profiles`, `categories`, `time_blocks`, `diary_entries` now uses `(select auth.uid())`. The existing select policies (and `profiles`' update policy) were changed with `alter policy`, so names stay stable.
+- **Advisor 0006 (`multiple_permissive_policies`):** the `for all` "modify" policy on `categories`, `time_blocks`, `diary_entries` is replaced by separate insert / update / delete policies, so SELECT is governed by one policy. `profiles` keeps select + update only, since inserts come from the signup trigger.
+- **Advisor 0001 (`unindexed_foreign_keys`):** `time_blocks_category_idx` on `time_blocks(category_id)`. Deleting a category (`on delete set null`) no longer scans every block.
+- **Ownership checks on `time_blocks` insert/update `with check`:** `category_id` must be null or the caller's own category (same rule as `tasks`). I also gave **`linked_task_id`** the same treatment (null or the caller's own task), because it has the identical hole: the FK alone accepts another user's task id. Pre-check: 0 existing blocks pointed at a foreign category or task, so no current row becomes un-updatable.
+
+**Verified** with one `DO` block that ends in a deliberate `raise exception` carrying the results, so everything rolls back, including the throwaway `auth.users` row. It ran as `authenticated` with `request.jwt.claims` set via `set_config`. User A = the real account, user B = a throwaway (the signup trigger seeded its 5 categories). **36/36 PASS:**
+- A sees exactly their own rows (5 categories, 11 blocks, 1 diary entry, 1 profile). A can insert / update / delete their own category, block (with own category + own linked task) and diary entry, and can update their own profile.
+- A's block with B's category, or linked to B's task, is rejected `42501` on insert **and** update. Inserting a block for B, or reassigning one to B, is rejected `42501`.
+- B sees 0 of A's categories / blocks / diary / profile. B's updates and deletes against A's rows affect 0 rows (including a blanket `update time_blocks`). B inserting a category or diary entry for A, or using A's category on B's own block, is rejected `42501`.
+- Afterwards, as `postgres`: A's counts are unchanged and no `pwn` values exist anywhere. A separate query after the block confirmed no leftovers (0 throwaway users, 0 test rows, profile name untouched).
+
+**Advisors after:**
+- Performance: 0003, 0006 and 0001 are all gone. The only thing left is `unused_index` (INFO) on 5 indexes, including the new one. That's expected at 11 rows, where the planner prefers a sequential scan. Revisit once there's real data.
+- Security: unchanged (standing leaked-password dashboard toggle only).
+
+**Blocked on:** nothing. Session 19 (dnd-kit) is still next.
+
+---
+
 <!-- New entries append below with date + session number -->

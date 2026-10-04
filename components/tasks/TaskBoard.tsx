@@ -27,6 +27,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import TaskPopover from "@/components/tasks/TaskPopover";
 import { createTask, deleteTask, moveTask, setTaskDone } from "@/app/(app)/today/task-actions";
 import { categoryColor } from "@/lib/categories";
 import {
@@ -39,7 +40,7 @@ import {
   type Bucket,
   type TaskDTO,
 } from "@/lib/tasks";
-import { formatLongDate, shiftISODate } from "@/lib/dates";
+import { formatLongDate, shiftISODate, todayInTimeZone } from "@/lib/dates";
 
 type Category = { id: string; name: string; color: string };
 type Columns = Record<Bucket, TaskDTO[]>;
@@ -70,6 +71,16 @@ function errorText(code: string, doing: string): string {
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 const shortDate = (iso: string) => SHORT_DATE.format(new Date(`${iso}T00:00:00Z`));
 
+// "Due 6:00 PM" today, "Due Oct 5, 6:00 PM" otherwise, in the user's zone.
+function deadlineLabel(iso: string, timeZone: string, today: string): { text: string; past: boolean } {
+  const at = new Date(iso);
+  const day = todayInTimeZone(timeZone, at);
+  const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone }).format(at);
+  const when = day === today ? time : `${shortDate(day)}, ${time}`;
+  const past = at.getTime() < Date.now();
+  return { text: `${past ? "Past due" : "Due"} ${when}`, past };
+}
+
 function groupTasks(tasks: TaskDTO[], today: string): Columns {
   const cols: Columns = { today: [], tomorrow: [], backlog: [] };
   for (const t of tasks) cols[bucketOf(t.scheduled_for, today)].push(t);
@@ -90,6 +101,23 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
   const [activeId, setActiveId] = useState<string | null>(null);
   const [boardError, setBoardError] = useState<string | null>(null);
   const origin = useRef<{ bucket: Bucket; index: number } | null>(null);
+  const [editing, setEditing] = useState<{ task: TaskDTO; anchor: DOMRect; trigger: HTMLElement } | null>(null);
+  // A drop can be followed by a stray click on whatever is under the pointer;
+  // don't let it open the editor.
+  const lastDragEnd = useRef(0);
+
+  function openEditor(task: TaskDTO, trigger: HTMLElement) {
+    if (performance.now() - lastDragEnd.current < 250) return;
+    const card = trigger.closest("li") ?? trigger;
+    setEditing({ task, anchor: card.getBoundingClientRect(), trigger });
+  }
+  function closeEditor(saved: boolean) {
+    const trigger = editing?.trigger;
+    setEditing(null);
+    if (saved) router.refresh();
+    // Return focus to the title that opened the editor.
+    window.setTimeout(() => trigger?.isConnected && trigger.focus(), 0);
+  }
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
 
   // The settle-into-place animation is decoration: skip it for users who
@@ -198,6 +226,7 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
   }
 
   async function onDragEnd({ active, over }: DragEndEvent) {
+    lastDragEnd.current = performance.now();
     const start = origin.current;
     origin.current = null;
     const to = bucketOfId(active.id);
@@ -243,6 +272,7 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
   }
 
   function onDragCancel() {
+    lastDragEnd.current = performance.now();
     origin.current = null;
     setActiveId(null);
     setColumns(serverColumns);
@@ -306,8 +336,10 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
             today={today}
             catById={catById}
             dragging={dragging}
+            timeZone={timeZone}
             lingerMs={reduceMotion ? 0 : COMPLETE_LINGER_MS}
             onComplete={complete}
+            onEdit={openEditor}
           />
         ))}
         <DragOverlay dropAnimation={reduceMotion ? null : { duration: 180, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
@@ -316,6 +348,7 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
               <TaskCardBody
                 task={active}
                 today={today}
+                timeZone={timeZone}
                 category={active.category_id ? catById.get(active.category_id) : undefined}
               />
               <PawPrint size={12} aria-hidden className="absolute -top-1.5 -right-1.5 text-accent-strong" />
@@ -324,6 +357,16 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
         </DragOverlay>
       </DndContext>
       <DoneSection tasks={done} timeZone={timeZone} onUncomplete={uncomplete} />
+      {editing && (
+        <TaskPopover
+          key={editing.task.id}
+          task={editing.task}
+          anchor={editing.anchor}
+          categories={categories}
+          onClose={() => closeEditor(false)}
+          onSaved={() => closeEditor(true)}
+        />
+      )}
     </div>
   );
 }
@@ -390,16 +433,20 @@ function BucketSection({
   today,
   catById,
   dragging,
+  timeZone,
   lingerMs,
   onComplete,
+  onEdit,
 }: {
   bucket: Bucket;
   tasks: TaskDTO[];
   today: string;
   catById: Map<string, Category>;
   dragging: boolean;
+  timeZone: string;
   lingerMs: number;
   onComplete: (task: TaskDTO) => void;
+  onEdit: (task: TaskDTO, trigger: HTMLElement) => void;
 }) {
   const headingId = `bucket-${bucket}`;
   // The list itself is a drop target, so an empty bucket still accepts cards.
@@ -427,8 +474,10 @@ function BucketSection({
               task={t}
               today={today}
               category={t.category_id ? catById.get(t.category_id) : undefined}
+              timeZone={timeZone}
               lingerMs={lingerMs}
               onComplete={onComplete}
+              onEdit={onEdit}
             />
           ))}
         </ul>
@@ -442,14 +491,18 @@ function SortableTaskCard({
   task,
   today,
   category,
+  timeZone,
   lingerMs,
   onComplete,
+  onEdit,
 }: {
   task: TaskDTO;
   today: string;
   category: Category | undefined;
+  timeZone: string;
   lingerMs: number;
   onComplete: (task: TaskDTO) => void;
+  onEdit: (task: TaskDTO, trigger: HTMLElement) => void;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -498,6 +551,8 @@ function SortableTaskCard({
         task={task}
         today={today}
         category={category}
+        timeZone={timeZone}
+        onEdit={(trigger) => onEdit(task, trigger)}
         leaving={leaving}
         leading={
           <input
@@ -548,17 +603,25 @@ function TaskCardBody({
   task,
   today,
   category,
+  timeZone,
+  onEdit,
   leading,
   leaving = false,
 }: {
   task: TaskDTO;
   today: string;
   category: Category | undefined;
+  timeZone: string;
+  onEdit?: (trigger: HTMLElement) => void; // absent in the drag overlay
   leading?: React.ReactNode;
   leaving?: boolean;
 }) {
   const overdue = isOverdue(task, today);
   const later = task.scheduled_for !== null && task.scheduled_for > shiftISODate(today, 1);
+  const due = task.deadline ? deadlineLabel(task.deadline, timeZone, today) : null;
+  const titleClass = `text-sm pr-6 break-words text-left ${
+    leaving ? "line-through text-ink-muted decoration-[var(--ink-muted)]" : "text-ink-primary"
+  }`;
   return (
     <div
       className={`flex items-start gap-2 rounded-xl border border-[var(--border)] bg-bg-base pl-5 pr-3 py-2 transition-opacity duration-300 group-hover:border-[var(--border-strong)] ${
@@ -570,19 +633,32 @@ function TaskCardBody({
         <span aria-hidden className="mt-0.5 w-4 h-4 shrink-0 rounded-[4px] border border-[var(--border-strong)]" />
       )}
       <div className="min-w-0 flex-1">
-        <p
-          className={`text-sm pr-6 break-words ${
-            leaving ? "line-through text-ink-muted decoration-[var(--ink-muted)]" : "text-ink-primary"
-          }`}
-        >
-          {task.title}
-        </p>
-        {(overdue || later || task.priority !== "med" || category) && (
+        {onEdit ? (
+          // The title is the way into the editor, for mouse and keyboard alike.
+          <button
+            type="button"
+            // Drags still start here (6 px threshold); a plain click opens.
+            onClick={(e) => onEdit(e.currentTarget)}
+            aria-label={`Edit task: ${task.title}`}
+            className={`${titleClass} block w-full hover:underline decoration-[var(--border-strong)] underline-offset-2 rounded`}
+          >
+            {task.title}
+          </button>
+        ) : (
+          <p className={titleClass}>{task.title}</p>
+        )}
+        {(overdue || later || due || task.is_restriction || task.priority !== "med" || category) && (
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-ink-muted">
+            {task.is_restriction && (
+              <span className="px-1.5 py-px rounded-full bg-accent-soft text-cat-ink font-medium">🔒 Focus first</span>
+            )}
             {overdue && (
               <span className="font-medium text-[var(--danger)]">Overdue · {shortDate(task.scheduled_for!)}</span>
             )}
             {later && <span title={formatLongDate(task.scheduled_for!)}>{shortDate(task.scheduled_for!)}</span>}
+            {due && (
+              <span className={due.past ? "font-medium text-[var(--danger)]" : "text-ink-secondary"}>{due.text}</span>
+            )}
             {task.priority === "high" && <span className="font-semibold text-ink-secondary">↑ High</span>}
             {task.priority === "low" && <span>Low</span>}
             {category && (

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserToday } from "@/lib/today";
-import { isBucket, scheduledForBucket, type Bucket } from "@/lib/tasks";
+import { isBucket, scheduledForBucket, type Bucket, type TaskPriority } from "@/lib/tasks";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -167,6 +167,58 @@ export async function setTaskDone(id: string, done: boolean): Promise<ActionResu
     .from("tasks")
     .update({ completed_at: done ? new Date().toISOString() : null })
     .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "not_found" };
+
+  revalidatePath("/today");
+  return { ok: true };
+}
+
+export type UpdateTaskInput = {
+  id: string;
+  title: string;
+  description: string;
+  priority: TaskPriority;
+  deadline: string | null; // ISO instant
+  categoryId: string | null;
+  isRestriction: boolean;
+};
+
+const PRIORITIES: readonly TaskPriority[] = ["low", "med", "high"];
+
+// The task editor's Save. Mirrors the table's check constraints so bad input
+// gets a readable reason instead of a Postgres error; RLS separately insists
+// the category is the caller's own.
+export async function updateTask(input: UpdateTaskInput): Promise<ActionResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  const title = typeof input.title === "string" ? input.title.trim() : "";
+  if (!title) return { ok: false, error: "empty_title" };
+  if (title.length > MAX_TITLE) return { ok: false, error: "title_too_long" };
+  const description = typeof input.description === "string" ? input.description.trim() : "";
+  if (description.length > 5000) return { ok: false, error: "description_too_long" };
+  if (!PRIORITIES.includes(input.priority)) return { ok: false, error: "invalid_priority" };
+  if (input.deadline !== null && !Number.isFinite(Date.parse(input.deadline))) {
+    return { ok: false, error: "invalid_deadline" };
+  }
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
+      title,
+      description,
+      priority: input.priority,
+      deadline: input.deadline,
+      category_id: input.categoryId,
+      is_restriction: input.isRestriction === true,
+    })
+    .eq("id", input.id)
     .eq("user_id", user.id)
     .select("id");
   if (error) return { ok: false, error: error.message };

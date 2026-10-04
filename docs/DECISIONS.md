@@ -742,4 +742,52 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-04 — Session 21: Task editor + restriction badge + "🔒 Focus first" header chip
+
+**Prod check:** still 0 tasks and no diary save since 2026-09-29. Everything since the diary hotfix remains untested with a real session.
+
+**What landed:**
+- `updateTask(input)` in `task-actions.ts`: title (1–200, trimmed), description (≤ 5000, trimmed), priority enum, deadline (ISO or null, must parse), category, `is_restriction`. It mirrors the table's check constraints so bad input gets a readable reason. RLS still enforces own-category, and the action returns `not_found` if no row matched.
+- `components/tasks/TaskPopover.tsx`, modelled on `BlockPopover` (portal, outside-click / Esc close, viewport clamping), with improvements:
+  - A real `<form>` (Enter saves).
+  - `role="dialog"` labelled by its heading.
+  - **Focus returns to the task title** that opened it.
+  - Prefers the *left* of the card, since the drawer hugs the right edge.
+  - Priority is a radio group styled as pills (`peer-checked`, `peer-focus-visible` outline).
+  - Deadline is `datetime-local` (browser wall-clock = the same zone `fy-tz` reports), with a clear button.
+  - Restriction is a labelled checkbox: "🔒 Focus first. Keep a gentle reminder in the header until this is done. Nothing gets blocked."
+  - Errors are mapped to friendly copy; edits are kept on failure.
+- **Opening the editor:** the card title is now a `<button>` ("Edit task: …"), so it's keyboard reachable. Mouse drags still start on it (6 px threshold), and a 250 ms post-drop guard stops a stray click from opening the editor after a drag.
+- **Card meta row:**
+  - `🔒 Focus first` pill (accent-soft / cat-ink).
+  - Deadline in the user's zone: "Due 6:00 PM" when it's today, "Due Oct 5, 6:00 PM" otherwise, and **"Past due …" in danger red** once passed.
+- **Header chip (US-4.5):**
+  - `FocusFirstSlot` (async server component) picks the open restricted task with the earliest deadline (undated last, then oldest) plus a count of the others. It uses the `tasks_user_open_restriction_idx` partial index from Session 17.
+  - The layout renders the slot **inside its own `<Suspense fallback={null}>`**, passed to the client `TopBar` as a `focusSlot` prop, so the lookup streams in and never blocks the shell.
+  - `FocusFirstChip` is a link to `/today` reading "🔒 **Focus first:** Finish the essay · due in 2h 15m +1". The countdown re-renders every 30 s and becomes "past due" in red.
+  - Responsive: icon only < md, countdown from md, title from lg.
+  - Full `aria-label` ("Focus first: X, due in 2h 15m, plus 1 more. Open tasks").
+  - **Hidden on `/chill`** (PRD §6.0: from Chill "you cannot see a task or a timer").
+  - It refreshes with everything else on `router.refresh()`, since the layout re-renders too.
+
+**Decisions:**
+- **Reading the session in the layout makes `/chill` and `/focus` dynamic** (they were static stubs). They're auth-gated, so prerendering them bought nothing, and a correct chip on every page matters more.
+- **Deferred:** PRD §6.6's "darken the app slightly when active". A global dim deserves care with the scenes and both themes, so it goes in the Phase 9 visual / reduced-motion pass (noted on the ROADMAP box).
+
+**Verified (throwaway route, real `updateTask`, signed out; deleted before commit):**
+- Cards: "Finish the essay | 🔒 Focus first | Due 3:37 AM | ↑ High | Deep Work" (deadline 2h15m ahead in Toronto, same day → time only) and "Reply to Sam | Past due 12:52 AM".
+- Chips: "due in 2h 15m +1" and "past due", with the full aria-labels above.
+- Editor:
+  - Prefilled every field correctly (title, description, High, `2026-10-04T03:37`, Deep Work, restriction checked). Focus started in Title, and it opened left of the card.
+  - Changing to Low + unchecking restriction → Save → the request was sent, and the popover showed **"You're signed out. Sign in again to save."** with the edits kept.
+  - Esc closed it and **focus returned to "Edit task: Finish the essay"**.
+- Screenshot checked. Loaded 3× on one server (hydration lesson): no new console errors.
+- `typecheck` + `lint` + `build` green. `/today` 28.4 → **30.2 kB**.
+
+**Next session — Session 22:** end-of-day roll modal (US-4.4). On first visit of a day with open tasks dated before today (or at 23:00 local), offer per task: Move to Tomorrow / Move to Backlog / Keep (re-date to today). Batch server action. That's the last Phase 4 box.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

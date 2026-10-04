@@ -8,7 +8,9 @@ import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } 
 const VIEWS = ["Day", "Week", "Month"] as const;
 type View = (typeof VIEWS)[number];
 
-export default function TopBar() {
+// focusSlot: the "🔒 Focus first" reminder, rendered on the server by the
+// layout. Hidden on /chill, which is deliberately free of tasks and timers.
+export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   const [view, setView] = useState<View>("Week");
   const [theme, setTheme] = useState<"sunny-cafe" | "netcafe-night">("sunny-cafe");
 
@@ -100,6 +102,8 @@ export default function TopBar() {
       <div className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink">Sep 14 – 20, 2026</div>
 
       <div className="flex-1" />
+
+      {!pathname?.startsWith("/chill") && focusSlot}
 
       <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Search size={16} />

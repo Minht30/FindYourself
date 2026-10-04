@@ -75,7 +75,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Three-bucket board (Today/Tomorrow/Backlog) — right-side drawer on /today (PRD §6.0), cookie-remembered open state, quick-add per bucket, overdue flagged under Today, two-step delete
 - [x] dnd-kit drag between buckets — plus reorder within a bucket; mouse (6 px), touch (long-press), keyboard via grip; server-computed fractional order from neighbour ids
 - [x] Complete → "Done today" — checkbox with a 350 ms strike-through linger, collapsible "Done today" (completed between the user's local midnights, DST-safe), uncheck returns the task to its bucket
-- [ ] Restriction badge + persistent header chip
+- [x] Restriction badge + persistent header chip — task editor popover (title, description, priority, deadline, category, 🔒 Focus first), badge on cards, "🔒 Focus first: [task]" chip with live countdown in the TopBar (hidden on /chill). *Deferred: PRD 6.6 "darken the app slightly when active" → Phase 9 visual pass.*
 - [ ] End-of-day roll modal
 
 **Exit criteria:** every task the author does in a week goes through the app.

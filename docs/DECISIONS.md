@@ -671,4 +671,40 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-04 — Session 19: Drag tasks between buckets (dnd-kit)
+
+**Prod check first:** `tasks` is still empty and the diary entry is unchanged since 2026-09-29 19:12 UTC, so the Session 15.1 diary hotfix and the Session 18 board haven't been exercised on prod yet. Flagged to Minh again.
+
+**What landed:**
+- Deps: `@dnd-kit/core ^6.3.1`, `@dnd-kit/sortable ^10.0.0`, `@dnd-kit/utilities ^3.2.2`.
+- `moveTask(id, bucket, prevId, nextId)` in `app/(app)/today/task-actions.ts`:
+  - The client sends **neighbour ids, not sort values**. The server reads their current `sort_order` and places the task at `(prev+next)/2`, `prev+1`, `next−1`, or `1`. A stale tab therefore can't write positions computed from old numbers.
+  - Neighbours whose `scheduled_for` differs from the target day are ignored, for the same reason.
+  - If the gap between neighbours is < `1e-9` (≈50 halvings in one spot), the target bucket is renumbered 1..N first, then the midpoint is recomputed.
+  - **Dropping re-dates the task to the bucket's day.** Dragging is an explicit re-home, so an overdue task dragged within Today becomes today's (and loses the Overdue flag).
+- `TaskBoard` rewritten around dnd-kit's multi-container sortable:
+  - Local `columns` state that follows the server list except mid-drag. `onDragOver` moves the card between buckets live; `onDragEnd` reorders, picks the nearest **same-date** neighbours, applies the move optimistically, and calls the action.
+  - On failure the board snaps back to the server's list with a specific message ("You're signed out… The task is back where it was."). On success, `router.refresh()`.
+  - Each bucket's `<ul>` is also a `useDroppable`, so **empty buckets accept drops**. While dragging, an empty bucket shows a 44 px dashed zone that tints on hover.
+  - **Sensors:** Mouse with a 6 px threshold (same as every drag in the app, so clicks still click); Touch with a 200 ms long-press (so swipes still scroll the drawer); Keyboard with `sortableKeyboardCoordinates`.
+  - **Pointer drag from anywhere on the card, keyboard pick-up only from a grip button** (`setActivatorNodeRef` + `onKeyDown` split off the listeners). That way Space/Enter on the delete button still means "delete". The delete button also stops `mousedown`/`touchstart` so a drag can never start from it.
+  - **Screen readers:** custom announcements with task titles and bucket names ("Dropped Charlie at position 2 in Today", "Move cancelled. Alpha is back where it was.") plus instructions on the grip.
+  - The `DragOverlay` preview is the shared presentational `TaskCardBody`, tilted 1.5° with an accent-soft halo and a **paw print** in the corner, matching the timetable's drag preview.
+  - The drop animation (180 ms) is skipped under `prefers-reduced-motion`.
+
+**Verified (throwaway route, real server actions, signed out; deleted before commit):**
+- **Keyboard:** grip focus → Space → ↑ ↑ moved "Charlie" from Tomorrow into Today between Alpha and Bravo (live) → Space dropped it → narration "Dropped Charlie tomorrow at position 2 in Today." → server answered `unauthenticated` → board snapped back with the specific alert. (The request was sent and the reason asserted, per the Session 15.1 lesson.)
+- **Mouse:** dragging Alpha onto the empty Backlog: preview with paw appeared, the empty zone grew to 44 px, Alpha moved into Backlog live, and the drop got the same rejection and snap-back.
+- **Esc:** keyboard drag ↓↓↓ (moved into Tomorrow) → Esc → everything back in place, "Move cancelled…" announced.
+- **Delete:** mousedown on delete + a 20 px mouse move did not start a drag, and the click advanced to "Confirm delete: …".
+- No console errors. `typecheck` + `lint` + `build` green. `/today` 9.17 → **27.6 kB** (dnd-kit). Noted for the Phase 9 Lighthouse pass, where lazy-loading the drawer when it's closed is the obvious lever.
+
+**Environment gotcha (not a bug, but it shaped the code):** in the hidden preview pane, Web Animations never advance; a bare `document.body.animate()` probe also sat at `currentTime 0`. dnd-kit keeps the source card hidden until its drop animation finishes, so the first test left a "ghost" overlay stuck on screen. In a real browser this finishes in 180 ms. The takeaways: (1) nothing in the board's state may depend on that animation, and it doesn't; (2) reduced-motion users skip it entirely.
+
+**Next session — Session 20:** checkbox complete → "Done today" collapsed section (US-4.3). `setTaskDone(id, done)` sets/clears `completed_at`; done-today = `completed_at` within the user's today. Unchecking returns the task to its bucket (which `scheduled_for` still holds).
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

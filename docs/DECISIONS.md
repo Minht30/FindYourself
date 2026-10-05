@@ -899,4 +899,33 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 25: Focus Mode (Phase 5, Box 3)
+
+**What landed:**
+- `FocusMode` overlay, portalled to `document.body` and mounted by `FocusProvider`, so it works from any page. Driven by a `focusMode` flag in the store that is **not persisted**: it is a *view* over the running timer, so a reload always lands on the normal page with the timer still going.
+- Content, per US-5.2 / PRD 6.5: the phase label, the pixel track at **2x** when there is room (whole-number scale only, so pixels stay crisp; 1x otherwise), the clock, "Focusing on [item]", Reset / Start-Pause / Skip-break, the cup tally and a one-line hint. **All margins stay empty** (Phase 6 decides what lives there). A finished session shows "nice work. rest now." with the cheer hop, then the sleeping cat.
+- The dim: scoped tokens under `[data-focus-surface]` (warm cocoa in Sunny Cafe, near-black in Netcafe) plus a vignette. Re-declaring the `--ink-*` / `--border*` / `--pix-track` tokens only inside the overlay means text, buttons and the track follow without any component knowing about Focus Mode; the cat gets its canary rim in the dark room. 700 ms fade-in (DESIGN_SYSTEM), none under reduced motion.
+- Entry: an icon button on the timer card and the **F** key (not while typing, or on a control that uses the key). Entering also *asks* for real fullscreen (best effort; a browser that refuses still gets the full-window overlay).
+- Leaving: Esc, F, the Leave button, or the browser's own fullscreen exit (`fullscreenchange`, because the browser consumes that Esc without sending a keydown). In every case the timer is untouched.
+- Accessibility: `role="dialog"` + `aria-modal`, the page behind gets `inert` (so no focus, clicks or screen-reader reach), Tab / Shift+Tab wrap inside, focus moves to the primary button on open and **returns to the opener** on close, body scroll is locked meanwhile, the live region (outside the inert shell) still announces phase changes.
+- Refactor: the cheer logic moved to a `useCheer` hook shared by the card and the overlay.
+
+**Bugs found while testing (both fixed):**
+- Focus did not return to the opener after Esc: the overlay's cleanup ran while the page behind was still `inert` (the provider lifts it in the same commit), and an inert element cannot take focus. The restore now runs one tick later.
+- `focusMode.ts` next to `FocusMode.tsx` differ only by case, which TypeScript rejects (and which would break on Windows / macOS). The helper is `focusModeControls.ts`.
+
+**Verified (signed in, localhost):**
+- F key (real key event) opened the dialog: `inert` on the shell, body scroll locked, focus on Pause, timer still counting. **Esc closed it: `status` still `running`, deadline unchanged, inert and scroll restored.** Opened by click, Esc -> focus returned to "Enter Focus Mode".
+- Tab from the last control wrapped to the first and Shift+Tab from the first to the last; a synthetic `fullscreenchange` with no fullscreen element closed it and the timer kept running.
+- 1400x1000 at night: ring exactly **640 px** (2x of the 320 px viewBox), "Focusing on FYTEST Deep Work" shown. Moving the deadline 1.5 s ahead *inside* Focus Mode: it stayed open, **one chime**, label -> "Short break", status "nice work. rest now.", live region "Focus session complete. Short break next.", then the sleeping cat.
+- Real fullscreen was refused in the headless pane (expected); the overlay worked without it. I could not verify the real-fullscreen path itself, so **Minh: press F in a normal browser window and check the browser goes fullscreen, and that Esc leaves both**.
+- `typecheck` + `lint` + `test` (82) + `build` green. `/focus` 6.58 -> 5.69 kB (the cheer hook replaced duplicated code), First Load 110 kB.
+- One `next build` failed in `next/font` ("Cannot read properties of null") and passed on retry with no change: a transient Google Fonts fetch. Vercel builds fetch the same fonts, so a rare flaky deploy is possible; redeploying fixes it.
+
+**Next — Box 4:** `focus_sessions` table + RLS, `saveFocusSession`, outbox flush (verify task / block ids and null the missing ones).
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

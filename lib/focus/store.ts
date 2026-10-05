@@ -23,6 +23,9 @@ type FocusStore = {
   settings: T.Settings;
   hydrated: boolean;
   lastFinished: Finished | null;
+  // Focus Mode is a view, not timer state: never persisted, so a reload
+  // always lands on the normal page with the timer still running.
+  focusMode: boolean;
 
   startOrResume: () => void;
   pause: () => void;
@@ -31,6 +34,7 @@ type FocusStore = {
   tick: (now: number, opts?: { away?: boolean }) => void;
   setSettings: (patch: Partial<T.Settings>) => void;
   setLink: (link: T.FocusLink | null) => void;
+  setFocusMode: (on: boolean) => void;
 };
 
 const newId = () => crypto.randomUUID();
@@ -78,6 +82,7 @@ export const useFocusStore = create<FocusStore>()(
         settings: initialSettings,
         hydrated: false,
         lastFinished: null,
+        focusMode: false,
 
         startOrResume: () => set((s) => ({ timer: T.start(s.timer, Date.now(), newId) })),
         pause: () => set((s) => ({ timer: T.pause(s.timer, Date.now()) })),
@@ -106,6 +111,7 @@ export const useFocusStore = create<FocusStore>()(
             return { settings, timer: T.applySettings(s.timer, settings) };
           }),
         setLink: (link) => set((s) => ({ timer: T.setLink(s.timer, link) })),
+        setFocusMode: (on) => set({ focusMode: on }),
       };
     },
     {

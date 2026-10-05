@@ -5,6 +5,7 @@ import { primeAudio, playChime } from "@/lib/focus/chime";
 import { showNotification } from "@/lib/focus/notify";
 import { syncClock, useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, formatClock } from "@/lib/focus/timer";
+import FocusMode from "./FocusMode";
 
 const CHIMED_KEY = "fy-focus-chimed";
 const TITLE_PREFIX = /^(⏸ )?\d+:\d\d · (Break · )?/;
@@ -19,6 +20,8 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
   const phase = useFocusStore((s) => s.timer.phase);
   const hydrated = useFocusStore((s) => s.hydrated);
   const lastFinished = useFocusStore((s) => s.lastFinished);
+  const focusMode = useFocusStore((s) => s.focusMode);
+  const shellRef = useRef<HTMLDivElement>(null);
   const secondsLeft = useClock((s) => s.secondsLeft);
   const seenSeq = useRef(0);
 
@@ -114,6 +117,12 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
     }
   }, [lastFinished]);
 
+  // While Focus Mode is open the page behind it is inert: no focus, no clicks,
+  // and hidden from screen readers.
+  useEffect(() => {
+    shellRef.current?.toggleAttribute("inert", focusMode);
+  }, [focusMode]);
+
   // Tab title shows the countdown while a timer is live. The page's own title
   // is recovered by stripping our prefix, because Next rewrites it on navigation.
   useEffect(() => {
@@ -128,7 +137,10 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
 
   return (
     <>
-      {children}
+      <div ref={shellRef} className="contents">
+        {children}
+      </div>
+      <FocusMode />
       <div role="status" aria-live="polite" className="sr-only">
         {announcement}
       </div>

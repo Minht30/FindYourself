@@ -49,12 +49,15 @@ export default function TimerRing({
   status,
   progress,
   cheer = false,
+  scale = 1,
   children,
 }: {
   phase: Phase;
   status: Status;
   progress: number;
   cheer?: boolean;
+  // Whole numbers only, so every sprite pixel stays a whole number of screen pixels.
+  scale?: 1 | 2;
   children?: ReactNode;
 }) {
   const isBreak = phase !== "focus";
@@ -74,7 +77,7 @@ export default function TimerRing({
   const topMid = `translate(${M + (N * U) / 2}px, ${Y0}px)`;
 
   return (
-    <div className="relative mx-auto w-full" style={{ maxWidth: SIZE, containerType: "inline-size" }}>
+    <div className="relative mx-auto w-full" style={{ maxWidth: SIZE * scale, containerType: "inline-size" }}>
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         shapeRendering="crispEdges"

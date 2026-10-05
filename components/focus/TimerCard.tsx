@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
+import { Check, Maximize2, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import { setTaskDone } from "@/app/(app)/today/task-actions";
 import { primeAudio } from "@/lib/focus/chime";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";
+import { openFocusMode } from "./focusModeControls";
 import PixelSprite from "./pixel/PixelSprite";
 import TimerRing from "./pixel/TimerRing";
 import { CUP, CUP_PALETTE } from "./pixel/sprites";
 import TimerSettings from "./TimerSettings";
+import { useCheer } from "./useCheer";
 
 const PHASES: Phase[] = ["focus", "short", "long"];
-const CHEER_MS = 4500;
 
 function isTypingTarget(t: EventTarget | null): boolean {
   if (!(t instanceof HTMLElement)) return false;
@@ -30,14 +31,13 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
   const secondsLeft = useClock((s) => s.secondsLeft);
   const progress = useClock((s) => s.progress);
 
-  const [cheer, setCheer] = useState(false);
+  const cheer = useCheer(); // a short hop when a session you were watching completes
   // After a finished focus session that was linked to a task: "Done with it?"
   const [offer, setOffer] = useState<{ id: string; title: string } | null>(null);
   const [offerBusy, setOfferBusy] = useState(false);
   const [offerError, setOfferError] = useState<string | null>(null);
   const seen = useRef(lastFinished?.seq ?? 0);
 
-  // A short hop when a focus session you were watching completes.
   useEffect(() => {
     if (!lastFinished || lastFinished.seq === seen.current) return;
     seen.current = lastFinished.seq;
@@ -47,9 +47,6 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
       setOffer({ id: taskId, title: lastFinished.record?.label ?? "this task" });
       setOfferError(null);
     }
-    setCheer(true);
-    const t = window.setTimeout(() => setCheer(false), CHEER_MS);
-    return () => window.clearTimeout(t);
   }, [lastFinished]);
 
   const running = timer.status === "running";
@@ -90,13 +87,15 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
     }
   }
 
-  // Space starts / pauses, unless the user is typing or on a control that
-  // already uses Space.
+  // Space starts / pauses and F opens Focus Mode, unless the user is typing or
+  // on a control that already uses the key. Focus Mode handles its own keys.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "Space" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (isTypingTarget(e.target)) return;
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.code !== "Space" && e.code !== "KeyF") return;
+      if (isTypingTarget(e.target) || useFocusStore.getState().focusMode) return;
       e.preventDefault();
+      if (e.code === "KeyF") return openFocusMode();
       const s = useFocusStore.getState();
       if (s.timer.status === "running") s.pause();
       else {
@@ -114,8 +113,17 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
   return (
     <section
       aria-label="Pomodoro timer"
-      className="rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 pt-6 pb-7 w-full max-w-[460px]"
+      className="relative rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 pt-6 pb-7 w-full max-w-[460px]"
     >
+      <button
+        type="button"
+        onClick={openFocusMode}
+        aria-label="Enter Focus Mode"
+        title="Focus Mode (F)"
+        className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+      >
+        <Maximize2 size={16} aria-hidden />
+      </button>
       <div role="group" aria-label="Timer phase" className="flex justify-center gap-1.5 mb-5">
         {PHASES.map((p) => (
           <span

@@ -1047,4 +1047,12 @@ Minh confirmed fullscreen Focus Mode works well, and set the order of work: **fi
 
 ---
 
+## 2026-10-05 — Session 31: Phase 6 kickoff prepared
+
+Minh will start Phase 6 tomorrow in a new chat, so `docs/PHASE6_KICKOFF.md` is the hand-over: state of play, the two decisions to take first (ambient sound source: synthesized / CC0 files / hybrid, recommended synthesized so there are no licences or downloads; mixer location), a five-box plan with the technical approach for each (including `ambient_layers.kind`, a shared `AudioContext` with the focus chime, and a scene mechanism that can take different layer sets per theme for Stage 2), a headless test plan (OfflineAudioContext RMS / spectral checks, autoplay, hydration, RLS, reduced motion), gotchas learned in Phase 5, and a paste-ready first message.
+
+No code changed this session.
+
+---
+
 <!-- New entries append below with date + session number -->

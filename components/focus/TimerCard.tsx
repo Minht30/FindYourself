@@ -10,6 +10,7 @@ import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";
 import { openFocusMode } from "./focusModeControls";
 import PixelSprite from "./pixel/PixelSprite";
+import PixelClock from "./pixel/PixelClock";
 import TimerRing from "./pixel/TimerRing";
 import { CUP, CUP_PALETTE } from "./pixel/sprites";
 import TimerSettings from "./TimerSettings";
@@ -17,9 +18,15 @@ import { useCheer } from "./useCheer";
 
 const PHASES: Phase[] = ["focus", "short", "long"];
 
-function isTypingTarget(t: EventTarget | null): boolean {
+// Where a key press is text entry: letters must not be hijacked there.
+function isTextEntry(t: EventTarget | null): boolean {
   if (!(t instanceof HTMLElement)) return false;
-  return t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(t.tagName);
+  return t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName);
+}
+
+// Where Space already means "press this": on a button or link it must keep that.
+function isPressable(t: EventTarget | null): boolean {
+  return t instanceof HTMLElement && ["BUTTON", "A"].includes(t.tagName);
 }
 
 export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
@@ -28,7 +35,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
   const settings = useFocusStore((s) => s.settings);
   const hydrated = useFocusStore((s) => s.hydrated);
   const lastFinished = useFocusStore((s) => s.lastFinished);
-  const { startOrResume, pause, reset, skip } = useFocusStore.getState();
+  const { startOrResume, pause, reset, skip, selectPhase } = useFocusStore.getState();
   const secondsLeft = useClock((s) => s.secondsLeft);
   const progress = useClock((s) => s.progress);
 
@@ -95,7 +102,10 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
     const onKey = (e: KeyboardEvent) => {
       if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.code !== "Space" && e.code !== "KeyF") return;
-      if (isTypingTarget(e.target) || useFocusStore.getState().focusMode) return;
+      if (isTextEntry(e.target) || useFocusStore.getState().focusMode) return;
+      // F has no meaning on a button, so it works right after clicking Start
+      // (which leaves the button focused); Space on a button still presses it.
+      if (e.code === "Space" && isPressable(e.target)) return;
       e.preventDefault();
       if (e.code === "KeyF") return openFocusMode();
       const s = useFocusStore.getState();
@@ -117,37 +127,41 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
       aria-label="Pomodoro timer"
       className="relative rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 pt-6 pb-7 w-full max-w-[460px]"
     >
-      <button
-        type="button"
-        onClick={openFocusMode}
-        aria-label="Enter Focus Mode"
-        title="Focus Mode (F)"
-        className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
-      >
-        <Maximize2 size={16} aria-hidden />
-      </button>
+      {/* Pick what to start. Locked while a timer is running or paused: switching
+          would silently end it, so that takes a Reset first. */}
       <div role="group" aria-label="Timer phase" className="flex justify-center gap-1.5 mb-5">
-        {PHASES.map((p) => (
-          <span
-            key={p}
-            aria-current={timer.phase === p ? "step" : undefined}
-            className={`px-3 py-1 rounded-full text-[12px] font-ui font-semibold ${
-              timer.phase === p ? "bg-accent-soft text-cat-ink" : "text-ink-muted"
-            }`}
-          >
-            {PHASE_LABELS[p]}
-          </span>
-        ))}
+        {PHASES.map((p) => {
+          const current = timer.phase === p;
+          const locked = timer.status !== "idle" && !current;
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => selectPhase(p)}
+              aria-pressed={current}
+              aria-disabled={locked || undefined}
+              disabled={locked}
+              title={locked ? "Reset the timer to switch" : `Switch to ${PHASE_LABELS[p].toLowerCase()}`}
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-ui font-semibold transition ${
+                current
+                  ? "bg-accent-soft text-cat-ink"
+                  : "text-ink-secondary border border-[var(--border)] hover:bg-bg-alt hover:text-ink-primary disabled:opacity-40 disabled:pointer-events-none"
+              }`}
+            >
+              {PHASE_LABELS[p]}
+            </button>
+          );
+        })}
       </div>
 
       <TimerRing phase={timer.phase} status={timer.status} progress={progress} cheer={cheer}>
         <div
           role="timer"
           aria-label={`${PHASE_LABELS[timer.phase]}, ${formatClock(secondsLeft * 1000)} remaining`}
-          className="font-pixel font-medium text-ink-primary tabular-nums leading-none text-[17cqw]"
+          className="flex justify-center text-ink-primary"
           style={{ visibility: hydrated ? "visible" : "hidden" }}
         >
-          {formatClock(secondsLeft * 1000)}
+          <PixelClock text={formatClock(secondsLeft * 1000)} unit={secondsLeft >= 6000 ? "1.8cqw" : "2.2cqw"} />
         </div>
         <div className="mt-2 font-ui text-[12px] text-ink-secondary h-4" aria-hidden>
           {timer.status === "paused" ? "paused" : running ? (isBreak ? "rest up" : "stay with it") : "ready when you are"}
@@ -192,6 +206,18 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
           className="w-11 h-11 rounded-full flex items-center justify-center border border-[var(--border-strong)] text-ink-secondary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition disabled:opacity-40 disabled:pointer-events-none"
         >
           <SkipForward size={18} />
+        </button>
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <button
+          type="button"
+          onClick={openFocusMode}
+          title="Dimmed full screen with just the timer. Esc leaves; the timer keeps running."
+          className="flex items-center gap-2 rounded-full border border-[var(--border-strong)] px-4 py-2 font-ui text-[13px] font-medium text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+        >
+          <Maximize2 size={15} aria-hidden /> Focus Mode
+          <kbd className="ml-1 rounded border border-[var(--border-strong)] px-1.5 text-[11px] font-mono text-ink-secondary">F</kbd>
         </button>
       </div>
 

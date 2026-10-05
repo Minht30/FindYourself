@@ -93,6 +93,11 @@ export default function TimerSettings() {
             </p>
           )}
           <Toggle
+            label="Remind me to put my phone away before Focus Mode starts"
+            checked={settings.phoneReminder}
+            onChange={(phoneReminder) => setSettings({ phoneReminder })}
+          />
+          <Toggle
             label="Start the next phase automatically"
             checked={settings.autoStart}
             onChange={(autoStart) => setSettings({ autoStart })}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, formatClock } from "@/lib/focus/timer";
+import PixelClock from "./pixel/PixelClock";
 import PixelSprite from "./pixel/PixelSprite";
 import { CAT_PALETTE, HEAD_ONLY, HEAD_ONLY_CLOSED } from "./pixel/sprites";
 
@@ -27,7 +28,7 @@ export default function TimerChip() {
       className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border border-[var(--border-strong)] bg-bg-alt text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
     >
       <PixelSprite frames={[isBreak ? HEAD_ONLY_CLOSED : HEAD_ONLY]} palette={CAT_PALETTE} px={2} className="pix-cat" />
-      <span className="font-pixel font-medium text-[15px] leading-none tabular-nums">{clock}</span>
+      <PixelClock text={clock} unit="2px" />
       <span
         aria-hidden
         className={`w-2 h-2 rounded-full ${status === "paused" ? "bg-ink-muted" : isBreak ? "bg-[var(--pix-break)]" : "bg-accent animate-pulse"}`}

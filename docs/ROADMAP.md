@@ -112,6 +112,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [ ] `music_tracks` table + upload dropzone
 - [ ] Client-side size/quota check
 - [ ] Playlist model + reorder
+- [ ] **Choose music for focus sessions** (Minh, 2026-10-05): pick what plays when a session starts / inside Focus Mode (uploaded tracks, community picks, or the ambient mix); remember the choice
 - [ ] Mini-player (persistent, cross-page)
 - [ ] `track_suggestions` table + form
 - [ ] "Community picks" list (admin-curated)

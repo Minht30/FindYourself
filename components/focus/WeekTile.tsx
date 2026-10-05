@@ -52,7 +52,7 @@ export default function WeekTile({
           </p>
         </div>
         <p
-          className="shrink-0 whitespace-nowrap font-pixel text-[30px] sm:text-[34px] leading-none text-ink-primary tabular-nums"
+          className="shrink-0 whitespace-nowrap font-mono font-semibold text-[26px] sm:text-[30px] leading-none text-ink-primary tabular-nums"
           aria-label={`Total focus time this week: ${formatDuration(week.totalSeconds)}`}
         >
           {formatDuration(week.totalSeconds)}

@@ -16,6 +16,7 @@ import {
   reset,
   sanitizeSettings,
   sanitizeState,
+  selectPhase,
   setLink,
   settle,
   skip,
@@ -329,5 +330,41 @@ describe("formatClock", () => {
     [120 * MIN, "120:00"],
   ])("%d ms -> %s", (ms, text) => {
     expect(formatClock(ms)).toBe(text);
+  });
+});
+
+describe("selectPhase (the Focus / Short break / Long break pills)", () => {
+  it("from idle, switches to the chosen phase with its own full length, keeping cycle and link", () => {
+    const st = setLink({ ...initialState(S), cycle: 2 }, { kind: "task", id: "t", title: "x" });
+    const short = selectPhase(st, "short", S);
+    expect(short).toMatchObject({ phase: "short", status: "idle", plannedMs: 5 * MIN, remainingMs: 5 * MIN, cycle: 2 });
+    expect(short.link?.id).toBe("t");
+    expect(selectPhase(short, "long", S)).toMatchObject({ phase: "long", plannedMs: 15 * MIN, remainingMs: 15 * MIN });
+    expect(selectPhase(short, "focus", S)).toMatchObject({ phase: "focus", plannedMs: 25 * MIN });
+  });
+
+  it("uses the current settings for the new phase length", () => {
+    expect(selectPhase(initialState(S), "long", { ...S, longMin: 30 }).plannedMs).toBe(30 * MIN);
+  });
+
+  it("is a no-op (same object) when already on that phase", () => {
+    const st = initialState(S);
+    expect(selectPhase(st, "focus", S)).toBe(st);
+  });
+
+  it("never switches a running or paused timer (that would silently end it)", () => {
+    const run = running();
+    expect(selectPhase(run, "short", S)).toBe(run);
+    const paused = pause(run, T0 + MIN);
+    expect(selectPhase(paused, "long", S)).toBe(paused);
+  });
+});
+
+describe("phoneReminder setting", () => {
+  it("defaults on, round-trips, and falls back on junk", () => {
+    expect(DEFAULT_SETTINGS.phoneReminder).toBe(true);
+    expect(sanitizeSettings({ phoneReminder: false }).phoneReminder).toBe(false);
+    expect(sanitizeSettings({ phoneReminder: "no" }).phoneReminder).toBe(true);
+    expect(sanitizeSettings(null).phoneReminder).toBe(true);
   });
 });

@@ -1012,4 +1012,22 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 29: Feedback pass — legible clock, pickable phases, phone reminder
+
+Minh's first look at Phase 5 on screen. He said the ring is good and gave these points:
+
+1. **The pixel font was hard to read** (0, 6 and 8 looked alike, "00:00" worst). Pixelify Sans is gone (also removed from the root layout and Tailwind config, so no extra font download). The clock is now drawn from **hand-made 5x7 digit grids** (`pixel/digits.ts`, rendered by `PixelClock` as crisp SVG rects): 0 has a slash, 6 and 9 have open tails, 8 is the only closed-waist digit. A unit test requires **every pair of digits to differ in at least 5 pixels** (and names the look-alike pairs 0/8, 6/8, 0/6, 3/8, 5/6, 5/3, 9/8, 1/7), so legibility is enforced, not eyeballed. Used in the ring, Focus Mode (2x) and the header chip; the week tile's total uses the mono UI font. Digits are sized relative to the ring (`cqw`) and shrink only for times over 99 minutes.
+2. **Short / Long break could not be chosen.** The three phase pills are now buttons (`selectPhase`): click one while the timer is idle and it switches to that phase at its own length, keeping the cycle count and the linked item. While a timer is running or paused the other pills are **disabled** ("Reset the timer to switch"): switching would silently end the session, so that stays an explicit Reset. 5 new unit tests.
+3. **Phone reminder.** Entering Focus Mode before a session has started (idle focus phase) shows a calm note, "Stay away from your phone. Put it out of reach and silence notifications. When you are ready, start.", and the main button reads "I am ready, start". It never appears while a session is running or on breaks. "Do not remind me again" and a Timer settings toggle turn it off (`phoneReminder`, default on).
+4. **Focus Mode was hard to find / test.** There is now a labelled **Focus Mode [F]** button under the timer controls (the old icon-only button is gone). Also fixed: **F did nothing right after clicking Start**, because the Pause button keeps focus and the key handler ignored buttons. F now works anywhere except text fields; Space still presses a focused button.
+5. **Music for focus sessions** is logged as a new Phase 7 box (choose what plays when a session starts / in Focus Mode, remember it).
+
+**Also fixed:** the 2x ring in Focus Mode needs more vertical room now that the phone note exists (it scrolled at 1000 px tall); the 2x scale now needs `innerHeight - 440 >= 640` (1080p fullscreen still qualifies).
+
+**Verified (Playwright, signed in as the throwaway account on localhost):** Short break -> 05:00, Long break -> 15:00, Focus -> 25:00 with `aria-pressed` following; while running the two other pills are `disabled`; clicking Start then pressing **F** (with Pause focused) opened Focus Mode, Esc closed it; no phone note while running; after Reset, F opened it **with** the note and the "I am ready, start" button; no vertical overflow; the header chip shows "24:57" in the pixel digits (Netcafe). Screenshots reviewed in both themes. `typecheck` + `lint` + `test` (**154**) + `build` green; `/focus` 6.03 kB.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

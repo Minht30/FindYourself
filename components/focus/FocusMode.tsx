@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Pause, Play, RotateCcw, SkipForward, X } from "lucide-react";
+import { Pause, Play, RotateCcw, Smartphone, SkipForward, X } from "lucide-react";
 import { primeAudio } from "@/lib/focus/chime";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock } from "@/lib/focus/timer";
 import { closeFocusMode } from "./focusModeControls";
 import PixelSprite from "./pixel/PixelSprite";
+import PixelClock from "./pixel/PixelClock";
 import TimerRing from "./pixel/TimerRing";
 import { CUP, CUP_PALETTE } from "./pixel/sprites";
 import { useCheer } from "./useCheer";
@@ -41,6 +42,8 @@ function Overlay() {
   const running = timer.status === "running";
   const isBreak = timer.phase !== "focus";
   const cups = cupsFilled(timer, settings);
+  // Before a focus session begins, a gentle "phone away" note (can be turned off).
+  const reminder = settings.phoneReminder && timer.status === "idle" && timer.phase === "focus";
   const clock = formatClock(secondsLeft * 1000);
 
   // Take focus on open, give it back on close; stop the page behind scrolling.
@@ -59,9 +62,9 @@ function Overlay() {
     };
   }, []);
 
-  // Whole-number pixel scale: a 2x ring only when there is room for 640 px.
+  // Whole-number pixel scale: a 2x ring only when there is room for 640 px plus the controls and the phone note.
   useEffect(() => {
-    const fit = () => setScale(Math.min(window.innerWidth - 32, window.innerHeight - 300) >= 640 ? 2 : 1);
+    const fit = () => setScale(Math.min(window.innerWidth - 32, window.innerHeight - 440) >= 640 ? 2 : 1);
     fit();
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
@@ -171,9 +174,9 @@ function Overlay() {
           <div
             role="timer"
             aria-label={`${PHASE_LABELS[timer.phase]}, ${clock} remaining`}
-            className="font-pixel font-medium text-ink-primary tabular-nums leading-none text-[17cqw]"
+            className="flex justify-center text-ink-primary"
           >
-            {clock}
+            <PixelClock text={clock} unit={clock.length > 5 ? "1.8cqw" : "2.2cqw"} />
           </div>
           <div className="mt-2 font-ui text-[13px] text-ink-secondary h-5" aria-hidden>
             {status}
@@ -190,6 +193,27 @@ function Overlay() {
             </p>
           )}
         </div>
+
+        {reminder && (
+          <div
+            role="note"
+            className="max-w-[26rem] rounded-2xl border border-accent/60 bg-accent-soft/10 px-4 py-3 text-center font-ui text-[13px]"
+          >
+            <p className="flex items-center justify-center gap-2 font-semibold text-ink-primary">
+              <Smartphone size={16} aria-hidden /> Stay away from your phone
+            </p>
+            <p className="mt-1 text-ink-secondary">
+              Put it out of reach and silence notifications. When you are ready, start.
+            </p>
+            <button
+              type="button"
+              onClick={() => useFocusStore.getState().setSettings({ phoneReminder: false })}
+              className="mt-2 text-[12px] text-ink-muted underline underline-offset-2 hover:text-ink-primary"
+            >
+              Do not remind me again
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-center gap-3">
           <button
@@ -209,7 +233,15 @@ function Overlay() {
             className="min-w-[168px] h-12 px-6 rounded-full bg-accent text-cat-ink font-ui font-semibold text-[15px] shadow-glow hover:brightness-105 active:translate-y-px transition flex items-center justify-center gap-2"
           >
             {running ? <Pause size={18} aria-hidden /> : <Play size={18} aria-hidden />}
-            {running ? "Pause" : timer.status === "paused" ? "Resume" : isBreak ? "Start break" : "Start focus"}
+            {running
+              ? "Pause"
+              : timer.status === "paused"
+                ? "Resume"
+                : isBreak
+                  ? "Start break"
+                  : reminder
+                    ? "I am ready, start"
+                    : "Start focus"}
           </button>
           <button
             type="button"

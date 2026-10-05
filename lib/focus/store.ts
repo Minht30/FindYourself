@@ -34,6 +34,7 @@ type FocusStore = {
   tick: (now: number, opts?: { away?: boolean }) => void;
   setSettings: (patch: Partial<T.Settings>) => void;
   setLink: (link: T.FocusLink | null) => void;
+  selectPhase: (phase: T.Phase) => void;
   setFocusMode: (on: boolean) => void;
 };
 
@@ -111,6 +112,7 @@ export const useFocusStore = create<FocusStore>()(
             return { settings, timer: T.applySettings(s.timer, settings) };
           }),
         setLink: (link) => set((s) => ({ timer: T.setLink(s.timer, link) })),
+        selectPhase: (phase) => set((s) => ({ timer: T.selectPhase(s.timer, phase, s.settings) })),
         setFocusMode: (on) => set({ focusMode: on }),
       };
     },

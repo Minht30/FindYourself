@@ -29,6 +29,7 @@ export type Settings = {
   volume: number; // 0..1
   notifications: boolean;
   autoStart: boolean; // start the next phase on its own
+  phoneReminder: boolean; // "put your phone away" note before a session starts in Focus Mode
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -40,6 +41,7 @@ export const DEFAULT_SETTINGS: Settings = {
   volume: 0.6,
   notifications: false,
   autoStart: false,
+  phoneReminder: true,
 };
 
 export const LIMITS = {
@@ -104,6 +106,7 @@ export function sanitizeSettings(raw: unknown): Settings {
     volume,
     notifications: typeof r.notifications === "boolean" ? r.notifications : DEFAULT_SETTINGS.notifications,
     autoStart: typeof r.autoStart === "boolean" ? r.autoStart : DEFAULT_SETTINGS.autoStart,
+    phoneReminder: typeof r.phoneReminder === "boolean" ? r.phoneReminder : DEFAULT_SETTINGS.phoneReminder,
   };
 }
 
@@ -281,6 +284,14 @@ export function skip(state: TimerState, now: number, s: Settings, chain: boolean
 export function settle(state: TimerState, now: number, s: Settings, newId: () => string): Transition | null {
   if (state.status !== "running" || state.endsAt === null || state.endsAt > now) return null;
   return complete(state, state.endsAt, s, false, newId);
+}
+
+// Choose which phase to start next (the Focus / Short break / Long break pills).
+// Only from idle: switching a running or paused timer would silently end it, so
+// that takes a Reset first. The cycle count is untouched.
+export function selectPhase(state: TimerState, phase: Phase, s: Settings): TimerState {
+  if (state.status !== "idle" || state.phase === phase) return state;
+  return idleAt(phase, state.cycle, state.link, s);
 }
 
 // Changing durations only touches an idle timer; a running or paused phase

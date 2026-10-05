@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, GripVertical, PawPrint, Plus, X } from "lucide-react";
+import { ChevronDown, GripVertical, PawPrint, Plus, Timer, X } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -30,6 +30,7 @@ import { CSS } from "@dnd-kit/utilities";
 import TaskPopover from "@/components/tasks/TaskPopover";
 import EndOfDayRoll from "@/components/tasks/EndOfDayRoll";
 import { createTask, deleteTask, moveTask, setTaskDone } from "@/app/(app)/today/task-actions";
+import { useFocusStore } from "@/lib/focus/store";
 import { categoryColor } from "@/lib/categories";
 import {
   BUCKETS,
@@ -578,6 +579,21 @@ function SortableTaskCard({
         className="absolute left-0.5 top-1/2 -translate-y-1/2 w-4 h-6 flex items-center justify-center rounded text-ink-muted opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition cursor-grab"
       >
         <GripVertical size={12} aria-hidden />
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          useFocusStore.getState().setLink({ kind: "task", id: task.id, title: task.title });
+          router.push("/focus");
+        }}
+        // Never start a drag from this button.
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        aria-label={`Focus on: ${task.title}`}
+        title="Focus on this"
+        className="absolute top-1.5 right-8 w-6 h-6 flex items-center justify-center rounded-full text-ink-muted hover:text-ink-primary hover:bg-bg-alt opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition"
+      >
+        <Timer size={13} aria-hidden />
       </button>
       <button
         type="button"

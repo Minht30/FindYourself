@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { X, Trash2, Timer } from "lucide-react";
+import { useFocusStore } from "@/lib/focus/store";
 import { updateBlock, deleteBlock } from "@/app/(app)/today/actions";
 import type { CategoryDTO, TimeBlockDTO } from "./WeekGrid";
 
@@ -18,6 +20,7 @@ const POPOVER_WIDTH = 320;
 const GAP = 8;
 
 export default function BlockPopover({ block, anchor, categories, onClose, onSaved }: Props) {
+  const router = useRouter();
   const [title, setTitle] = useState(block.title || "");
   const [categoryId, setCategoryId] = useState<string | null>(block.category_id);
   const [notes, setNotes] = useState(block.notes ?? "");
@@ -151,6 +154,17 @@ export default function BlockPopover({ block, anchor, categories, onClose, onSav
           {error}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() => {
+          useFocusStore.getState().setLink({ kind: "block", id: block.id, title: block.title.trim() || "Untitled block" });
+          router.push("/focus");
+        }}
+        className="mb-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary text-xs font-ui hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+      >
+        <Timer size={12} aria-hidden /> Focus on this block
+      </button>
 
       <div className="flex items-center justify-between gap-2">
         {confirmDelete ? (

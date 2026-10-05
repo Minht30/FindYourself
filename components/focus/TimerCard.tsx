@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { Check, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
+import { setTaskDone } from "@/app/(app)/today/task-actions";
 import { primeAudio } from "@/lib/focus/chime";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";
@@ -18,7 +20,8 @@ function isTypingTarget(t: EventTarget | null): boolean {
   return t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(t.tagName);
 }
 
-export default function TimerCard() {
+export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
+  const router = useRouter();
   const timer = useFocusStore((s) => s.timer);
   const settings = useFocusStore((s) => s.settings);
   const hydrated = useFocusStore((s) => s.hydrated);
@@ -28,6 +31,10 @@ export default function TimerCard() {
   const progress = useClock((s) => s.progress);
 
   const [cheer, setCheer] = useState(false);
+  // After a finished focus session that was linked to a task: "Done with it?"
+  const [offer, setOffer] = useState<{ id: string; title: string } | null>(null);
+  const [offerBusy, setOfferBusy] = useState(false);
+  const [offerError, setOfferError] = useState<string | null>(null);
   const seen = useRef(lastFinished?.seq ?? 0);
 
   // A short hop when a focus session you were watching completes.
@@ -35,6 +42,11 @@ export default function TimerCard() {
     if (!lastFinished || lastFinished.seq === seen.current) return;
     seen.current = lastFinished.seq;
     if (lastFinished.phase !== "focus" || lastFinished.away) return;
+    const taskId = lastFinished.record?.taskId;
+    if (taskId) {
+      setOffer({ id: taskId, title: lastFinished.record?.label ?? "this task" });
+      setOfferError(null);
+    }
     setCheer(true);
     const t = window.setTimeout(() => setCheer(false), CHEER_MS);
     return () => window.clearTimeout(t);
@@ -44,6 +56,31 @@ export default function TimerCard() {
   const isBreak = timer.phase !== "focus";
   const cups = cupsFilled(timer, settings);
   const left = Math.max(0, settings.cyclesBeforeLong - cups);
+
+  async function markDone() {
+    if (!offer) return;
+    setOfferBusy(true);
+    setOfferError(null);
+    const res = await setTaskDone(offer.id, true);
+    setOfferBusy(false);
+    if (res.ok) {
+      if (useFocusStore.getState().timer.link?.id === offer.id) useFocusStore.getState().setLink(null);
+      setOffer(null);
+      router.refresh();
+    } else {
+      // A deleted task must not stay linked: the next session would carry it.
+      if (res.error === "not_found" && useFocusStore.getState().timer.link?.id === offer.id) {
+        useFocusStore.getState().setLink(null);
+      }
+      setOfferError(
+        res.error === "unauthenticated"
+          ? "You're signed out. Sign in again to mark it done."
+          : res.error === "not_found"
+            ? "That task is already gone."
+            : "Could not mark it done. Try again.",
+      );
+    }
+  }
 
   function toggle() {
     if (running) pause();
@@ -105,6 +142,14 @@ export default function TimerCard() {
         <div className="mt-2 font-ui text-[12px] text-ink-secondary h-4" aria-hidden>
           {timer.status === "paused" ? "paused" : running ? (isBreak ? "rest up" : "stay with it") : "ready when you are"}
         </div>
+        {timer.link && !isBreak && (
+          <div
+            title={timer.link.title}
+            className="mt-1.5 mx-auto max-w-[11rem] truncate rounded-full bg-accent-soft/60 px-2.5 py-0.5 font-ui text-[11px] text-cat-ink"
+          >
+            {timer.link.title}
+          </div>
+        )}
       </TimerRing>
 
       <div className="mt-5 flex items-center justify-center gap-3">
@@ -139,6 +184,42 @@ export default function TimerCard() {
           <SkipForward size={18} />
         </button>
       </div>
+
+      {offer && !(running && !isBreak) && (
+        <div
+          role="group"
+          aria-label="Mark the linked task done?"
+          className="mt-5 rounded-2xl border border-accent bg-accent-soft/40 px-4 py-3 font-ui text-[13px] text-ink-primary"
+        >
+          <p>
+            Nice work. Done with <span className="font-semibold">{offer.title}</span>?
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={markDone}
+              disabled={offerBusy}
+              className="flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-[13px] font-semibold text-cat-ink hover:brightness-105 disabled:opacity-60 transition"
+            >
+              <Check size={14} aria-hidden /> {offerBusy ? "Saving…" : "Mark done"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOffer(null)}
+              className="rounded-full px-3 py-1.5 text-[13px] text-ink-secondary hover:bg-bg-alt transition"
+            >
+              Not yet
+            </button>
+          </div>
+          {offerError && (
+            <p role="alert" className="mt-2 text-[12px] text-[var(--danger)]">
+              {offerError}
+            </p>
+          )}
+        </div>
+      )}
+
+      {linkSlot}
 
       <div className="mt-6 flex flex-col items-center gap-2">
         <div role="img" aria-label={`${cups} of ${settings.cyclesBeforeLong} focus sessions done this round`} className="flex gap-2">

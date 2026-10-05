@@ -870,4 +870,33 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 24: Link a task or block to the session (Phase 5, Box 2)
+
+**What landed:**
+- The link is `{ kind: "task" | "block", id, title }` and lives **inside the persisted timer state** (it was already in `timer.ts`), so it survives a refresh and rides along into the break and the next focus; the user only re-picks when the subject changes. The title is stored with it, so the label is still right if the task is renamed or removed mid-session.
+- `/focus` is now a server page (auth-gated like the other pages) that loads **today's open tasks** (`completed_at is null`, `scheduled_for <= today`, so overdue ones are included and Backlog / tomorrow are not, "Focus first" tasks sorted first) and **today's blocks** (the user's local midnights, via `zonedDayStartUTC`). It passes them to `LinkPicker`, slotted into `TimerCard`.
+- `LinkPicker`: a "Focusing on [chip ×] Change" row that expands to two groups (tasks / blocks, `aria-pressed` buttons, block times in the user's zone). A link that is not on today's list stays linked and says so. Empty day: a friendly line pointing at Timetable.
+- Entry points: a timer icon on each task card (next to delete, hover / focus visible, never starts a drag) and a "Focus on this block" button in the block popover. Both set the link and go to `/focus`.
+- The ring shows the linked title as a pill under the clock (hidden on breaks).
+- **"Done with it?"**: when a focus session that was linked to a *task* completes live (not "away"), the card offers **Mark done / Not yet**, using the existing `setTaskDone`. It clears the link and refreshes the picker on success. It hides while a new focus phase is running.
+
+**Decisions / lessons:**
+- A deleted task must not stay linked. On `not_found` the offer shows "That task is already gone." and the link is cleared (found while testing: the first version kept the dead link).
+- **For Box 4:** the outbox record can hold a `taskId` / `blockId` that no longer exists, and an insert with a dangling FK would fail and keep the record stuck in the outbox forever. `saveFocusSession` must verify the ids against the user's rows and null the missing ones (the `label` snapshot keeps the name).
+- Linking while a session is running re-targets the *current* session (the record uses the link at the moment it ends). That matches "what am I focusing on now".
+
+**Verified (signed in as the throwaway account, localhost, real server actions):**
+- Task-card button -> navigated to /focus with the task linked (`fy-focus.timer.link` correct); the picker listed *Write essay (🔒 Focus first), Reply to Sam, Deep Work 9:00 AM – 11:00 AM* and **excluded** the tomorrow task, the backlog task and tomorrow's block.
+- Picking another task changed the link; finishing a session wrote `taskId` + `label` to the outbox record; **Mark done** hit the server (DB confirmed `completed_at` set), the offer disappeared, the link cleared and the task left the picker.
+- **Failure path asserted by reason:** link a task, delete it in SQL, finish a session, click Mark done -> the server action was sent (POST /focus) and the card showed **"That task is already gone."** with the link then cleared.
+- Block popover "Focus on this block" -> /focus with `kind: "block"` linked.
+- `typecheck` + `lint` + `test` (82) + `build` green. `/focus` 4.34 -> 6.58 kB, `/today` 31.6 -> 33.6 kB (the store is now imported by the board and popover).
+- Test data for the throwaway account is prefixed `FYTEST` and is removed at the end of the phase.
+
+**Next — Box 3:** Focus Mode (dimmed full-screen overlay, Esc exits but the timer keeps running).
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

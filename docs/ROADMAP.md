@@ -98,7 +98,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 - [x] `ambient_layers` seeded (rain/fire/keyboard/cafe/piano) — metadata table with `kind` (`synth` | `file`), read-only RLS, migration `20261005221502`
 - [x] MixerContext with Web Audio — shared `AudioContext` (chime refactored onto it), five original synthesized layers, perceptual gain curve, limiter, worker-driven scheduler, persisted zustand store; each layer proven audible by offline renders; 233 unit tests
-- [ ] Mixer panel UI
+- [x] Mixer panel UI — `/chill` full mixer with "Tap to begin", always-visible top-bar sound button (off / on / muted), sidebar mini-mixer, native-range sliders with `aria-valuetext`, pixel layer icons, `ambient_layers` read on the server
 - [ ] `mixer_state` persistence
 - [ ] Scene mechanism: layered, parallax-capable, theme-aware SVG + CSS scene with **placeholder art** (reduced-motion safe). The real Monstadt (day) / Liyue (night) art is **Stage 2** (below), designed with Minh in Figma.
 

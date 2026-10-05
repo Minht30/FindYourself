@@ -1,18 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { createEngine } from "@/lib/audio/engine";
+import { LAYERS, type LayerMeta } from "@/lib/audio/layers";
 import { useMixerStore } from "@/lib/audio/store";
 
 // One engine for the whole app, created lazily on the client.
 let engine: ReturnType<typeof createEngine> | null = null;
 const getEngine = () => (engine ??= createEngine());
 
+// The layers to show, in order. The layout reads `ambient_layers` on the server
+// and passes the merged list down, so the server HTML and the first client
+// render agree; it falls back to the built-in list.
+const CatalogueContext = createContext<readonly LayerMeta[]>(LAYERS);
+export const useCatalogue = () => useContext(CatalogueContext);
+
 // Owns the mixer's side effects: restoring saved levels (on the client only,
 // after mount), and turning the store's `playing` / levels into real audio.
 // Mounted once in the app layout, so ambient sound keeps playing while you
 // move between pages.
-export default function MixerProvider({ children }: { children: React.ReactNode }) {
+export default function MixerProvider({
+  catalogue = LAYERS,
+  children,
+}: {
+  catalogue?: readonly LayerMeta[];
+  children: React.ReactNode;
+}) {
   const playing = useMixerStore((s) => s.playing);
   const settings = useMixerStore((s) => s.settings);
 
@@ -48,5 +61,5 @@ export default function MixerProvider({ children }: { children: React.ReactNode 
     getEngine().apply(settings);
   }, [settings]);
 
-  return <>{children}</>;
+  return <CatalogueContext.Provider value={catalogue}>{children}</CatalogueContext.Provider>;
 }

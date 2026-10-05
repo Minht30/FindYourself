@@ -1109,4 +1109,30 @@ All finite (no NaN). The first run caught two problems: fire was a pure rumble (
 
 ---
 
+## 2026-10-05 — Session 35: Mixer panel UI (Phase 6, Box 3)
+
+**What landed:**
+- **`/chill`** is now the full mixer: a **"Tap to begin"** card (big Begin button; says sound only starts when asked, and lets you set the mix first), a slider per layer in a 2-column grid, a master volume with its own mute toggle. No tasks or timers there (the top bar already hides both on /chill). The scene slot above the mixer arrives in Box 5.
+- **Top bar sound button** (`SoundButton`), visible on every page and width. One button, three honest states: nothing playing -> "Start ambient sound" (that click is the user gesture), playing -> "Mute ambient sound", muted -> "Unmute ambient sound" (`aria-pressed` for the muted state, `data-sound` = off / on / muted, lit yellow while playing).
+- **Sidebar mini-mixer** (`MiniMixer`): Ambient heading + Play/Pause + five compact sliders (pixel icon + label + range) + master. Hidden on /chill, where the full mixer is the page. Sits above Sign out. (The sidebar is hidden under 768 px as before; on phones the top-bar button and /chill are the controls.)
+- **`LayerSlider`** is a native `<input type="range">` (keyboard, touch and screen readers for free) with `aria-valuetext` = "Rain, 60 percent" / "Rain, off". `.fy-range` styles it from theme tokens (filled pill track, round thumb, visible focus ring, 22 px touch target).
+- **Pixel layer icons** (`components/mixer/pixel/icons.ts`): 12x12 two-frame sprites in the cafe cat's language (string grids + `--pix-*` tokens, new water / flame / key tokens in both themes). Still when a layer is silent, alternating when it is audible; reduced motion keeps them still. **Placeholder-grade on purpose** (the cafe-chatter bubbles are the weakest): Stage 2 redraws them.
+- **`ambient_layers` is now read.** The app layout (a server component) selects the table and `mergeCatalogue`s it over the built-in list; the result goes down through a React context, so server HTML and the first client render agree. A failed read falls back to the built-ins. Labels, order and default levels therefore come from the database.
+- Problem states: if the browser refuses audio (`blocked`) or has no Web Audio (`unsupported`), the mixer says so in a polite live region and turns `playing` off.
+
+**Found while testing (fixed):** at 390 px the header overflowed by 1 px once the sound button was added (the theme button was clipped, and a horizontal scrollbar appeared). The prev / next arrows now hide under `sm`: /today, /diary have their own prev / next in the page, and on /chill they are inert. Header and page overflow are 0 on /chill, /today, /diary and /focus at 390 px. Net header width is 24 px *less* than before the box.
+
+**Verified (Playwright, signed in as the throwaway account, localhost, real clicks and key presses):**
+- Before the Begin click: no mixer graph, no `AudioContext`, "Start ambient sound" and the tap card visible. **Begin click** -> graph `running`, 5 layers, context `running`, output RMS 0.075, tap card gone, button `on`.
+- Keyboard on the rain slider: ArrowRight x2 + PageUp 60 -> 72, `aria-valuetext` "Rain, 72 percent"; Home -> 0 "Rain, off"; End -> 100; output RMS follows (0.075 -> 0.196).
+- Top-bar **mute**: label -> "Unmute ambient sound", `aria-pressed=true`, master target 0, **output RMS exactly 0**; unmute restores (0.198).
+- **Navigation keeps playing**: client-side nav /chill -> /today left the same graph running (5 layers, ticks advancing, RMS 0.16). Sidebar region "Ambient" with 6 sliders (5 + master) and one Pause button; PageUp x4 on the sidebar Fireplace slider -> 40 percent, engine target 0.16 (0.4^2), `fire` becomes active. Sidebar **Pause** -> graph torn down (`idle`, 0 layers, RMS 0) and the top button returns to "off".
+- **Hydration, 15 loads** (/chill x3, /today x3, /chill x3, /focus x3, /chill x3) with saved levels (rain 100, fire 40): every load showed the restored values, **no graph and button "off" (a reload never autoplays)**, and **zero console errors or warnings** (only the old `favicon.ico` 404).
+- Reduced motion: icon animations `none`, exactly one frame visible per sprite (5 of 10 frames); with motion: `pix-show-2` running. Day and night themes and the 390 px layout checked by screenshot.
+- `typecheck` + `lint` + `test` (**244**, +11 icon-grid tests) + `build` green; `/chill` 0.86 kB (First Load 98.8 kB, the mixer UI), `/focus` 6.79 kB, `/today` 33.9 kB.
+
+**Next — Box 4:** `mixer_state` table + RLS, debounced `saveMixerState`, restore on load.
+
+---
+
 <!-- New entries append below with date + session number -->

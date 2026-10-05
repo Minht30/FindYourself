@@ -4,32 +4,42 @@ import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
+import { mergeCatalogue } from "@/lib/audio/layers";
+import { createClient } from "@/lib/supabase/server";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // The mixer's layer list (labels, order, default levels) lives in
+  // `ambient_layers`. If the read fails for any reason the built-in list is
+  // used, so the mixer never disappears over a database hiccup.
+  const { data: rows } = await createClient()
+    .from("ambient_layers")
+    .select("key, label, kind, default_level, sort_order");
+  const catalogue = mergeCatalogue(rows);
+
   return (
     // FocusProvider lives here, above every page, so a running timer keeps
     // ticking (and can chime) while you move between Timetable, Diary and Focus.
     // MixerProvider does the same for the ambient sound.
-    <MixerProvider>
-    <FocusProvider>
-      <div className="min-h-screen flex flex-col">
-        {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
-            the surrounding shell static-renderable in Next.js 14. */}
-        <Suspense fallback={<div className="min-h-[60px] bg-bg-elevated border-b border-[var(--border)]" />}>
-          <TopBar
-            focusSlot={
-              <Suspense fallback={null}>
-                <FocusFirstSlot />
-              </Suspense>
-            }
-          />
-        </Suspense>
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-0">
-          <Sidebar />
-          <main className="overflow-auto p-6">{children}</main>
+    <MixerProvider catalogue={catalogue}>
+      <FocusProvider>
+        <div className="min-h-screen flex flex-col">
+          {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
+              the surrounding shell static-renderable in Next.js 14. */}
+          <Suspense fallback={<div className="min-h-[60px] bg-bg-elevated border-b border-[var(--border)]" />}>
+            <TopBar
+              focusSlot={
+                <Suspense fallback={null}>
+                  <FocusFirstSlot />
+                </Suspense>
+              }
+            />
+          </Suspense>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-0">
+            <Sidebar />
+            <main className="overflow-auto p-6">{children}</main>
+          </div>
         </div>
-      </div>
-    </FocusProvider>
+      </FocusProvider>
     </MixerProvider>
   );
 }

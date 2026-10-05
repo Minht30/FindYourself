@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Calendar, BookOpen, Timer, Music, Plus, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
+import MiniMixer from "@/components/mixer/MiniMixer";
 
 const PAGES = [
   { href: "/today", label: "Timetable", Icon: Calendar },
@@ -65,6 +66,8 @@ export default function Sidebar() {
           </div>
         ))}
       </div>
+
+      <MiniMixer />
 
       {/* Sign out — pushed to the bottom */}
       <form action={signOut} className="mt-auto pt-4 border-t border-[var(--border)]">

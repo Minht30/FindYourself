@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu, ChevronLeft, ChevronRight, Search, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
+import SoundButton from "@/components/mixer/SoundButton";
 import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } from "@/lib/dates";
 
 const VIEWS = ["Day", "Week", "Month"] as const;
@@ -83,7 +84,8 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         Today
       </button>
 
-      <div className="flex gap-1">
+      {/* Phones: the pages carry their own prev / next, and the sound button needs the room */}
+      <div className="hidden sm:flex gap-1">
         <button
           onClick={goPrev}
           aria-label={isTimetable ? "Previous week" : isDiary ? "Previous day" : "Previous"}
@@ -107,6 +109,9 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
       {/* /chill is free of tasks and timers; /focus already shows the full timer */}
       {!pathname?.startsWith("/chill") && !pathname?.startsWith("/focus") && <TimerChip />}
       {!pathname?.startsWith("/chill") && focusSlot}
+
+      {/* Always visible, on every page and every width (DESIGN_SYSTEM section 7) */}
+      <SoundButton />
 
       <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Search size={16} />

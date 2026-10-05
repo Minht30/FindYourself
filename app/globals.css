@@ -283,3 +283,71 @@ body {
 .fm-in { animation: fm-in 700ms ease-out both; }
 @keyframes fm-in { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .fm-in { animation: none; } }
+
+/* ── Mixer (Chill) ───────────────────────────────────────────────────────────
+   Icon colours for the layer sprites, and the slider. Placeholder-grade: the
+   real look is redrawn in Stage 2. */
+:root,
+:root[data-theme="sunny-cafe"] {
+  --pix-cloud: #e6f0f7;
+  --pix-water: #4f9fd6;
+  --pix-flame: #ef7d3a;
+  --pix-flame-hot: #f8cf4a;
+  --pix-flame-deep: #c8452f;
+  --pix-key-dark: #3b2a1e;
+}
+:root[data-theme="netcafe-night"] {
+  --pix-cloud: #c9d8ff;
+  --pix-water: #7cc4ff;
+  --pix-flame: #ff8a3d;
+  --pix-flame-hot: #ffe27a;
+  --pix-flame-deep: #ff5d4d;
+  --pix-key-dark: #2a3350;
+}
+
+/* A native range input (so keyboard, touch and screen readers all work) drawn
+   as a pill track with a filled part. --fill is the level in percent. */
+.fy-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px; /* a comfortable touch target around a thin track */
+  background: transparent;
+  cursor: pointer;
+  --track: 6px;
+}
+.fy-range::-webkit-slider-runnable-track {
+  height: var(--track);
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) 0 var(--fill, 0%), var(--border-strong) var(--fill, 0%) 100%);
+}
+.fy-range::-moz-range-track {
+  height: var(--track);
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+.fy-range::-moz-range-progress {
+  height: var(--track);
+  border-radius: 999px;
+  background: var(--accent);
+}
+.fy-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: calc((var(--track) - 18px) / 2);
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--accent-strong);
+  box-shadow: var(--shadow-card);
+}
+.fy-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--accent-strong);
+}
+.fy-range:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 999px; }
+.fy-range:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1061,4 +1061,19 @@ Minh confirmed the three checks that a headless browser could not make: the **fo
 
 ---
 
+## 2026-10-05 — Session 33: Phase 6 begins — `ambient_layers` (Phase 6, Box 1)
+
+**Brief:** Minh is away, so all five Phase 6 boxes get built in this run, one commit each (as in Phase 5). His answers: **(A) ambient sound is synthesized** (swap a single layer for a royalty-free file later only if he dislikes it; ask before downloading anything); **(B) mixer location as in the PRD**: sidebar mini-mixer, full mixer on /chill, master mute always visible in the top bar. Scene art is placeholder; Figma is untouched.
+
+**What landed:**
+- Migration `20261005221502_phase6_ambient_layers` (applied via the Supabase MCP, mirrored under `supabase/migrations/`). `ambient_layers`: `key` pk (shape-checked), `label`, `kind` (`synth` | `file`), nullable `storage_path` (required only for `file`), `default_level` 0..1, `sort_order`. Seeded rain 0.6 / fire 0 / keyboard 0.2 / cafe 0.3 / piano 0.3.
+- RLS: select for `authenticated` only, **no write policy**, and insert / update / delete / truncate revoked from `anon` and `authenticated`. The `ambient` storage bucket is **not** created: nothing needs it until a layer becomes a file.
+- `docs/ERD.md` updated (it said file-only).
+
+**Verified:** as `authenticated` with real JWT claims (aborting DO block, nothing left behind): reads all **5** rows; insert, update and delete each fail with **`42501`**; as `anon` a read fails with `42501`. Security advisors: only the old leaked-password toggle.
+
+**Next — Box 2:** the shared `AudioContext`, synth generators and the mixer store.
+
+---
+
 <!-- New entries append below with date + session number -->

@@ -96,7 +96,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 6 — Cozy environment: ambient mixer (est. 1–2 sessions)
 
-- [ ] `ambient_layers` seeded (rain/fire/keyboard/cafe/piano)
+- [x] `ambient_layers` seeded (rain/fire/keyboard/cafe/piano) — metadata table with `kind` (`synth` | `file`), read-only RLS, migration `20261005221502`
 - [ ] MixerContext with Web Audio
 - [ ] Mixer panel UI
 - [ ] `mixer_state` persistence

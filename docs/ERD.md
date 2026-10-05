@@ -173,19 +173,25 @@ RLS: insert-any-authenticated; select-own OR admin.
 Seeded with ~120 quotes so a full year has variety with light repetition.
 
 ### `ambient_layers` (global read-only)
-| column | type |
-|---|---|
-| key | text PK | e.g. `rain` |
-| label | text |  |
-| storage_path | text | in `ambient/` public bucket |
-| default_level | numeric |  |
+*(Revised in Phase 6, Session 33: layers are synthesized with Web Audio, so a row is metadata; a single layer can become a file later.)*
+
+| column | type | notes |
+|---|---|---|
+| key | text PK | `^[a-z][a-z0-9_]{0,31}$`, e.g. `rain`; the browser maps it to a generator in `lib/audio/synth` |
+| label | text | 1-40 chars |
+| kind | text | `synth` (default) or `file` |
+| storage_path | text nullable | required when `kind = 'file'` (object in the `ambient` bucket) |
+| default_level | numeric | 0..1 |
+| sort_order | int | mixer order |
+
+RLS: select for `authenticated` only; **no insert / update / delete policy** and the write privileges are revoked from `anon` and `authenticated`, so only migrations change it. Seeded: rain, fire, keyboard, cafe, piano.
 
 ## Storage buckets
 
 | bucket | access | contents |
 |---|---|---|
 | `music` | private, per-user | user-uploaded tracks; path `{user_id}/{uuid}.{ext}` |
-| `ambient` | public read | rain.mp3, fire.mp3, keyboard.mp3, cafe.mp3, piano.mp3 |
+| `ambient` | public read | *not created yet*: only needed if a layer is swapped to `kind = 'file'` (Minh must approve any download first) |
 
 ## Row Level Security — example policy
 

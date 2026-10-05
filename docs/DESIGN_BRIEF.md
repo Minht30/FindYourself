@@ -43,6 +43,8 @@ Constraints that carry over from the product:
 - The cat and timer sit **in front**; Focus Mode margins and Chill are the main stages. Contrast of any text over a scene must still hit AA.
 - Performance budget: SVG/CSS only, no video, small bundle.
 
+**What already exists (Phase 6, Session 37):** the scene *mechanism* is built, with placeholder cafe-window art. A scene is a `SceneDef` (`components/scene/types.ts`): an ordered list of layers, each `{ id, depth 0..1, node }` where `node` is SVG in a **960 x 540** space (each layer is scaled to the stage with `slice`, with 3 % overscan so parallax never shows an edge). The engine reads the mixer for two numbers it exposes as CSS variables, `--rain` (0..1: the rain slider) and `--glow` (0.4..1: the fire slider), plus per-layer parallax by `depth`. Real art arrives by replacing the two entries in `SCENES` (`components/scene/scenes.tsx`); the rain streaks (`.sc-streak`, thickness and speed follow `--rain`), warm glow (`.sc-glow`) and the CSS keyframes in `globals.css` (`sc-*`) are reusable building blocks, and a layer that uses none of them is fine. Reduced motion: any `sc-*` animation is off and parallax is disabled; a new animated element should follow the same rule. Whatever is drawn must also make sense as a still picture.
+
 ## 4. Proposed Figma file structure (to create at kickoff, with Minh's OK)
 
 One file, "FindYourself — Design Stage 2", pages:

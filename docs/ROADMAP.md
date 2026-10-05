@@ -100,9 +100,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] MixerContext with Web Audio — shared `AudioContext` (chime refactored onto it), five original synthesized layers, perceptual gain curve, limiter, worker-driven scheduler, persisted zustand store; each layer proven audible by offline renders; 233 unit tests
 - [x] Mixer panel UI — `/chill` full mixer with "Tap to begin", always-visible top-bar sound button (off / on / muted), sidebar mini-mixer, native-range sliders with `aria-valuetext`, pixel layer icons, `ambient_layers` read on the server
 - [x] `mixer_state` persistence — table + RLS + DB-level checks, validated `saveMixerState` (named failure reasons), debounced single-flight saver with backoff, local `pending` flag so offline / signed-out edits are never lost, restored after mount (no hydration mismatch)
-- [ ] Scene mechanism: layered, parallax-capable, theme-aware SVG + CSS scene with **placeholder art** (reduced-motion safe). The real Monstadt (day) / Liyue (night) art is **Stage 2** (below), designed with Minh in Figma.
+- [x] Scene mechanism: layered, parallax-capable, theme-aware SVG + CSS scene with **placeholder art** (reduced-motion safe) — rain thickness follows the rain slider, room warmth the fire slider; day and night layer sets; art is swapped by replacing two `SCENES` entries. The real Monstadt (day) / Liyue (night) art is **Stage 2** (below), designed with Minh in Figma.
 
-**Exit criteria:** open app → rain plays, sliders adjust, scene animates.
+**Exit criteria:** open app → rain plays, sliders adjust, scene animates. *(All boxes built 2026-10-05 and the criterion verified end to end headlessly; how the layers sound is Minh's ears' to judge, see the Session 37 checklist.)*
 
 ---
 

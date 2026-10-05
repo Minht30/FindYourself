@@ -1163,4 +1163,45 @@ All finite (no NaN). The first run caught two problems: fire was a pure rumble (
 
 ---
 
+## 2026-10-05 — Session 37: Scene mechanism (Phase 6, Box 5) — Phase 6 complete
+
+**What landed:**
+- **The engine** (`components/scene/Scene.tsx`) stacks a `SceneDef`'s layers (back to front), each its own scaled SVG in a 960 x 540 space, and knows nothing about what is drawn. It feeds the mixer in as CSS variables (`--rain`, `--glow`), shifts each layer by its depth for **pointer parallax**, picks the scene from the theme, and honours reduced motion. **Stage 2 swaps the art by replacing two entries in `SCENES`** (`components/scene/scenes.tsx`, Monstadt by day, Liyue by night) without touching the engine; more scenes (v1.5) are just more defs.
+- **Theme-aware without a hydration mismatch:** `useTheme` / `useReducedMotion` are `useSyncExternalStore` hooks whose server snapshot is Sunny Cafe / "motion allowed"; the real value takes over after hydration and follows the theme toggle live.
+- **Pure, tested logic** (`lib/scene/`, 13 tests): rain streaks in a golden-ratio order so **any prefix is evenly spread** (more rain thickens the whole window, not one side; deterministic, so server and browser draw the same rain); `pointerToUnit` / `layerOffset` (near layers move more, opposite to the pointer, clamped, no `-0`, safe on a zero-size rect); `sceneVars` (rain level -> streak share, fire level -> room warmth with a floor so the room is never dark).
+- **What follows the mixer:** the **rain** slider sets how many streaks are on the glass (up to 48) and how fast they fall, and greys the day sky; the **fire** slider warms the lamp and candle glow (0.4 -> 1). Both are CSS variables, so the sliders do not re-render the layers per frame.
+- **Placeholder art, two layer sets** (Night study cafe: stars, two skylines with lit windows, a neon sign, rain, window frame, warm glow, desk with lamp / books / candle / steaming cup / plant, vignette. Sunny cafe: sky + sun + drifting clouds, two hills with a small windmill, overcast tint with rain, dust motes, the same room in daylight). Animations are CSS `transform` / `opacity` only (rain, candle flame, glow flicker, steam, star twinkle, clouds, windmill, motes).
+- **Reduced motion = a still picture:** every scene animation is `none`, the rain sits at its resting spots, the steam is a faint wisp, layer transitions are off, and parallax is not applied. Parallax also ignores touch pointers.
+- `/chill` is now: title, the scene, then the "Tap to begin" card and the mixer. Focus Mode and the page margins stay blank (decoration zones are the Stage 2 brainstorm).
+
+**Verified (Playwright, signed in, localhost):**
+- **Rain slider 0 / 10 / 20 / 30 / 40 / 50 / 100 -> 0 / 5 / 10 / 15 / 20 / 24 / 48 visible streaks**; fire 0 -> 100 -> glow opacity 0.4 -> 1; flipping the theme live swapped the layer set (night 8 layers, day 9 with `motes`).
+- **Parallax:** pointer at the bottom-right -> offsets sky -0.4 px, far -1.8, near -3.9, rain -5.7, frame -8.0, glow -9.8, motes -10.7, interior -13.4, vignette 0 (ordered by depth); top-left mirrors the signs; leaving the scene resets every layer to 0; a synthetic **touch** pointermove changes nothing.
+- **Reduced motion** (`emulateMedia`): parallax offsets all 0, `animation-name: none` on rain, flame, steam, glow, clouds, windmill and motes, the layer transform `none`, rain streaks static at their resting `translateY` (228 px), steam opacity 0.4; back to `no-preference`: `sc-fall`, `sc-flame`, `sc-steam`, `sc-glow-flicker` running again.
+- **Hydration:** 3 loads of /chill per theme (6 total), each with the right scene for its theme (`cafe-night` 8 layers, `cafe-day` 9) and **zero console errors or warnings**.
+- **Phone (390 px):** the scene is 327 x 184 (16:9), no horizontal overflow; both themes checked by screenshot.
+- **The phase exit criterion, on a fresh device:** before the click no audio graph exists and the scene is already moving; **one click on Begin** -> context `running`, 5 layers, output RMS 0.125; the rain slider moves both the sound (RMS 0.064 -> 0.101) and the scene (0 -> 48 streaks); the streaks keep moving between samples (animating).
+- The test row in `mixer_state` is deleted. `typecheck` + `lint` + `test` (**301**) + `build` green; `/chill` 5.24 kB (First Load 104 kB), `/today` 33.9 kB, `/focus` 6.79 kB.
+
+---
+
+### Phase 6 summary (hand-off)
+
+Five boxes, five commits: `ambient_layers` (Session 33), the Web Audio engine and five synthesized layers (34), the mixer UI (35), `mixer_state` persistence (36), the scene (37). **301 unit tests** (was 154 at the end of Phase 5), plus the live checks above. Two migrations (`20261005221502`, `20261005223316`). No Figma file was touched or created. Nothing was downloaded: every sound is generated in the browser.
+
+**For Minh to check by ear and eye (a headless browser cannot judge these):**
+1. **Do the five layers sound right?** On /chill press Begin and listen to each alone (set the others to 0): rain (hiss + droplets), fireplace (low roar + crackles), keyboard (typing bursts, then pauses), cafe chatter (murmuring voices, a cup clink every ~10 s), piano (sparse pentatonic notes, the first within a second). Cafe and piano are the hardest to make convincing; per the plan, tell me which layer you dislike and I swap just that one for a royalty-free file (and ask before downloading anything).
+2. **Loudness and blend:** is the master loud enough at 80 %, do the layers sit together at the default mix (rain 60, keyboard 20, cafe 30, piano 30)? Per-layer `trim` values are in `lib/audio/layers.ts` and are one-line changes.
+3. **Left running in a background tab for a few minutes:** does the rain keep its droplets and the keyboard its typing (the scheduler runs on a Web Worker timer so browsers should not starve it)?
+4. **Prod smoke test with your real account:** Begin, move two sliders, reload (state restored), open another browser or device (same mix).
+5. The scene is **placeholder art**: judge the mechanism (rain thickens with the slider, warmth with fire, parallax, theme swap, still under reduced motion), not the drawing.
+
+**Known follow-ups (not blockers):** the favicon 404 (no icon file exists); the top bar still shows the hard-coded "Sep 14 – 20, 2026"; the mini-mixer is hidden under 768 px with the rest of the sidebar (the top-bar button and /chill are the phone controls); a scene fullscreen / "screensaver" mode and scene art in Focus Mode are Stage 2 ideas; `mixer_state.current_track_id` waits for Phase 7.
+
+**Next — Phase 7 (music: upload + player + suggestions)**, unless Minh's ears ask for layer changes first.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

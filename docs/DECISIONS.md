@@ -1030,4 +1030,21 @@ Minh's first look at Phase 5 on screen. He said the ring is good and gave these 
 
 ---
 
+## 2026-10-05 — Session 30: Plan locked — core first, then a Figma design stage
+
+Minh confirmed fullscreen Focus Mode works well, and set the order of work: **finish the core functions, test them by hand, *then* a deep design pass with Figma** ("Stage 2"). He has more design input to bring later and asked me to *prepare* and to *tell him before* wiring a Figma project.
+
+**Decisions:**
+- New **Stage 2 — Design pass in Figma** on the ROADMAP (after Phase 9's functionality and Minh's manual test). Phase 9's design-polish items fold into it.
+- **Phase 6 builds the scene *mechanism* with placeholder art** (layered, parallax-capable, theme-aware, reduced-motion safe). The real Monstadt (day) / Liyue (night) art waits for Stage 2 so it is designed together, not guessed.
+- **Nothing is created in Figma until Minh says go**: creating a file in his team is a new shared artifact, so I ask first and tell him when it exists.
+- Prepared `docs/DESIGN_BRIEF.md`: current design state, every deferred design item gathered from the log (S7.1 block richness / Netcafe palette / grid materiality, S11 decorated mini-month, decoration zones, restriction darkening, landing page, empty states, sound), scene briefs (original art inspired by the places), a proposed Figma page structure, the verified tool list, a ready-to-go checklist and the kickoff protocol.
+- **Tools verified connected this session:** Figma (signed in as Minh, Full seat on a student team; read and write), Canva (reference images only), built-in browser + Playwright (live screenshots), Artifacts, Google Drive, Supabase, GitHub.
+
+**Next:** Phase 6 (ambient mixer), first box `ambient_layers` seeded; the scene box is the placeholder mechanism.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

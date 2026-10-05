@@ -100,7 +100,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [ ] MixerContext with Web Audio
 - [ ] Mixer panel UI
 - [ ] `mixer_state` persistence
-- [ ] Animated Night Cafe scene (SVG + CSS)
+- [ ] Scene mechanism: layered, parallax-capable, theme-aware SVG + CSS scene with **placeholder art** (reduced-motion safe). The real Monstadt (day) / Liyue (night) art is **Stage 2** (below), designed with Minh in Figma.
 
 **Exit criteria:** open app → rain plays, sliders adjust, scene animates.
 
@@ -158,6 +158,22 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 5. Weekly email digest (Edge Function)
 6. Additional scenes (Forest Retreat, Lofi Bedroom)
 7. Seasonal decoration engine — month → SVG + gradient auto-swap (framework already scaffolded in Sunny Cafe theme).
+
+---
+
+## Stage 2 — Design pass in Figma (after the core works)
+
+Minh's plan (2026-10-05): **Stage 1** = all core functions (Phases 1-9 functionality). Then Minh tests everything by hand. **Stage 2** = a deep, collaborative design pass with Figma. Prepared in advance: see `docs/DESIGN_BRIEF.md` (open design items, scene briefs, proposed Figma structure, tools, ready-to-go checklist).
+
+- [ ] Kickoff: Minh says go; Figma file created in his team *only then*
+- [ ] Moodboard + tokens + pixel kit pages
+- [ ] Monstadt (day) and Liyue (night) scenes, original pixel art, layered for parallax
+- [ ] Netcafe palette re-tune, block richness, week-grid materiality
+- [ ] Decoration zones brainstorm, decorated mini-month, "darken when restricted"
+- [ ] Landing page final design and copy
+- [ ] Review loop: every approved item implemented, pushed, screenshotted back into Figma
+
+Phase 9's design-polish items (decoration zones, landing page, block / palette polish) fold into this stage instead of being done twice.
 
 ---
 

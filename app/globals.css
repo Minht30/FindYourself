@@ -165,3 +165,87 @@ body {
 :root,
 :root[data-theme="sunny-cafe"] { --heat-max: var(--accent-strong); }
 :root[data-theme="netcafe-night"] { --heat-max: var(--accent-soft); }
+
+/* ── Pixel palette (Focus) ───────────────────────────────────────────────────
+   The cafe cat, the coffee-cup tally and the timer track. Sprites read these
+   tokens, so one set of grids serves both themes. */
+:root,
+:root[data-theme="sunny-cafe"] {
+  --pix-outline: #3b2a1e;
+  --pix-fur: #e9a24f;
+  --pix-fur-shade: #c77f32;
+  --pix-fur-light: #fce8c6;
+  --pix-pink: #e88c8c;
+  --pix-eye: #2a2018;
+  --pix-white: #ffffff;
+  --pix-china: #fff6e5;
+  --pix-china-inside: #e7d3b0;
+  --pix-coffee: #6b4226;
+  --pix-foam: #f5dfc0;
+  --pix-track: rgba(42, 32, 24, 0.12);
+  --pix-track-lit: var(--accent);
+  --pix-break: #8fbf9a;
+}
+:root[data-theme="netcafe-night"] {
+  --pix-outline: #07090f;
+  --pix-fur: #f2b84b;
+  --pix-fur-shade: #c98a24;
+  --pix-fur-light: #fff1c9;
+  --pix-pink: #ff9db0;
+  --pix-eye: #0b0f1a;
+  --pix-white: #ffffff;
+  --pix-china: #e8eeff;
+  --pix-china-inside: #9aa5c4;
+  --pix-coffee: #b9824b;
+  --pix-foam: #fff0c2;
+  --pix-track: rgba(232, 238, 255, 0.12);
+  --pix-track-lit: var(--accent);
+  --pix-break: #6ee7b7;
+}
+/* After dark the cat gets a soft canary rim, the yellow through-line. */
+:root[data-theme="netcafe-night"] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
+
+/* Frame animation without JS: every frame is a <g>, hidden by default, and
+   shown for its own 1/N slice of the cycle. Negative space before the delay
+   stays hidden because the base state is hidden. */
+.pix-frame { visibility: hidden; animation-duration: var(--cycle); animation-iteration-count: infinite; animation-timing-function: step-end; }
+.pix-f2 { animation-name: pix-show-2; animation-delay: calc(var(--i) * var(--cycle) / 2); }
+.pix-f4 { animation-name: pix-show-4; animation-delay: calc(var(--i) * var(--cycle) / 4); }
+@keyframes pix-show-2 { 0% { visibility: visible; } 50% { visibility: hidden; } 100% { visibility: hidden; } }
+@keyframes pix-show-4 { 0% { visibility: visible; } 25% { visibility: hidden; } 100% { visibility: hidden; } }
+
+/* The cat's lap around the outside of the track. The rotate flips by a quarter
+   turn in a 0.01% window, so it snaps at each corner instead of spinning
+   (a spin would smear the pixels). */
+.pix-lap { animation-name: pix-lap; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes pix-lap {
+  0%      { transform: translate(var(--x0), var(--y0)) rotate(0deg); }
+  24.99%  { transform: translate(var(--x1), var(--y0)) rotate(0deg); }
+  25%     { transform: translate(var(--x1), var(--y0)) rotate(90deg); }
+  49.99%  { transform: translate(var(--x1), var(--y1)) rotate(90deg); }
+  50%     { transform: translate(var(--x1), var(--y1)) rotate(180deg); }
+  74.99%  { transform: translate(var(--x0), var(--y1)) rotate(180deg); }
+  75%     { transform: translate(var(--x0), var(--y1)) rotate(270deg); }
+  100%    { transform: translate(var(--x0), var(--y0)) rotate(270deg); }
+}
+
+.pix-z { opacity: 0; animation: pix-z 3.15s ease-out infinite; }
+@keyframes pix-z {
+  0%   { opacity: 0; transform: translate(0, 0); }
+  20%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translate(10px, -22px); }
+}
+
+/* The newest lit cell breathes while a phase runs. */
+.pix-head { animation: pix-head 1.2s steps(2, end) infinite; }
+@keyframes pix-head { 0% { opacity: 1; } 50% { opacity: 0.45; } 100% { opacity: 1; } }
+
+/* Reduced motion: no laps, no breathing, no floating z's. The cat is simply
+   sitting on the start of the track and the lit cells still show progress. */
+@media (prefers-reduced-motion: reduce) {
+  .pix-frame { animation: none; }
+  .pix-frame:first-child { visibility: visible; }
+  .pix-lap { animation: none; transform: translate(var(--x0), var(--y0)); }
+  .pix-z { display: none; }
+  .pix-head { animation: none; }
+}

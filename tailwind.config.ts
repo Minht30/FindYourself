@@ -47,6 +47,7 @@ const config: Config = {
         body: ["var(--font-body)"],
         ui: ["var(--font-ui)"],
         mono: ["var(--font-mono)"],
+        pixel: ["var(--font-pixel)", "var(--font-mono)"],
       },
       boxShadow: {
         glow: "var(--glow)",

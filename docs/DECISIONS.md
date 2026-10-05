@@ -835,4 +835,39 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 23: Phase 5 begins — timer widget + zustand store
+
+**Brief change this session:** Minh will be away, so the *whole* of Phase 5 gets built in this session, one commit per box (each still logged here and ticked on the ROADMAP). Minh also asked for a top-tier pixel / chill look in the spirit of pomofox.com, with Monstadt / Liyue (Genshin) as taste references, and supplied a throwaway test account (a `+fytest` alias of his email; its credentials live only in the gitignored `.env.test.local`, used on localhost only). **Original** pixel cafe-cat, not a fox clone.
+
+**What landed (Box 1):**
+- `lib/focus/timer.ts`: a pure state machine. Every function takes `now`; time is derived from `endsAt` (running) or `remainingMs` (idle / paused), never counted per tick, so refreshes, throttled tabs and sleeping laptops are all just "what time is it now".
+  - Phases focus / short / long, long break every 4th completed focus (configurable 2-8). Skipping a break goes to focus; skipping a focus is the same as Reset (never counted as done).
+  - Abandon rule: Reset on a focus phase with >= 60 s *focused* (pauses excluded) produces a `completed=false` record; < 60 s produces nothing. An abandoned session earns no cup.
+  - `settle`: a deadline that passed while the tab was closed completes *as of the deadline* and never chains into the next phase.
+  - `sanitizeState` / `sanitizeSettings` make corrupt or stale localStorage fall back to a fresh idle timer instead of throwing.
+- `lib/focus/store.ts`: zustand + `persist` (`fy-focus`, version 1) with `skipHydration`; `FocusProvider` rehydrates in an effect so server HTML and first client render are both the default idle timer (hydration lesson). A separate seconds-resolution `useClock` store means clock components re-render once per second, not on every 250 ms tick.
+- Finished / abandoned focus sessions go to a localStorage **outbox** (`lib/focus/sessions.ts`), keyed by a client-generated session id. Box 4 will flush it to the server; nothing is lost in between and replays are idempotent.
+- `FocusProvider` (mounted in `app/(app)/layout.tsx`): single ticker, visibility resync, cross-tab `storage` rehydrate, chime + opt-in notification (notification only while the tab is hidden), tab title (`24:31 · …`, `⏸` when paused, `Break ·` on breaks), sr-only live region announcing **phase boundaries only**. A `fy-focus-chimed` key stops two open tabs chiming twice; completions more than 5 min late (or restored after being away) are saved silently.
+- Chime is synthesized (3 sine partials, ~1.9 s decay, low-passed): G5 B5 D6 for a finished focus, D5 A5 for the end of a break. The AudioContext is unlocked by the Start click or the first pointerdown anywhere. Notification permission is requested only when the user flips the settings switch.
+- `TimerChip` in the TopBar: only exists while a timer is running or paused; hidden on /chill (PRD 6.0) and on /focus (which shows the full timer). The timer keeps ticking across navigation.
+- **Pixel design:** sprites are string grids rendered as crisp SVG rects coloured by new `--pix-*` tokens (ginger tabby in Sunny Cafe, same cat with a canary rim glow in Netcafe). The timer is a 22-cell square pixel track: the cat gallops laps round the *outside* (quarter-turn rotations keep pixels crisp, which a round ring would not), cells light clockwise with progress, paused = cat sits down, break = cat curled asleep with floating z's, finished = cheer hop. Four pixel coffee cups tally the round. Digits use Pixelify Sans (`preload: false`). Reduced motion: no lap, no frame animation, no z's; lit cells still show progress.
+- Settings (cycle lengths, chime + volume, notifications, auto-start) live in localStorage as decided. Number fields commit on blur / Enter (clamping per keystroke made typing "50" over "25" impossible).
+
+**Verified:**
+- `npm test` (new vitest setup): 82 tests covering transitions, pause/resume math, the 59 s vs 60 s boundary, long-break cadence, expired-on-load, sanitizers, outbox idempotence, store rehydrate from corrupt JSON, sprite grid sizes and track geometry.
+- `typecheck` + `lint` + `build` green. `/focus` 4.34 kB (First Load 98 kB).
+- Signed in (throwaway account, localhost): Start ran the cat round the track; **reload x3 with a running timer: no console errors, timer resumed at the right time**; the chip showed on /today while the clock kept running; Pause froze `remainingMs` exactly; moving the stored deadline 2.5 s ahead produced exactly **one chime** (AudioContext `running`), a queued `completed=true` record, phase -> short break (idle), one cup filled and the announcement "Focus session complete. Short break next.". Night theme, 375 px width (no horizontal overflow) and the settings panel were checked by screenshot.
+- Gotcha: after editing `tailwind.config.ts` the running dev server kept the old config (`font-pixel` resolved to Lora). Restarting dev (and clearing `.next`) fixed it.
+- **Not testable headless:** how the chime actually *sounds* and a real OS notification. Minh: set a 1-minute focus in Timer settings and listen.
+
+**Pre-existing, noticed (not changed):** the TopBar title still shows the hard-coded "Sep 14 – 20, 2026" on every page.
+
+**Taste log for Phase 6 (scenes):** Monstadt (windy green-blue meadow, dandelion seeds, windmill) and Liyue (lantern-lit harbour, red + gold, cliffs) are the day / night scene candidates. The cat, cups and palette were drawn to sit in front of a scene later; Phase 5 keeps all margins blank.
+
+**Next — Box 2:** link a task or a timetable block to the session; then Focus Mode, `focus_sessions` + outbox flush, weekly tile.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

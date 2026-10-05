@@ -84,7 +84,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 5 — Pomodoro + Focus Mode (est. 1 session)
 
-- [ ] Timer widget + zustand store
+- [x] Timer widget + zustand store — pure timestamp-based state machine (`lib/focus/timer.ts`), persisted zustand store, soft Web Audio chime + opt-in notification, TopBar chip (hidden on /chill and /focus), pixel cafe-cat on a square pixel track, coffee-cup tally, settings (cycle lengths, chime, auto-start); 82 unit tests
 - [ ] Link to task/block
 - [ ] Focus Mode fullscreen
 - [ ] `focus_sessions` log

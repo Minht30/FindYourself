@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lora, Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Lora, Space_Grotesk, Inter, JetBrains_Mono, Pixelify_Sans } from "next/font/google";
 import "./globals.css";
 
 const lora = Lora({
@@ -31,6 +31,15 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Timer digits only; preload off so the other pages do not pay for it.
+const pixelify = Pixelify_Sans({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-pixel",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "FindYourself — Cozy productivity, day & night",
   description:
@@ -42,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-theme="sunny-cafe"
-      className={`${lora.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${lora.variable} ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} ${pixelify.variable}`}
       suppressHydrationWarning
     >
       <head>

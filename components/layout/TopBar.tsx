@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu, ChevronLeft, ChevronRight, Search, Settings } from "lucide-react";
+import TimerChip from "@/components/focus/TimerChip";
 import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } from "@/lib/dates";
 
 const VIEWS = ["Day", "Week", "Month"] as const;
@@ -103,6 +104,8 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
       <div className="flex-1" />
 
+      {/* /chill is free of tasks and timers; /focus already shows the full timer */}
+      {!pathname?.startsWith("/chill") && !pathname?.startsWith("/focus") && <TimerChip />}
       {!pathname?.startsWith("/chill") && focusSlot}
 
       <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">

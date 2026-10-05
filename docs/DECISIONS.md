@@ -1076,4 +1076,37 @@ Minh confirmed the three checks that a headless browser could not make: the **fo
 
 ---
 
+## 2026-10-05 — Session 34: MixerContext with Web Audio (Phase 6, Box 2)
+
+**What landed (all under `lib/audio/`, 87 new unit tests):**
+- **One shared `AudioContext`** (`context.ts`). `primeAudio()` (called from clicks; `latencyHint: "playback"`, because ambient sound runs for hours) and `currentContext()`. `lib/focus/chime.ts` now plays on it, so there is a single browser unlock. The chime is deliberately independent of the mixer: muting ambient sound never silences the end-of-session chime.
+- **Graph** (`engine.ts`): per layer `source -> gain`, all into a `master` gain -> a soft **limiter** (`DynamicsCompressor`, a safety net for when every layer is high) -> destination. Levels move with `setTargetAtTime` (60 ms; master fades in over ~350 ms), so a slider never clicks. The graph does not exist until `begin()` (only ever reached from a click) and `halt()` fades out and tears it all down, so a paused mixer costs nothing. A layer at level 0 schedules no events. `begin()` has an epoch guard so a pause during the awaited `resume()` cancels it, and a browser that never resumes the context gives `blocked` after 1.5 s instead of hanging.
+- **Scheduler** (`ticker.ts`): events (droplets, crackles, key clicks, piano notes, syllables) are placed ~2.5 s ahead every 250 ms. The tick comes from a **Web Worker timer**, because plain `setInterval` is throttled to 1/s and then 1/min in a hidden tab, which would starve the layers in the app's main use (left running in a background tab); it falls back to `setInterval` when workers are unavailable.
+- **Synth generators** (`synth/`), original and royalty-free by construction: rain = pink-noise bed (swells slowly) + band-passed patter + individual droplets; fire = brown-noise roar that flickers + crackle clusters (sharp snaps and dull pops); keyboard = per-key click + "thock" + release click, typed in bursts with pauses, deeper space bar; cafe = four formant-filtered voices (noise + a faint buzzy pitch) taking turns, a room tone and an occasional cup clink; piano = sparse, wandering C major pentatonic notes (a few partials, felt-like decay) through a small dark echo. Noise buffers loop seamlessly (equal-power cross-fade, tested).
+- **Event planning is pure** (`synth/plans.ts`): *when* and *how hard* each event happens is separated from Web Audio, so it is unit-tested: time order, windows that do not drop or duplicate events at their seams, a stalled scheduler skipping ahead instead of firing stale events, pentatonic-only notes, bursty typing, clustered crackles.
+- **State** (`state.ts`, `layers.ts`): the gain curve is `level^2` (-12 dB at half; perceptual, not linear), `clampLevel` / `sanitizeSettings` (wrong types, NaN, unknown keys, out-of-range all land on a valid mixer; missing layers get their default, not zero), `targetsFor` (curve x per-layer trim, master 0 when muted), `levelText` for `aria-valuetext`. `mergeCatalogue` lets `ambient_layers` rows override label / order / default level for keys this build can play, and ignores layers it cannot (a future `file` layer, a malformed row).
+- **Store** (`store.ts`): zustand + `persist` (`fy-mixer`, v1, `skipHydration`) exactly like the focus store; `playing` is **never persisted**, so sound cannot autoplay after a reload (tested). `toggleSound`: off -> play (also unmutes) -> mute -> unmute. `MixerProvider` is mounted in the app layout above `FocusProvider`, so ambient sound survives navigation. `lib/safeStorage.ts` now shared by both stores.
+- **Decisions:** default master 0.8; the sound button in the top bar will be one control with three states (Box 3).
+
+**Proving each layer makes sound, without ears** (`lib/audio/measure.ts`, dev-only hook `window.__fyAudioTools.measureLayer`, runs the real generator in an `OfflineAudioContext` for 20 s, seeded):
+
+| layer | RMS | peak | crest | centroid | quiet windows |
+|---|---|---|---|---|---|
+| rain | 0.134 | 0.53 | 4.0 | 2943 Hz (bright) | 0 |
+| fire (after retune) | 0.100 | 0.96 | 9.5 | 331 Hz (dark) | 0 |
+| keyboard (after retune) | 0.015 | 0.61 | 40 (very peaky) | 1097 Hz | 78 % (sparse) |
+| cafe | 0.116 | 0.63 | 5.4 | 560 Hz | 0 |
+| piano | 0.055 | 0.48 | 8.8 | 607 Hz | 34 % (sparse) |
+
+All finite (no NaN). The first run caught two problems: fire was a pure rumble (centroid 200 Hz, crest 4.3: the crackles did not register) and keyboard was thock-dominated and quiet; both retuned. The per-layer `trim`s (rain 1.5, fire 1, keyboard 1.4, cafe 1.45, piano 1.8) come from these numbers so peaks sit near 0.8 and no layer is far quieter than another.
+
+**Verified in the live app (Playwright, signed in, localhost):** before any click: no `AudioContext`, no mixer graph. After `play()`: graph `running`, **5 layers**, gains match the curve (`rain 0.54`, fire 0 because its level is 0, ...), scheduler ticks advancing (12 -> 17 in 1.1 s), output RMS 0.065 through a dev-only analyser after the limiter. Rain to 100 % -> RMS 0.168; **all layers at 0 -> RMS exactly 0 and `activeLayers: []`** (nothing scheduled); fire alone -> 0.072; **mute -> master target 0, RMS 0**; unmute -> 0.087; **pause -> graph torn down (`idle`, 0 layers, RMS 0)**; play again -> rebuilt, 5 layers. Console clean apart from a pre-existing `favicon.ico` 404 (no icon file exists; noted, not changed).
+`typecheck` + `lint` + `test` (**233**) + `build` green; no page bundle grew (the mixer is not wired into a page yet).
+
+**Not testable headless:** how it *sounds* (does the cafe read as people, does the piano feel pleasant, is the master loud enough). Collected once at the end of the phase.
+
+**Next — Box 3:** mixer panel UI (`LayerSlider`, `MasterVolume`, top-bar sound button, sidebar mini-mixer, /chill page with "tap to begin").
+
+---
+
 <!-- New entries append below with date + session number -->

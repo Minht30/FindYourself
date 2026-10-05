@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Maximize2, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import { setTaskDone } from "@/app/(app)/today/task-actions";
-import { primeAudio } from "@/lib/focus/chime";
+import { primeAudio } from "@/lib/audio/context";
 import { useSync } from "@/lib/focus/flush";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";

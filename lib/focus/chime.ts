@@ -1,7 +1,11 @@
 // A soft synthesized bell: a few sine partials with a quick attack and a long,
 // exponential decay, through a gentle low-pass. No audio files to ship or load.
-// Browsers only allow audio after a user gesture, so `primeAudio()` is called
-// from the Start click; by the time a session ends the context is already awake.
+// It plays on the app's shared AudioContext (lib/audio/context.ts), which a
+// user gesture (the Start click, or the first click anywhere) has already
+// unlocked by the time a session ends. It is deliberately independent of the
+// ambient mixer: muting the mixer never silences the end-of-session chime.
+
+import { currentContext } from "@/lib/audio/context";
 
 type Debug = { chimes: number; lastKind: string | null; contextState: string | null };
 
@@ -11,25 +15,9 @@ declare global {
   }
 }
 
-let ctx: AudioContext | null = null;
-
 function debug(): Debug | null {
   if (typeof window === "undefined" || process.env.NODE_ENV === "production") return null;
   return (window.__fyFocusDebug ??= { chimes: 0, lastKind: null, contextState: null });
-}
-
-export function primeAudio() {
-  try {
-    const AC: typeof AudioContext | undefined =
-      window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AC) return;
-    ctx ??= new AC();
-    if (ctx.state === "suspended") void ctx.resume();
-    const d = debug();
-    if (d) d.contextState = ctx.state;
-  } catch {
-    // no audio: the visual cue still happens
-  }
 }
 
 export type ChimeKind = "focus-end" | "break-end";
@@ -47,7 +35,9 @@ export function playChime(kind: ChimeKind, volume: number): boolean {
     d.chimes += 1;
     d.lastKind = kind;
   }
-  if (!ctx || ctx.state === "closed" || volume <= 0) return false;
+  const ctx = currentContext();
+  if (d) d.contextState = ctx?.state ?? null;
+  if (!ctx || volume <= 0) return false;
   try {
     if (ctx.state === "suspended") void ctx.resume();
     const out = ctx.createGain();
@@ -65,8 +55,8 @@ export function playChime(kind: ChimeKind, volume: number): boolean {
         { ratio: 2.76, amp: 0.3 },
         { ratio: 5.4, amp: 0.1 },
       ].forEach(({ ratio, amp }) => {
-        const osc = ctx!.createOscillator();
-        const env = ctx!.createGain();
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
         osc.type = "sine";
         osc.frequency.value = freq * ratio;
         env.gain.setValueAtTime(0.0001, at);

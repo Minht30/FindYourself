@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pause, Play, RotateCcw, Smartphone, SkipForward, X } from "lucide-react";
-import { primeAudio } from "@/lib/focus/chime";
+import { primeAudio } from "@/lib/audio/context";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock } from "@/lib/focus/timer";
 import { closeFocusMode } from "./focusModeControls";

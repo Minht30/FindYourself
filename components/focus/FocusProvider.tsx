@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { saveFocusSessions } from "@/app/(app)/focus/actions";
-import { primeAudio, playChime } from "@/lib/focus/chime";
+import { primeAudio } from "@/lib/audio/context";
+import { playChime } from "@/lib/focus/chime";
 import { createFlusher, refreshPending } from "@/lib/focus/flush";
 import { showNotification } from "@/lib/focus/notify";
 import { OUTBOX_EVENT, pendingSessions } from "@/lib/focus/sessions";

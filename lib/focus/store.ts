@@ -1,7 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { safeStorage } from "@/lib/safeStorage";
 import { enqueueSession } from "./sessions";
 import * as T from "./timer";
 
@@ -39,28 +40,6 @@ type FocusStore = {
 };
 
 const newId = () => crypto.randomUUID();
-
-// localStorage can throw (private mode, quota, blocked cookies). The timer then
-// simply stops persisting instead of crashing the app.
-const safeStorage: StateStorage = {
-  getItem: (k) => {
-    try {
-      return localStorage.getItem(k);
-    } catch {
-      return null;
-    }
-  },
-  setItem: (k, v) => {
-    try {
-      localStorage.setItem(k, v);
-    } catch {}
-  },
-  removeItem: (k) => {
-    try {
-      localStorage.removeItem(k);
-    } catch {}
-  },
-};
 
 export const useFocusStore = create<FocusStore>()(
   persist(

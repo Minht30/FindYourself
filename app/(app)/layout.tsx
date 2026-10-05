@@ -3,11 +3,14 @@ import TopBar from "@/components/layout/TopBar";
 import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
+import MixerProvider from "@/components/mixer/MixerProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     // FocusProvider lives here, above every page, so a running timer keeps
     // ticking (and can chime) while you move between Timetable, Diary and Focus.
+    // MixerProvider does the same for the ambient sound.
+    <MixerProvider>
     <FocusProvider>
       <div className="min-h-screen flex flex-col">
         {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
@@ -27,5 +30,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     </FocusProvider>
+    </MixerProvider>
   );
 }

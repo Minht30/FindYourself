@@ -97,7 +97,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 6 — Cozy environment: ambient mixer (est. 1–2 sessions)
 
 - [x] `ambient_layers` seeded (rain/fire/keyboard/cafe/piano) — metadata table with `kind` (`synth` | `file`), read-only RLS, migration `20261005221502`
-- [ ] MixerContext with Web Audio
+- [x] MixerContext with Web Audio — shared `AudioContext` (chime refactored onto it), five original synthesized layers, perceptual gain curve, limiter, worker-driven scheduler, persisted zustand store; each layer proven audible by offline renders; 233 unit tests
 - [ ] Mixer panel UI
 - [ ] `mixer_state` persistence
 - [ ] Scene mechanism: layered, parallax-capable, theme-aware SVG + CSS scene with **placeholder art** (reduced-motion safe). The real Monstadt (day) / Liyue (night) art is **Stage 2** (below), designed with Minh in Figma.

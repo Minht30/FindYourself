@@ -979,4 +979,37 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 28: Phase 5 verification pass, cleanup, hand-off
+
+**Phase 5 is complete** (all five boxes built, one commit each, pushed to main). This session re-checked the whole phase end to end and cleaned up.
+
+**Verified across the phase:**
+- Prod, signed out: `/focus` -> **307 to `/login?next=%2Ffocus`** (curl). Prod's Vercel build was not inspected from here (no `gh` CLI); Minh should confirm the latest deploy is green.
+- **Reduced motion** (Playwright, `prefers-reduced-motion: reduce`): the cat's lap animation is `none` and the cat sits at the track start (`translate(55px, 55px)`), frame animation is `none` with only the first frame visible, z's hidden. With `no-preference`: lap animation `pix-lap` running, exactly one frame visible per sprite.
+- **Hydration:** three consecutive reloads of `/focus` with a running timer, zero console errors, clock and tab title correct after each. (A one-off `__webpack_require__.n is not a function` on a *cold* dev server's first compile did not recur on any later load; it is the dev-only HMR race seen in Session 23.)
+- **Phone width (390 px):** no horizontal overflow, full-page screenshot reviewed. It found two tile issues, fixed: the total "1h 50m" wrapped to two lines (now `whitespace-nowrap`, 30 px on phones) and session labels truncated to "FYTEST ..." (duration and time now stack on phones, so the label keeps its room).
+- Signed-in flows, DB checks, RLS tests and failure reasons are in Sessions 23-27. Final totals: `typecheck` + `lint` + **146 unit tests** + `build` green; `/focus` 5.84 kB (First Load 110 kB), `/today` 33.7 kB.
+
+**Cleanup:** deleted the throwaway account's 5 sessions, 4 tasks and 2 blocks (all `FYTEST`-prefixed). The *account itself* (a `+fytest` alias) and its profile / categories remain; delete it from Supabase -> Authentication -> Users when you no longer want it. An unrelated unconfirmed signup from a temp-mail domain also appeared in `auth.users` on 2026-10-05 06:05 UTC; it was not touched. `.env.test.local` stays on this machine only (gitignored).
+
+**For Minh to check by hand (things a headless browser cannot judge):**
+1. **Sound:** Timer settings -> set Focus to 1 min -> Start -> listen to the chime at the end (and the lower two-note one when a break ends).
+2. **Notification:** flip "Notify me when the tab is in the background", allow it, switch tabs during a 1-minute session.
+3. **Real fullscreen:** press **F** in a normal window: the browser should go fullscreen, and Esc should leave both fullscreen and the overlay with the timer still running.
+4. **Prod smoke test with your real account:** a 1-minute session (completes -> a row appears under "Recent sessions" and the tile moves), link a task and mark it done from the prompt, Reset a session after > 1 min (shows "stopped early").
+5. Phase 4's end-of-day roll and task deadlines are still unexercised on prod.
+6. Phase 5 exit criterion: complete 3 focus sessions.
+
+**Known follow-ups (not blockers):**
+- The TopBar still shows the hard-coded "Sep 14 – 20, 2026" on every page (pre-existing).
+- Timer settings live in localStorage (per device) as decided; moving them to the profile is a later settings-page task.
+- `/focus` could lazy-load the settings panel; bundle is small, so left alone.
+- Phase 6 scene direction logged in Session 23 (Monstadt meadow by day, Liyue lantern harbour by night).
+
+**Next — Phase 6 (cozy environment: ambient mixer).** Read `docs/ROADMAP.md`; first box is `ambient_layers` seeded.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

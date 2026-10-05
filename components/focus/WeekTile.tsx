@@ -40,8 +40,8 @@ export default function WeekTile({
       aria-label="Focus this week"
       className="w-full max-w-[460px] rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 py-6"
     >
-      <div className="flex items-end justify-between gap-4">
-        <div>
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="font-display text-xl">This week</h2>
           <p className="mt-0.5 font-ui text-[13px] text-ink-secondary">
             {week.sessions === 0
@@ -52,7 +52,7 @@ export default function WeekTile({
           </p>
         </div>
         <p
-          className="font-pixel text-[34px] leading-none text-ink-primary tabular-nums"
+          className="shrink-0 whitespace-nowrap font-pixel text-[30px] sm:text-[34px] leading-none text-ink-primary tabular-nums"
           aria-label={`Total focus time this week: ${formatDuration(week.totalSeconds)}`}
         >
           {formatDuration(week.totalSeconds)}
@@ -140,14 +140,20 @@ export default function WeekTile({
                 <span className="min-w-0 flex-1 truncate text-ink-primary">
                   {r.label ?? <span className="text-ink-secondary">Focus session</span>}
                 </span>
-                <span className="shrink-0 text-ink-secondary tabular-nums">
-                  {r.completed
-                    ? formatDuration(r.duration_seconds)
-                    : `${formatDuration(r.duration_seconds)} of ${formatDuration(r.planned_seconds)}`}
+                {/* phone: duration over time, so the label keeps room; wider: one line */}
+                <span className="shrink-0 flex flex-col items-end leading-tight sm:flex-row sm:items-center sm:gap-3">
+                  <span className="text-ink-secondary tabular-nums">
+                    {r.completed
+                      ? formatDuration(r.duration_seconds)
+                      : `${formatDuration(r.duration_seconds)} of ${formatDuration(r.planned_seconds)}`}
+                  </span>
+                  <time
+                    dateTime={r.started_at}
+                    className="text-[11px] sm:text-[13px] sm:w-[5.5rem] sm:text-right text-ink-muted tabular-nums"
+                  >
+                    {when.format(new Date(r.started_at))}
+                  </time>
                 </span>
-                <time dateTime={r.started_at} className="shrink-0 w-[5.5rem] text-right text-ink-muted tabular-nums">
-                  {when.format(new Date(r.started_at))}
-                </time>
               </li>
             ))}
           </ul>

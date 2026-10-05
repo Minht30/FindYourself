@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { saveFocusSessions } from "@/app/(app)/focus/actions";
 import { primeAudio, playChime } from "@/lib/focus/chime";
+import { createFlusher, refreshPending } from "@/lib/focus/flush";
 import { showNotification } from "@/lib/focus/notify";
+import { OUTBOX_EVENT, pendingSessions } from "@/lib/focus/sessions";
 import { syncClock, useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, formatClock } from "@/lib/focus/timer";
 import FocusMode from "./FocusMode";
 
 const CHIMED_KEY = "fy-focus-chimed";
+const RETRY_MS = 60_000;
+// One flusher for the app: it drains the outbox to the server, and refuses to
+// run twice at once.
+const flushOutbox = createFlusher(saveFocusSessions);
 const TITLE_PREFIX = /^(⏸ )?\d+:\d\d · (Break · )?/;
 
 // Owns everything with a side effect: restoring the persisted timer, the one
@@ -31,6 +38,8 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
     void Promise.resolve(useFocusStore.persist.rehydrate()).then(() => {
       useFocusStore.getState().tick(Date.now(), { away: true });
       syncClock();
+      refreshPending();
+      void flushOutbox();
     });
     const unsub = useFocusStore.subscribe(() => syncClock());
 
@@ -48,8 +57,28 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
     window.addEventListener("pointerdown", unlock, { once: true });
     window.addEventListener("keydown", unlock, { once: true });
 
+    // Send finished sessions as soon as they are queued, and try again whenever
+    // the situation may have changed: back online, tab visible, or a minute on.
+    const flush = () => {
+      refreshPending();
+      void flushOutbox();
+    };
+    const onVisible = () => {
+      if (!document.hidden) flush();
+    };
+    window.addEventListener(OUTBOX_EVENT, flush);
+    window.addEventListener("online", flush);
+    document.addEventListener("visibilitychange", onVisible);
+    const retry = window.setInterval(() => {
+      if (pendingSessions().length > 0) flush();
+    }, RETRY_MS);
+
     return () => {
       unsub();
+      window.clearInterval(retry);
+      window.removeEventListener(OUTBOX_EVENT, flush);
+      window.removeEventListener("online", flush);
+      document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("pointerdown", unlock);
       window.removeEventListener("keydown", unlock);

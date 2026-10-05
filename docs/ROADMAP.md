@@ -87,7 +87,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Timer widget + zustand store — pure timestamp-based state machine (`lib/focus/timer.ts`), persisted zustand store, soft Web Audio chime + opt-in notification, TopBar chip (hidden on /chill and /focus), pixel cafe-cat on a square pixel track, coffee-cup tally, settings (cycle lengths, chime, auto-start); 82 unit tests
 - [x] Link to task/block — picker on /focus (today's open tasks incl. overdue, "Focus first" first, plus today's blocks), "Focus on this" on task cards and in the block popover, link persisted with the timer and shown in the ring, "Done with it?" prompt after a linked task's session
 - [x] Focus Mode fullscreen — dimmed full-screen overlay from any page (button or F), timer + linked item only, margins blank; Esc / X / browser fullscreen-exit leave without touching the timer
-- [ ] `focus_sessions` log
+- [x] `focus_sessions` log — table + per-command RLS + constraints (migration `20261005063406`), `saveFocusSessions` server action (validated, idempotent, unlinks deleted tasks / blocks), localStorage outbox that retries until the server has it
 - [ ] Weekly focus-hours tile
 
 **Exit criteria:** author completes 3 focus sessions.

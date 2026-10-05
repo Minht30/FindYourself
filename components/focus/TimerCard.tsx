@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Maximize2, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import { setTaskDone } from "@/app/(app)/today/task-actions";
 import { primeAudio } from "@/lib/focus/chime";
+import { useSync } from "@/lib/focus/flush";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";
 import { openFocusMode } from "./focusModeControls";
@@ -31,6 +32,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
   const secondsLeft = useClock((s) => s.secondsLeft);
   const progress = useClock((s) => s.progress);
 
+  const sync = useSync();
   const cheer = useCheer(); // a short hop when a session you were watching completes
   // After a finished focus session that was linked to a task: "Done with it?"
   const [offer, setOffer] = useState<{ id: string; title: string } | null>(null);
@@ -240,6 +242,20 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
             ? `${cups} down. Long break earned.`
             : `${cups} down, ${left} to go${left === 1 ? " before a long break" : ""}`}
         </p>
+        {sync.pending > 0 && (
+          <p role="status" className="font-ui text-[12px] text-ink-muted text-center">
+            {sync.pending} session{sync.pending === 1 ? "" : "s"} waiting to save.{" "}
+            {sync.lastError === "unauthenticated" || sync.lastError === "no_response"
+              ? "Sign in again to save your focus sessions."
+              : sync.lastError === "network"
+                ? "You look offline; it will retry."
+                : sync.syncing
+                  ? "Saving…"
+                  : sync.lastError
+                    ? "Could not save yet; it will retry."
+                    : ""}
+          </p>
+        )}
         {lastFinished?.away && (
           <p role="status" className="font-ui text-[12px] text-ink-muted">
             {lastFinished.phase === "focus" ? "A focus session finished while you were away." : "A break finished while you were away."}

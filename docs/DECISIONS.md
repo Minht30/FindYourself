@@ -928,4 +928,31 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 26: `focus_sessions` log (Phase 5, Box 4)
+
+**What landed:**
+- Migration `20261005063406_phase5_focus_sessions` (applied via the Supabase MCP, mirrored under `supabase/migrations/`). Deviations from the ERD (now updated in `docs/ERD.md`):
+  - `id` has **no default**: the browser generates it when the phase starts, so a retry or a second tab replays harmlessly (`insert … on conflict (id) do nothing`).
+  - `planned_seconds` (so "completed" is checkable and an abandoned session reads "10 of 25 min") and `label` (a snapshot of the task / block title; the session keeps its name after the task is deleted and `task_id` goes null).
+  - Constraints that reject impossible sessions: planned 60-7200 s, duration `0..planned`, completed ⇒ duration = planned, `ended_at >= started_at`, and a **wall-clock check** (you cannot have focused longer than the clock ran, 5 s slack; pauses only lengthen the wall clock).
+  - RLS, one policy per command, `(select auth.uid())`: select / insert / delete own; insert also requires the task and block to be the caller's own (FKs alone accept another user's ids); **no update policy**, a logged session is a fact. Partial indexes on both FKs. Security advisors: nothing new (only the old leaked-password toggle).
+- `lib/focus/validate.ts`: the server's gatekeeper. Every field is checked (uuids, time order, a far-future end, planned and duration ranges, completed ⇒ full duration, abandoned ≥ 60 s, wall clock, label length) and returns a **reason** (`bad_duration`, `too_short`, …). Only a fixed set of columns is ever copied, so a tampered client cannot smuggle in `user_id`.
+- `saveFocusSessions` (`app/(app)/focus/actions.ts`): auth, batch of ≤ 50, validate, **verify the task / block still exist (RLS-scoped) and null the ones that do not** (the dangling-FK risk logged in Session 24), `user_id` from the session, idempotent upsert. If the batch insert fails it retries row by row: integrity / policy errors (`23xxx`, `42501`) become `rejected`, anything else fails the call so the browser retries. `revalidatePath("/focus")`.
+- `lib/focus/flush.ts`: `createFlusher(save)` drains the localStorage outbox in batches of 50. **Saved and rejected ids are dropped** (a record that can never be valid must not block the queue); any other failure keeps everything and records the reason. Concurrent calls collapse into one. It takes `save` as a parameter, so it is unit-tested without importing server code.
+- `FocusProvider` flushes when a session is queued (a custom `fy-outbox` event from `enqueueSession`), on load, on `online`, when the tab becomes visible, and every 60 s while anything is pending. The timer card shows "N sessions waiting to save. <reason>" only while something is pending.
+
+**Found while testing (fixed):** signed out, the middleware answers the server action's POST with a redirect to `/login`, so the action resolves with **no result** instead of `{ ok:false, error:"unauthenticated" }`, and the flusher crashed on `res.ok` (the outbox was safe, but the UI had no reason). A missing result is now `no_response`, shown as "Sign in again to save your focus sessions.", with a unit test. In practice an expired session sends the user to /login; the queued session is still there afterwards.
+
+**Verified:**
+- SQL as the `authenticated` role with real JWT claims, inside a DO block that always aborts (nothing left behind; the first run exposed a bug in my harness, fixed and re-run): own insert with own task + block ✓; abandoned insert ✓; replay of the same id inserts **0** rows ✓; **another user's task rejected (RLS)** ✓; **inserting as another user rejected (RLS)** ✓; completed with the wrong duration rejected by `focus_sessions_completed_full`, a 10-minute session in a 1-minute window by `focus_sessions_wall_clock`, planned 30 s by `focus_sessions_planned_range`, end-before-start by `focus_sessions_time_order` ✓; owner sees own rows, **update changes 0 rows**, the other user sees 0 and **deletes 0** of them ✓; deleting the task keeps the session with its label and a null `task_id`, deleting the block unlinks it ✓.
+- Signed in on localhost, real server action, rows checked in the DB: a finished session linked to a task -> `completed=true, 1500/1500, label, task_id` correct, outbox emptied; **an impossible session (25 min "focused" in 2 s) was rejected with `bad_duration`** and dropped; an abandoned one (Reset after 10 min) -> `completed=false, duration 600`; linking a task, **deleting it in SQL**, then finishing -> saved with `task_id null` and the label kept (no FK failure); signed out (auth cookie removed): the action was sent, the outbox **kept** the session, the app went to /login; **after signing in again the queued session was saved** (4 rows, nothing lost); replaying an already-saved id left the table at 4 rows / 4 distinct ids.
+- `typecheck` + `lint` + `test` (**124**) + `build` green.
+- The 4 `focus_sessions` rows (and the `FYTEST` tasks) belong to the throwaway account and are left for Box 5's tile checks; they are deleted at the end of the phase.
+
+**Next — Box 5:** weekly focus-hours tile + recent sessions on /focus.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

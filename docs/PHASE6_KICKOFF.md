@@ -7,7 +7,7 @@
 ## 0. Where things stand (end of 2026-10-05)
 
 - Phases 1-5 are built and pushed (latest `f6e1bcc`). Phase 5 (Pomodoro + Focus Mode + `focus_sessions` + weekly tile) is verified; Minh confirmed fullscreen Focus Mode works.
-- **Still unverified by a human:** how the focus chime *sounds*, a real browser notification, and that the latest Vercel deploy is green (no `gh` CLI here; check the Vercel dashboard).
+- **Confirmed by Minh (2026-10-05):** the focus chime sounds right, the real browser notification works, fullscreen Focus Mode works, and the Vercel deploy is green. Nothing from Phase 5 is waiting on a human check.
 - **Order of work (Minh):** core functions first -> Minh tests by hand -> **Stage 2 Figma design pass** (`docs/DESIGN_BRIEF.md`). So Phase 6's scene is a **placeholder mechanism**; the real Monstadt / Liyue art waits. **Never create or write to Figma without telling Minh first.**
 - Test account: a `+fytest` alias, credentials in the gitignored `.env.test.local` (localhost only; never prod; never echo the password). Its test rows were cleaned up; the account and profile remain.
 
@@ -63,6 +63,6 @@ Phase 4 end-of-day roll and task deadlines are still unexercised on prod. Music 
 
 > Start Phase 6 (cozy environment: ambient mixer) for FindYourself. Read `docs/PHASE6_KICKOFF.md` first, then the tail of `docs/DECISIONS.md` (Sessions 23-30) and `docs/ROADMAP.md`. Repo `Minht30/FindYourself`, prod https://findyourself-mu.vercel.app. Test account credentials are in the gitignored `.env.test.local` (localhost only).
 >
-> My answers: (A) ambient sound: **[1 synthesized / 2 CC0 files / 3 hybrid]**; (B) mixer location: **[as in the PRD / change: ...]**; I am **[around / away]** for this phase (if away: do all five boxes, one commit each, like Phase 5).
+> My answers: (A) ambient sound: **1, synthesized** (swap a single layer for a royalty-free file later only if I dislike it; ask me before downloading anything); (B) mixer location: **as in the PRD** (sidebar mini-mixer, full mixer on /chill, mute always visible in the top bar); I am **away** for this phase, so do all five boxes, one commit each, like Phase 5. *(Edit these three answers if they change.)*
 >
 > Remember: scene art is a placeholder (real Monstadt / Liyue is the later Figma design stage; do not touch Figma without telling me). Test every function signed in, assert failure reasons, check hydration after 2-3 loads.

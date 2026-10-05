@@ -25,7 +25,15 @@ const store = () => useMixerStore.getState();
 let pending: string | null = null;
 
 async function reload() {
-  useMixerStore.setState({ settings: defaultSettings(), playing: false, problem: null, hydrated: false });
+  useMixerStore.setState({
+    settings: defaultSettings(),
+    playing: false,
+    problem: null,
+    hydrated: false,
+    rev: 0,
+    pending: false,
+    saveStatus: { kind: "idle" },
+  });
   if (pending !== null) storage.setItem("fy-mixer", pending);
   pending = null;
   await useMixerStore.persist.rehydrate();
@@ -82,7 +90,8 @@ describe("restoring from localStorage", () => {
     const raw = JSON.parse(storage.getItem("fy-mixer") ?? "{}");
     expect(raw.state.playing).toBeUndefined();
     expect(raw.state.problem).toBeUndefined();
-    expect(Object.keys(raw.state)).toEqual(["settings"]);
+    // only the mix and the "not yet saved" flag are remembered on this device
+    expect(Object.keys(raw.state).sort()).toEqual(["pending", "settings"]);
   });
 });
 
@@ -148,5 +157,70 @@ describe("the sound button", () => {
     store().play();
     expect(store().problem).toBeNull();
     expect(store().playing).toBe(true);
+  });
+});
+
+describe("saving to the account", () => {
+  it("every user edit marks the mix unsaved and bumps the revision", () => {
+    expect(store().pending).toBe(false);
+    expect(store().rev).toBe(0);
+    store().setLevel("rain", 0.9);
+    expect([store().pending, store().rev]).toEqual([true, 1]);
+    store().setMaster(0.4);
+    store().setMuted(true);
+    expect(store().rev).toBe(3);
+  });
+
+  it("an edit that changes nothing is not an edit (no pointless save)", () => {
+    store().setLevel("rain", store().settings.levels.rain);
+    store().setMaster(store().settings.master);
+    store().setMuted(store().settings.muted);
+    expect(store().rev).toBe(0);
+    expect(store().pending).toBe(false);
+  });
+
+  it("play() unmutes and counts as an edit only when it actually unmutes", () => {
+    store().play();
+    expect(store().rev).toBe(0);
+    store().pause();
+    store().setMuted(true);
+    const rev = store().rev;
+    store().play();
+    expect(store().settings.muted).toBe(false);
+    expect(store().rev).toBe(rev + 1);
+  });
+
+  it("markSaved clears pending only if no newer edit happened meanwhile", () => {
+    store().setLevel("rain", 0.9); // rev 1
+    store().markSaved(1);
+    expect(store().pending).toBe(false);
+    store().setLevel("rain", 0.8); // rev 2
+    store().setLevel("rain", 0.7); // rev 3
+    store().markSaved(2); // the save of rev 2 finished, but rev 3 exists
+    expect(store().pending).toBe(true);
+    store().markSaved(3);
+    expect(store().pending).toBe(false);
+  });
+
+  it("pending survives a reload, so an offline edit is still sent later", async () => {
+    store().setLevel("rain", 0.9);
+    pending = storage.getItem("fy-mixer");
+    await reload();
+    expect(store().pending).toBe(true);
+    expect(store().settings.levels.rain).toBe(0.9);
+  });
+
+  it("a stored pending flag that is not literally true is ignored", async () => {
+    pending = JSON.stringify({ state: { settings: defaultSettings(), pending: "yes" }, version: 1 });
+    await reload();
+    expect(store().pending).toBe(false);
+  });
+
+  it("applyResolved replaces the mix without counting as an edit", () => {
+    const next = { ...defaultSettings(), master: 0.1 };
+    store().applyResolved(next, true);
+    expect(store().settings.master).toBe(0.1);
+    expect(store().pending).toBe(true);
+    expect(store().rev).toBe(0);
   });
 });

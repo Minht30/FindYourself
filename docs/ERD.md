@@ -122,13 +122,18 @@ Indexes: `(user_id, scheduled_for, sort_order) where completed_at is null`, `(us
 Indexes: `(user_id, started_at desc)`, partial on `task_id` and `time_block_id` (FK scans). RLS: select / insert / delete own; insert also requires the task / block to be the caller's own; **no update policy** (a logged session is a fact). Only focus phases are logged, never breaks.
 
 ### `mixer_state`
+*(Revised in Phase 6, Session 36.)* One row per user: the ambient mix they left.
+
 | column | type | notes |
 |---|---|---|
-| user_id | uuid PK FK |  |
-| levels | jsonb | e.g. `{"rain":0.6,"fire":0.0,"keyboard":0.2,"cafe":0.4,"piano":0.3}` |
-| master_volume | numeric | 0..1 |
-| current_track_id | uuid nullable |  |
-| updated_at | timestamptz |  |
+| user_id | uuid PK FK profiles | default `auth.uid()`, on delete cascade |
+| levels | jsonb | e.g. `{"rain":0.6,"fire":0,"keyboard":0.2,"cafe":0.3,"piano":0.3}`; CHECK `mixer_levels_valid`: an object of at most 16 lowercase layer keys, each a number 0..1 |
+| master_volume | numeric | 0..1 (check), default 0.8 |
+| muted | bool | default false (added in Phase 6) |
+| current_track_id | uuid nullable | stays null until Phase 7; no FK yet (`music_tracks` does not exist) |
+| updated_at | timestamptz | touch trigger (pinned search_path) |
+
+RLS: select / insert / update own (`(select auth.uid()) = user_id`); **no delete policy** (the row goes with the profile, "reset" is an update); `anon` has no access. The server action also validates every field and names the reason it refuses a save.
 
 ### `music_tracks`
 | column | type | notes |

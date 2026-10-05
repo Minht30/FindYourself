@@ -8,6 +8,7 @@ import LayerSlider from "./LayerSlider";
 import MasterVolume from "./MasterVolume";
 import PlayButton from "./PlayButton";
 import ProblemNote from "./ProblemNote";
+import SaveNote from "./SaveNote";
 
 // The full mixer on /chill. Sound never starts by itself (browsers forbid it
 // and DESIGN_SYSTEM promises it), so until the first click this page says so
@@ -57,6 +58,7 @@ export default function MixerPanel() {
         <div className="rounded-lg bg-bg-elevated border border-[var(--border)] p-4 shadow-card">
           <MasterVolume />
         </div>
+        <SaveNote />
       </section>
     </div>
   );

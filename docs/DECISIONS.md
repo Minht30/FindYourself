@@ -1135,4 +1135,32 @@ All finite (no NaN). The first run caught two problems: fire was a pure rumble (
 
 ---
 
+## 2026-10-05 — Session 36: `mixer_state` persistence (Phase 6, Box 4)
+
+**What landed:**
+- Migration `20261005223316_phase6_mixer_state`: one row per user (`user_id` pk, `levels` jsonb, `master_volume`, `muted`, `current_track_id` null until Phase 7, `updated_at` via a touch trigger with a pinned `search_path`). Deviations from the ERD (now updated): `muted` is stored; `levels` is **checked in the database** by an immutable function (an object of at most 16 lowercase keys, each a number 0..1), so a tampered client cannot park junk in the row; `current_track_id` has no FK yet. RLS: select / insert / update own, **no delete policy**, nothing for `anon`.
+- **`saveMixerState`** server action (`app/(app)/chill/actions.ts`): auth, then `validateMixer` (`lib/audio/validate.ts`: every field checked, a *named* reason for each refusal: `not_an_object`, `bad_levels`, `unknown_layer`, `bad_level`, `bad_master`, `bad_muted`; only three columns are ever copied, so a client cannot smuggle in `user_id`), then an upsert with `user_id` from the session. Returns `updatedAt` or a reason (`db_<code>` for database errors).
+- **Saver** (`lib/audio/saver.ts`, injected timers, 19 unit tests): changes are **debounced 800 ms**; **one save in flight at a time** (a change made meanwhile is sent right after, never in parallel); the `pending` flag clears only for the revision that was actually saved; a failure keeps the change and **retries with backoff** (3 s, 10 s, 30 s, 60 s), a refused payload (`bad_*`, `unknown_layer`, DB `23xxx` / `42501`) is **not** retried; flush when the tab is hidden or closing, retry immediately when the connection returns. `classify` maps the action's answer: **no result at all = signed out** (the middleware redirects the POST; Session 26), retryable because the user may sign in in another tab.
+- **Which mix wins at load** (`lib/audio/resolve.ts`, pure, 7 tests): (1) unsaved edits on this device always win and are sent up; (2) otherwise the account's mix, so a new device sounds like the old one; (3) otherwise a customised local-only mix is kept and pushed up (first sign-in on a used device); (4) otherwise the catalogue defaults. A user who never touches the mixer never gets a row.
+- **No hydration mismatch:** the server HTML and the first client render always show the defaults; the layout reads `mixer_state` and passes it to `MixerProvider` as a prop, which applies it after mount (an effect), exactly like the focus store. (Setting the zustand store during render would have been unsafe: on the server it is a module singleton shared between requests.)
+- Store: `rev` (user edits, not persisted), `pending` (**persisted**, so an offline edit survives a reload and is sent at the next load), `saveStatus`; edits that change nothing are not edits. `play()` unmutes and counts as an edit only if it actually unmuted.
+- UI: a quiet status line under the mixer (`SaveNote`, live region): "Saving your mix…", "Mix saved to your account", or the reason ("Sign in again to save your mix. It is kept on this device for now.", "Offline: your mix is kept on this device and will save when you are back online.", "Could not save your mix (bad_level). It is kept on this device.").
+
+**Verified:**
+- **SQL as `authenticated` with real JWT claims** (aborting block, nothing left behind): own insert ok with `user_id` defaulting to `auth.uid()`; own update ok; **insert as another user -> `42501`**; the other user sees 0 rows and an update by them changes 0 rows; app **delete removes 0 rows** (no policy); `anon` read `42501`; constraints: level 1.5, a string level, an uppercase key, an array, 17 keys, master 1.5, a negative level each **`23514`**; exactly 16 keys accepted. (The in-transaction `updated_at` check read false only because `now()` is constant inside one transaction; the trigger was confirmed across real requests below.) Security advisors: only the old leaked-password toggle; performance: nothing new.
+- **Signed in on localhost, real server action, rows checked in the DB:**
+  - a **burst of 66 key presses made exactly one POST** (debounce), and the row matched (`rain 0.75`, `fire 0.8`); status "Mix saved to your account", `pending` false;
+  - **untouched mixer on a brand-new device: 0 POSTs, 0 rows**, defaults shown (also after visiting another page);
+  - a row seeded for "another device" with empty localStorage: **all 5 levels, master 50 and muted restored, on 3 consecutive loads**, 0 POSTs, **0 console errors or warnings**, button "off" (no autoplay);
+  - **refusals asserted by reason** (request sent *and* reason shown): `bad_level` (rain 7), `unknown_layer`, `bad_master`, `bad_muted`, `bad_levels` each produced exactly one POST, the matching status and message, **no retry in the following 4.5 s**, and the DB row unchanged;
+  - **signed out mid-session** (auth cookies dropped, page kept open): the action was sent (1 POST) and resolved with no result -> status `unauthenticated` and the message above, `pending: true`, the change kept in localStorage, DB unchanged; a reload went to `/login`; **after signing in again the queued edit was saved** (DB `cafe` 0.66 -> 1) and `updated_at` advanced (trigger confirmed);
+  - **offline**: status `network`, the offline message, `pending: true`; back online (the `online` event) -> saved, DB `piano` -> 0, `pending: false`.
+- The test row is deleted. `typecheck` + `lint` + `test` (**288**, +44 this box) + `build` green; `/chill` 1.17 kB (First Load 100 kB).
+
+**Not covered (small):** two tabs editing at once is last-write-wins by design (no merge); `current_track_id` is unused until Phase 7.
+
+**Next — Box 5:** the scene mechanism (placeholder art).
+
+---
+
 <!-- New entries append below with date + session number -->

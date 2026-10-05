@@ -88,9 +88,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Link to task/block — picker on /focus (today's open tasks incl. overdue, "Focus first" first, plus today's blocks), "Focus on this" on task cards and in the block popover, link persisted with the timer and shown in the ring, "Done with it?" prompt after a linked task's session
 - [x] Focus Mode fullscreen — dimmed full-screen overlay from any page (button or F), timer + linked item only, margins blank; Esc / X / browser fullscreen-exit leave without touching the timer
 - [x] `focus_sessions` log — table + per-command RLS + constraints (migration `20261005063406`), `saveFocusSessions` server action (validated, idempotent, unlinks deleted tasks / blocks), localStorage outbox that retries until the server has it
-- [ ] Weekly focus-hours tile
+- [x] Weekly focus-hours tile — on /focus: this week's focus time (local Monday-Sunday, DST-safe), session counts, 7 pixel day columns (one block = 15 min), "Today" count and the last 8 sessions; presentational, so Phase 8 can lift it into the dashboard
 
-**Exit criteria:** author completes 3 focus sessions.
+**Exit criteria:** author completes 3 focus sessions. *(All boxes built 2026-10-05; the exit criterion is Minh's to hit on prod with his real account.)*
 
 ---
 

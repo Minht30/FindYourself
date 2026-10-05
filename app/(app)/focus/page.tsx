@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import LinkPicker, { type PickBlock, type PickTask } from "@/components/focus/LinkPicker";
 import TimerCard from "@/components/focus/TimerCard";
+import WeekTile, { type RecentSession } from "@/components/focus/WeekTile";
 import { shiftISODate, todayInTimeZone, zonedDayStartUTC } from "@/lib/dates";
+import { summarizeWeek, weekBounds, type WeekSession } from "@/lib/focus/week";
 import { createClient } from "@/lib/supabase/server";
 import { getUserTimeZone } from "@/lib/today";
 
@@ -20,11 +22,13 @@ export default async function FocusPage() {
   const today = todayInTimeZone(timeZone);
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
+  const bounds = weekBounds(today, timeZone);
 
   // What you could be focusing on: today's open tasks (overdue included, since
   // they sit under Today on the board too; Backlog has no date and is left out)
-  // and today's timetable blocks.
-  const [{ data: tasks }, { data: blocks }] = await Promise.all([
+  // and today's timetable blocks. Plus this week's sessions for the tile and
+  // the latest few for the list.
+  const [{ data: tasks }, { data: blocks }, { data: weekRows }, { data: recent }] = await Promise.all([
     supabase
       .from("tasks")
       .select("id, title, is_restriction")
@@ -44,10 +48,27 @@ export default async function FocusPage() {
       .order("starts_at")
       .limit(50)
       .returns<PickBlock[]>(),
+    supabase
+      .from("focus_sessions")
+      .select("started_at, duration_seconds, completed")
+      .eq("user_id", user.id)
+      .gte("started_at", new Date(bounds.startMs).toISOString())
+      .lt("started_at", new Date(bounds.endMs).toISOString())
+      .limit(2000)
+      .returns<WeekSession[]>(),
+    supabase
+      .from("focus_sessions")
+      .select("id, started_at, duration_seconds, planned_seconds, completed, label")
+      .eq("user_id", user.id)
+      .order("started_at", { ascending: false })
+      .limit(8)
+      .returns<RecentSession[]>(),
   ]);
 
+  const week = summarizeWeek(weekRows ?? [], bounds, today);
+
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6 pb-10">
       <header className="w-full max-w-[460px]">
         <h1 className="font-display text-3xl">Focus</h1>
         <p className="text-ink-secondary text-[15px] mt-1">
@@ -55,6 +76,7 @@ export default async function FocusPage() {
         </p>
       </header>
       <TimerCard linkSlot={<LinkPicker tasks={tasks ?? []} blocks={blocks ?? []} timeZone={timeZone} />} />
+      <WeekTile week={week} recent={recent ?? []} timeZone={timeZone} />
     </div>
   );
 }

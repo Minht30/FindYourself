@@ -955,4 +955,28 @@ Closes the task spun off in Session 17. The older tables now use the same policy
 
 ---
 
+## 2026-10-05 — Session 27: Weekly focus-hours tile (Phase 5, Box 5)
+
+**What landed:**
+- `lib/focus/week.ts` (pure, 22 unit tests): the week is the user's **local Monday-Sunday** (`weekMondayISO`, `weekBounds`), and each day's edges come from `zonedDayStartUTC`, so a 25-hour (DST end) or 23-hour (DST start) Sunday still gets all of its sessions and a session at 00:10 local lands on the right side of midnight. `summarizeWeek` sums focused seconds per day (finished **and** stopped-early time counts as focus time) and counts finished vs stopped early. `formatDuration` -> "3h 25m" / "45m" / "<1m" / "0m".
+- `WeekTile` (server-rendered, presentational): big pixel-font total, "5 sessions, 4 finished and 1 stopped early", seven pixel columns (**one block = 15 minutes**, rounded up so any focus shows a block, capped at 16 blocks / 4 h with the true number in the label), today's column in the stronger accent with a marker, future days dimmed, "Today: N sessions", and the **last 8 sessions** (✓ finished, dashed circle for stopped early, "10m of 25m", the label or "Focus session", local time). Empty state: a sleeping cat and "Your first session will light up the first block." Each column is a `role="img"` with a full text label ("Mon: 1h 25m, 4 sessions (today)").
+- `/focus` fetches the week's sessions and the recent list alongside the task / block lists in one `Promise.all`. The tile sits **under the timer in the same 460 px column**: the wide margins stay empty for the Phase 6/9 decoration decisions.
+
+**Decisions:**
+- A session belongs to the day it **started** (local). Hours = focused seconds, so abandoned time counts; the "finished" count is shown separately so the number is honest both ways.
+- The tile re-reads on every save because `saveFocusSessions` calls `revalidatePath("/focus")`, which also drops the client router cache (so a session saved from /today shows when you open /focus within the 30 s cache window).
+
+**Verified (signed in, localhost):**
+- The tile matched SQL exactly: 4 rows / 5100 s / 3 completed -> "1h 25m", "4 sessions, 3 finished and 1 stopped early", all on Monday (the user's local today, 02:42 EDT while it was already 06:42 UTC), 6 lit blocks for 85 minutes.
+- **Live refresh:** finishing a session on /focus moved the tile from "4 sessions, 1h 25m" to "5 sessions, 1h 50m" with no reload; the DB total (6600 s) agreed.
+- Throwaway route (deleted): a day over the cap shows 16 blocks with the label "Mon: 5h 25m"; future days at 50% opacity; the empty state renders; Netcafe renders (neon-yellow blocks). It exposed a bug, fixed: a very long session label pushed the row past the card (a grid track grows to its content); the list is now a flex column with `min-w-0` and the label truncates.
+- `typecheck` + `lint` + `test` (**146**) + `build` green. `/focus` 5.84 kB (First Load 110 kB).
+- Gotcha (not a bug): deleting a route while `next dev` was running left a stale webpack cache (`__webpack_modules__[moduleId] is not a function`); stop dev, `rm -rf .next`, restart.
+
+**Next:** the phase-wide verification pass and cleanup of the throwaway account's test rows (see Session 28).
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

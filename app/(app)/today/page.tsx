@@ -14,6 +14,8 @@ import WeeklyWinsCard from "@/components/motivation/WeeklyWinsCard";
 import WinsClock from "@/components/motivation/WinsClock";
 import { winsWindowOpen } from "@/lib/wins";
 import { loadWeekWins } from "@/lib/winsData";
+import ProgressRings from "@/components/motivation/ProgressRings";
+import { diaryRing, diaryWritten, focusRing, sanitizeFocusGoal, sumFocusSeconds, taskRing } from "@/lib/rings";
 import { QUOTE_COLUMNS, quoteForDate, toQuote } from "@/lib/quotes";
 import {
   addDays,
@@ -48,7 +50,7 @@ export default async function TodayPage({ searchParams }: Props) {
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
 
-  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }, { data: profile }, { data: quoteRows }] = await Promise.all([
+  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }, { data: profile }, { data: quoteRows }, { data: todayFocus }, { data: todayDiary }] = await Promise.all([
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
@@ -71,9 +73,24 @@ export default async function TodayPage({ searchParams }: Props) {
       .order("completed_at", { ascending: false })
       .returns<TaskDTO[]>(),
     // Written only by the database (see lib/streak.ts); read here to show it.
-    supabase.from("profiles").select(STREAK_COLUMNS).eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select(`${STREAK_COLUMNS}, daily_focus_goal_minutes`).eq("id", user.id).maybeSingle(),
     // Global, read-only; which one shows today is a pure function of the date.
     supabase.from("quotes").select(QUOTE_COLUMNS).order("id"),
+    // The rings: today's focus time and today's diary row.
+    supabase
+      .from("focus_sessions")
+      .select("duration_seconds")
+      .eq("user_id", user.id)
+      .gte("started_at", dayStart)
+      .lt("started_at", dayEnd)
+      .limit(500)
+      .returns<{ duration_seconds: number }[]>(),
+    supabase
+      .from("diary_entries")
+      .select("content_chars, mood")
+      .eq("user_id", user.id)
+      .eq("entry_date", today)
+      .maybeSingle(),
   ]);
   const quote = quoteForDate(
     today,
@@ -86,6 +103,16 @@ export default async function TodayPage({ searchParams }: Props) {
   const winsOpen = winsWindowOpen(now.getTime(), timeZone);
   const wins = winsOpen ? await loadWeekWins(supabase, user.id, today, timeZone, streak) : null;
   const tasks = openTasks ?? [];
+
+  // Rings: today's plan is what is still open for today (or overdue) plus what
+  // was finished today; the goal is the person's own (a profile setting).
+  const goalMinutes = sanitizeFocusGoal(profile?.daily_focus_goal_minutes);
+  const openForToday = tasks.filter((t) => t.scheduled_for !== null && t.scheduled_for <= today).length;
+  const rings = [
+    taskRing((doneTasks ?? []).length, openForToday),
+    focusRing(sumFocusSeconds(todayFocus ?? []), goalMinutes),
+    diaryRing(diaryWritten(todayDiary)),
+  ];
   // Drawer defaults to open; the cookie remembers a user who closed it.
   const drawerOpen = cookies().get(DRAWER_COOKIE)?.value !== "0";
 
@@ -138,6 +165,7 @@ export default async function TodayPage({ searchParams }: Props) {
       <WinsClock timeZone={timeZone} open={winsOpen} />
       <div className="mt-4 flex flex-col gap-3">
         {wins ? <WeeklyWinsCard wins={wins} /> : null}
+        <ProgressRings rings={rings} goalMinutes={goalMinutes} />
         <QuoteCard quote={quote} />
         <StreakChip view={streak} />
       </div>

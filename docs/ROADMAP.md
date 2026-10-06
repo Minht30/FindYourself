@@ -128,9 +128,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Streak on `profiles` — recomputed by the database from the person's rows after every diary / task-completion change (triggers + a pure `streak_run` function), in the user's own zone (kept in sync from the browser); the client cannot write it; read-time "alive today / welcome back" in `lib/streak.ts`; chip on /today
 - [x] `quotes` seeded (120) — original lines, no authors; read-only table; the quote of the day is a pure function of the date (same date, same quote for everyone; no repeat within a 120-day lap); card on /today
 - [x] Weekly wins card (Sunday from 18:00 local) — "Your week" on /today: focus time, tasks finished, diary days (text or a mood) and the streak for the local Monday-Sunday week; opens at 18:00 in the person's zone (DST-safe), and a page left open refreshes itself at that moment
-- [ ] Progress rings on dashboard
+- [x] Progress rings — on /today (there is no separate dashboard): tasks done (done today / done + still open for today), focus time against a daily goal (a profile setting, 15 min to 12 h, default 2 h), and the diary (text or a mood); plain SVG rings with a text value and an accessible sentence each
 
-**Exit criteria:** dashboard feels alive on a Sunday evening.
+**Exit criteria:** dashboard feels alive on a Sunday evening. *(All four boxes built 2026-10-06 and verified headlessly, including a simulated Sunday evening; how it feels is Minh's to judge, see the Phase 8 summary in `docs/DECISIONS.md`.)*
 
 ---
 

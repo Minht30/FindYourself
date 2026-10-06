@@ -162,6 +162,12 @@ Acceptance criteria in Given/When/Then.
 
 ---
 
+### US-7.4 Progress rings
+**Acceptance:**
+- Given I open /today, then three rings show today's progress: tasks done (of those done today plus those still open for today), focus time against my daily goal, and whether today is in the diary.
+- Given nothing is planned for today, then the tasks ring is empty (not full) and says so.
+- Given I change my daily focus goal (15 minutes to 12 hours), then the focus ring uses it from then on, on every device; a goal outside that range is refused by name.
+
 ## Epic 8 — Settings
 
 ### US-8.1 Manage categories

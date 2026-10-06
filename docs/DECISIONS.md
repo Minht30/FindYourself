@@ -1479,4 +1479,23 @@ Six boxes, six commits (Sessions 40-45): the music bucket + `music_tracks` + upl
 
 ---
 
+## 2026-10-06 — Session 49: Progress rings (Phase 8, Box 4)
+
+**What landed:**
+- Migration `20261006051425_phase8_daily_focus_goal`: `profiles.daily_focus_goal_minutes` (default 120; CHECK 15..720 in steps of 5), the only Phase 8 column the client may write (column privilege). A profile setting, not a per-device one, so the goal follows the person (the focus-music choice stays per device by an earlier decision).
+- `lib/rings.ts` (pure, 20 tests): **tasks** = done today / (done today + still open for today or overdue), so finishing a task moves the ring forward instead of shrinking the denominator; a task finished today that was dated for another day still counts as done; **nothing planned is an empty ring, not a full one**; **focus** = today's focus seconds / the goal, capped at a full ring with the real time still shown ("25m of 15m", "Goal reached"); **diary** = text or a mood today (the streak's rule). Each ring has a value, a detail line and a full sentence for screen readers (`role="img"` + `aria-label`). A stored goal the rules do not accept falls back to the default.
+- `saveFocusGoal` (named reasons `bad_goal`, `unauthenticated`, `db_error`; checked in the action and again by the database) and a plain goal picker (`FocusGoalSelect`): presets 30 min to 5 h, plus the saved value if it is not a preset; on a refusal the select goes back to the saved goal and says why.
+- `ProgressRings` + a "Today" card on /today, next to the Streak and Quote cards (and "Your week" on Sunday evening). All plain; the real layout is the Figma stage, and the wide empty areas stay blank (decoration space).
+
+**Verified (signed in, localhost):**
+- **Live rings, real UI:** baseline 0 of 0 / "Nothing planned for today", 25m of 2h 00m (0.208), diary "Not yet", identical on three loads, zero console errors or warnings; adding two Today tasks -> **0 of 2**; ticking one -> **1 of 2 (0.500)**; both -> **2 of 2, complete, dash offset 0**; un-ticking one -> 1 of 2 again; a mood on the diary -> **Written, complete**; goal 30 min -> **25m of 30m (0.833)**; goal 15 min -> **25m of 15m, 1.000, "Goal reached"**, offset 0.
+- **Refusals by reason:** the picker with options the UI never offers (10, 17, 725): each sent one request and showed **`bad_goal`** and the select returned to the saved goal (30), saved goal unchanged after a reload; **direct PostgREST calls with the user's own token**: 17, 10, 725, 0 and -5 -> `23514 profiles_focus_goal_range`, `"abc"` -> `22P02`, null -> `23502`, 15 -> 200, a body that also sets `streak_count` -> 403 `42501`, `anon` -> 401 `42501`. **Signed out mid-session:** the change sent its request, resolved with no result and showed **`unauthenticated`**, the select went back to the saved value.
+- **SQL (`supabase/tests/phase8_focus_goal.sql`, as `authenticated`, real claims, aborting block):** 15, 30, 120, 715, 720 accepted; 0, 5, 10, 14, 17, 721, 725, -5 each `23514`; null `23502`; another person's profile 0 rows; streak columns `42501`; `anon` `42501`.
+- **Phone (390 px):** no horizontal overflow, the rings card fits its column, three loads with zero console errors or warnings.
+- `typecheck` + `lint` + `test` (**659**, +20) green.
+
+**Not covered:** a goal picker for odd goals (the database accepts any step of 5; the picker offers presets); how the rings look and feel (Stage 2); the rings drawing animation (none yet, so nothing to respect under reduced motion).
+
+---
+
 <!-- New entries append below with date + session number -->

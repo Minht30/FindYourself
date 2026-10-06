@@ -114,7 +114,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Playlist model + reorder — `playlists` + `playlist_tracks` (own-track check, 20-playlist cap, atomic add / reorder functions), up / down buttons, pure seeded `shuffle`
 - [x] **Choose music for focus sessions** (Minh, 2026-10-05) — picker in Timer settings (nothing / ambient only / a playlist / a track), remembered per device, starts on the Start click, pauses on breaks (a setting); community picks are external links so they cannot play in the app
 - [x] Mini-player (persistent, cross-page) — one audio element outside React, pure queue state machine (shuffle / repeat / remove-while-playing), signed-URL refresh, Media Session, independent music volume, never autoplays
-- [ ] `track_suggestions` table + form
+- [x] `track_suggestions` table + form — `admins` table (Minh), own-or-admin RLS, link allow-list enforced in the app **and** the database, 5-pending cap, markup shown as text, named refusal reasons
 - [ ] "Community picks" list (admin-curated)
 
 **Limits (Minh, 2026-10-05):** MP3 only, **at most 10 tracks** per user (10 MB per file, 50 MB in total).

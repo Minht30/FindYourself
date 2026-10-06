@@ -10,6 +10,9 @@ export const MAX_TITLE = 120;
 export const MAX_ARTIST = 120;
 export const MAX_PLAYLISTS = 20;
 export const MAX_PLAYLIST_NAME = 60;
+export const MAX_LINK = 500;
+export const MAX_REASON = 500;
+export const MAX_PENDING_SUGGESTIONS = 5;
 export const MP3_MIME = "audio/mpeg";
 
 // Every refusal in the music library names its reason, so a test (or a person)
@@ -33,6 +36,14 @@ export type MusicReason =
   | "playlist_limit" // already 20 playlists
   | "already_in_playlist"
   | "bad_order" // a reorder that is not exactly the playlist's own tracks
+  | "bad_reason" // a suggestion's reason is over 500 characters
+  | "too_many_pending" // already 5 suggestions waiting for review
+  | "link_malformed" // not a link at all
+  | "link_not_https"
+  | "link_host_not_allowed" // not YouTube or Spotify
+  | "link_has_credentials" // user:password@ or the youtube.com@evil.com trick
+  | "link_too_long"
+  | "not_admin"
   | "db_error";
 
 export const REASON_TEXT: Record<MusicReason, string> = {
@@ -54,5 +65,13 @@ export const REASON_TEXT: Record<MusicReason, string> = {
   playlist_limit: "You have 20 playlists, the most there can be. Delete one to make another.",
   already_in_playlist: "That track is already in this playlist.",
   bad_order: "That order does not match the playlist, so nothing was changed.",
+  bad_reason: "The reason can be up to 500 characters.",
+  too_many_pending: "You already have 5 suggestions waiting for review. Wait for one to be reviewed, or withdraw one.",
+  link_malformed: "That does not look like a link. Paste the full address, starting with https://.",
+  link_not_https: "The link must start with https://.",
+  link_host_not_allowed: "Only YouTube and Spotify links are accepted.",
+  link_has_credentials: "That link contains a user name or password part, so it was not accepted.",
+  link_too_long: "That link is too long (500 characters at most).",
+  not_admin: "Only an admin can do that.",
   db_error: "Something went wrong saving that, please try again.",
 };

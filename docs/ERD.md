@@ -163,20 +163,25 @@ RLS: select / insert / update / delete own. Column privileges: a user may update
 
 Two SECURITY INVOKER functions, so RLS still applies to them and they are exposed to `authenticated` only: `add_playlist_track(playlist, track)` (locks the playlist row, appends at max + 1) and `reorder_playlist(playlist, track_ids[])` (the array must be exactly the playlist's tracks, each once, else `bad_order`; all positions or none change).
 
-### `track_suggestions` (public-write for authenticated users, admin-read)
+### `admins`
+*(Phase 7, Session 44; decision D.)* `user_id` PK -> `auth.users` (cascade), `created_at`. RLS on, **one policy: a signed-in user may read their own row** (that is how the app learns whether to show the review view); no insert / update / delete policy and the write privileges are revoked, so only a migration changes it. The migration fills it for Minh's account (looked up by email). `private.is_admin()` (SECURITY DEFINER, no arguments, in a schema the API does not expose) answers "is the caller an admin?" for policies and functions.
+
+### `track_suggestions` (signed-in write, own-or-admin read)
+*(Built in Phase 7, Session 44.)*
+
 | column | type | notes |
 |---|---|---|
-| id | uuid PK |  |
-| suggested_by | uuid FK profiles(id) |  |
-| title | text |  |
-| artist | text |  |
-| link | text | youtube/spotify url |
-| reason | text |  |
-| status | text | enum: pending, approved, rejected |
-| reviewed_by | uuid nullable |  |
+| id | uuid PK | default `gen_random_uuid()` |
+| suggested_by | uuid FK profiles | default `auth.uid()`, cascade |
+| title | text | 1-120 (check) |
+| artist | text | default `''`, ≤ 120 |
+| link | text | CHECK `suggestion_link_ok`: https only, host in {youtube.com, www. / m. / music.youtube.com, youtu.be, open.spotify.com, spotify.link}, no whitespace or control characters, ≤ 500; the app stores the URL parser's canonical form |
+| reason | text | default `''`, ≤ 500 |
+| status | text | CHECK in (pending, approved, rejected); default pending |
+| reviewed_by | uuid nullable | -> `auth.users`, set null on delete |
 | created_at | timestamptz |  |
 
-RLS: insert-any-authenticated; select-own OR admin.
+RLS: **insert** only as yourself, with `status = 'pending'` and no `reviewed_by`; **select** own, or all if `private.is_admin()`; **update** admin only, and only the columns `status` and `reviewed_by` (column privileges); **delete** your own suggestion while it is still pending (withdraw); nothing for `anon`. A BEFORE INSERT trigger under a per-user advisory lock allows at most **5 pending** per user (`too_many_pending`).
 
 ### `quotes` (global read-only)
 | column | type |

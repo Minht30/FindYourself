@@ -1616,4 +1616,20 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 55: The reduced-motion pass (Phase 9, Box 4)
+
+**Audit:** the pixel cat (`.pix-*`), the Chill scene (`.sc-*` and parallax in `scene/hooks.ts`), Focus Mode's entrance (`.fm-in`) and dnd-kit's drop animation (`dropAnimation` is `null` under the preference) already had specific rules. **Not covered:** the timer chip's pulsing dot (`animate-pulse`, an infinite loop on every page while a timer runs), every Tailwind `transition-*` (chevrons, mood pop, Immersive's 500 ms fade) and any smooth scroll.
+
+**What landed:** a **global safety net** at the end of `app/globals.css` for `prefers-reduced-motion: reduce`: `animation-iteration-count: 1`, near-zero animation and transition durations, no delays, `scroll-behavior: auto` (all `!important`, on `*`, `::before`, `::after`). A change of state still happens, it just does not travel; the specific rules stay (they freeze things in a nicer way, e.g. the cat sits at the start of the track and the lit cells still show progress). The pulse dot also got an explicit `motion-reduce:animate-none`. `lib/reducedMotion.test.ts` (3) fails if the net is removed or weakened.
+
+**Verified (signed in, localhost; Playwright `emulateMedia`, with a running focus timer and the mixer playing, counting running animations that loop or last over 100 ms):** **without the preference:** /focus 6 (cat: `pix-lap`, `pix-head`, `pix-show-4`), /today and /diary 1 each (`pulse`, the timer dot), /chill **73** (`sc-fall`, `sc-steam`, `sc-flame`, `sc-glow-flicker`, `sc-drift`, `sc-spin`, `sc-mote`), /privacy and / 0; button transitions 0.15 s. **With the preference:** **0 on every one of the six pages**, button transitions 0.000001 s. Zero console messages. The timer still counts and the scene still draws (state is unchanged, only the travel is gone).
+
+`typecheck` + `lint` + `test` (**686**, +3) green.
+
+**Not covered:** the browser's own motion (page transitions between routes: none exist), video / GIF content (none), and a real operating-system "reduce motion" toggle (the emulated media feature is what Chromium reads from it).
+
+**Next — Box 5:** the guest demo (the big one; needs a decision from Minh, see the end of this session's reply).
+
+---
+
 <!-- New entries append below with date + session number -->

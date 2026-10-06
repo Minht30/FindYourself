@@ -31,7 +31,7 @@ export default function TimerChip() {
       <PixelClock text={clock} unit="2px" />
       <span
         aria-hidden
-        className={`w-2 h-2 rounded-full ${status === "paused" ? "bg-ink-muted" : isBreak ? "bg-[var(--pix-break)]" : "bg-accent animate-pulse"}`}
+        className={`w-2 h-2 rounded-full ${status === "paused" ? "bg-ink-muted" : isBreak ? "bg-[var(--pix-break)]" : "bg-accent animate-pulse motion-reduce:animate-none"}`}
       />
     </Link>
   );

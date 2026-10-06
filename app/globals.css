@@ -408,3 +408,20 @@ body {
   .sc-steam { animation: none; opacity: 0.4; }
   .sc-glow { transition: none; }
 }
+
+/* Reduced motion, the safety net. Specific pieces above (the pixel cat, the
+   scene, Focus Mode's entrance) freeze themselves in their own way; this catches
+   everything else, including Tailwind's animate-* and transition-* utilities and
+   anything added later: no looping animation, changes are instant, no smooth
+   scrolling. (A change of state still happens; it just does not travel.) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

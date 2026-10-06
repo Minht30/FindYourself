@@ -141,7 +141,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Privacy note (plain-language) — public `/privacy`, linked from the landing page, sign-in / sign-up and the sidebar; a guard test keeps its cookie / device-storage table in step with the code. *Needs Minh's read before launch (it speaks for him); the deletion paragraph is added with the delete-account box.*
 - [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one
 - [x] Error boundaries — `error.tsx` inside the app shell (the player, timer and sidebar keep running), `error.tsx` for pages outside it, `global-error.tsx` for a broken root layout, and a `not-found.tsx` 404; calm copy, a retry that re-fetches, a way out, and the error's reference number (never its message)
-- [ ] Reduced-motion pass
+- [x] Reduced-motion pass — audited every animation; the cat, scene, Focus Mode and drag-drop already had their own rules, and a global safety net now catches the rest (the timer's pulsing dot, every transition, smooth scroll); measured: 0 ongoing animations on every page with the preference, 73 on Chill without it
 - [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
 - [ ] Lighthouse ≥ 90 on all axes
 - [ ] Delete-account flow

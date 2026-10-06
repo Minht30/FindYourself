@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Search, Settings } from "lucide-react";
+import { Menu, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
@@ -85,11 +85,6 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
       {/* Always visible, on every page and every width (DESIGN_SYSTEM section 7) */}
       <SoundButton />
 
-      {!isChill && (
-        <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
-          <Search size={16} />
-        </button>
-      )}
       <Link href="/settings" aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Settings size={16} />
       </Link>

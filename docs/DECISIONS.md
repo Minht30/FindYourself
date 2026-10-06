@@ -1754,4 +1754,12 @@ Tests: **732** unit tests (was 659 at the end of Phase 8); SQL test files for ca
 
 ---
 
+## 2026-10-06 — Session 61: Search removed
+
+**Decision (Minh):** delete the top bar's Search button; there is nothing to search yet. It was the last dead control (it never had a handler). Removed from `TopBar`; no other code referenced it. **If a search is wanted later** the data is ready for it: diary entries keep a plain-text copy (`content_text`) for exactly that, tasks and blocks have titles; it belongs with a design pass (a command-palette style box), so it is not on the roadmap now. Verified on /today, /diary, /focus, /chill and /settings: the top bar has Menu (phones only), Today, the sound button, Settings and the theme toggle, with zero console messages. This closes the "Not decided: Search" item in the Phase 9 summary above.
+
+**Pointer for the service-role key** (asked in the same message): Supabase dashboard -> project `vcurckpntzffvvkvvnlg` -> Project Settings -> API Keys -> the **secret** key (older dashboards: "service_role" under Project API keys) -> `.env.local` as `SUPABASE_SERVICE_ROLE_KEY=...` and the same name in Vercel -> Settings -> Environment Variables (Production). Never put it in a `NEXT_PUBLIC_` variable, never commit it.
+
+---
+
 <!-- New entries append below with date + session number -->

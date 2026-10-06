@@ -5,6 +5,7 @@ import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
 import TimeZoneSync from "@/components/layout/TimeZoneSync";
+import { NavProvider } from "@/components/layout/NavContext";
 import DemoBanner from "@/components/demo/DemoBanner";
 import { isGuest } from "@/lib/demo";
 import MiniPlayer from "@/components/music/MiniPlayer";
@@ -59,6 +60,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <MusicProvider tracks={tracks} playlists={playlists} initialTrackId={saved.data?.current_track_id ?? null}>
       <FocusProvider>
         {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} /> : null}
+        <NavProvider>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
               the surrounding shell static-renderable in Next.js 14. */}
@@ -80,6 +82,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               of the page, so it never covers a page's own controls */}
           <MiniPlayer />
         </div>
+        </NavProvider>
       </FocusProvider>
       </MusicProvider>
     </MixerProvider>

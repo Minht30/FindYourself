@@ -1719,4 +1719,18 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 60: Phone navigation (found during the control sweep)
+
+**Found:** the top bar's **Menu button did nothing** and the whole sidebar is hidden below 768 px, so on a phone there was **no way to move between pages** (timetable, diary, focus, chill) at all; Settings was unreachable there too (the gear is also hidden on phones). The Phase 6 / 7 notes had listed "the mini-mixer is hidden under 768 px with the rest of the sidebar" as a known follow-up; this is the same gap.
+
+**Fixed:** the Menu button (shown **only below 768 px**) now opens the existing sidebar as a **drawer**: pages, the month calendar, categories and the mini-mixer, Settings (added to the page list) and Sign out. A dimmed backdrop sits behind it; it closes on tapping a link (any navigation), tapping the backdrop, pressing Escape, or growing the window into the desktop layout. `aria-expanded` / `aria-controls` on the button, `id="app-sidebar"` on the drawer. From 768 px up nothing changes (the sidebar is always on screen and the button is hidden, so no dead control). `NavContext` holds the state.
+
+**Verified (signed in, localhost, 390 px then 1280 px, zero console messages):** closed by default (`aria-expanded=false`, sidebar not visible); Menu opens a 290 px drawer from the left edge with the five pages, the calendar and Sign out; a backdrop appears; tapping Focus navigates and closes it; reopened it closes on Escape and on a tap on the backdrop; Settings opens from the drawer; no horizontal overflow; with the drawer open, widening to 1280 px closes it, hides the Menu button and shows the sidebar.
+
+**Not covered:** focus trapping inside the open drawer (Tab can reach the page behind it; Escape and the backdrop close it), swipe-to-close, and the look (Stage 2).
+
+**Remaining inert controls:** the top bar's **Search** button (desktop only; there is no search yet: diary text is stored for it as `content_text`). Decision for Minh: build a search (diary entries, tasks, blocks) or remove the button until Stage 2.
+
+---
+
 <!-- New entries append below with date + session number -->

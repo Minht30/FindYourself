@@ -7,6 +7,7 @@ import { Menu, Search, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
+import { useNav } from "./NavContext";
 
 // focusSlot: the "🔒 Focus first" reminder, rendered on the server by the
 // layout. Hidden on /chill, which is deliberately free of tasks and timers.
@@ -15,6 +16,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
   const pathname = usePathname();
   const router = useRouter();
+  const nav = useNav();
 
   // Prev / next live on the pages themselves (the timetable's week pills, the
   // diary's day pills); the top bar keeps only "Today" and the live clock.
@@ -43,7 +45,15 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
   return (
     <header className="sticky top-0 z-50 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] bg-bg-elevated border-b border-[var(--border)] isolate">
-      <button aria-label="Menu" className="w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
+      {/* Phones: opens the sidebar as a drawer. From 768 px up the sidebar is always visible, so no button. */}
+      <button
+        type="button"
+        aria-label="Menu"
+        aria-expanded={nav.open}
+        aria-controls="app-sidebar"
+        onClick={nav.toggle}
+        className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+      >
         <Menu size={20} />
       </button>
 

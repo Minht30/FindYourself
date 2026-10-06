@@ -3,26 +3,38 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Timer, Music, LogOut } from "lucide-react";
+import { Calendar, BookOpen, Timer, Music, Settings, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import MiniMixer from "@/components/mixer/MiniMixer";
 import { categoryColor } from "@/lib/categories";
 import MiniMonth from "./MiniMonth";
+import { useNav } from "./NavContext";
 
 const PAGES = [
   { href: "/today", label: "Timetable", Icon: Calendar },
   { href: "/diary", label: "Diary", Icon: BookOpen },
   { href: "/focus", label: "Focus", Icon: Timer },
   { href: "/chill", label: "Chill", Icon: Music },
+  { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
 export type SidebarCategory = { id: string; name: string; color: string };
 
 export default function Sidebar({ categories }: { categories: SidebarCategory[] }) {
   const pathname = usePathname();
+  const { open, close } = useNav();
 
   return (
-    <aside className="hidden md:flex flex-col gap-5 p-4 bg-bg-elevated border-r border-[var(--border)] overflow-y-auto">
+    <>
+      {/* Phones: a dimmed backdrop behind the open drawer; tapping it closes it */}
+      {open ? <div aria-hidden data-nav-backdrop onClick={close} className="md:hidden fixed inset-0 z-[55] bg-black/40" /> : null}
+      <aside
+        id="app-sidebar"
+        aria-label="Sidebar"
+        className={`${
+          open ? "flex fixed inset-y-0 left-0 z-[60] w-[290px] max-w-[85vw] shadow-2xl" : "hidden"
+        } md:flex md:static md:z-auto md:w-auto md:max-w-none md:shadow-none flex-col gap-5 p-4 bg-bg-elevated border-r border-[var(--border)] overflow-y-auto`}
+      >
       <nav aria-label="Pages" className="flex flex-col gap-0.5 pb-3 border-b border-[var(--border)]">
         {PAGES.map(({ href, label, Icon }) => {
           const active = pathname === href || pathname?.startsWith(href + "/");
@@ -80,5 +92,6 @@ export default function Sidebar({ categories }: { categories: SidebarCategory[] 
         Privacy
       </Link>
     </aside>
+    </>
   );
 }

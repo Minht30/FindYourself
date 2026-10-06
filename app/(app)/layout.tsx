@@ -4,6 +4,8 @@ import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
+import MusicProvider from "@/components/music/MusicProvider";
+import { TRACK_COLUMNS, toTrack } from "@/lib/music/types";
 import { mergeCatalogue } from "@/lib/audio/layers";
 import { sanitizeSettings } from "@/lib/audio/state";
 import { createClient } from "@/lib/supabase/server";
@@ -13,11 +15,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // `ambient_layers`. If the read fails for any reason the built-in list is
   // used, so the mixer never disappears over a database hiccup.
   const supabase = createClient();
-  const [layers, saved] = await Promise.all([
+  const [layers, saved, music] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
     supabase.from("mixer_state").select("levels, master_volume, muted").maybeSingle(),
+    // Their music library (RLS: own rows only). A failed read is an empty library.
+    supabase.from("music_tracks").select(TRACK_COLUMNS).order("created_at"),
   ]);
+  const tracks = (music.data ?? []).map(toTrack);
   const catalogue = mergeCatalogue(layers.data);
   const initial = saved.data
     ? sanitizeSettings({
@@ -32,6 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // ticking (and can chime) while you move between Timetable, Diary and Focus.
     // MixerProvider does the same for the ambient sound.
     <MixerProvider catalogue={catalogue} initial={initial}>
+      <MusicProvider tracks={tracks}>
       <FocusProvider>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
@@ -51,6 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </FocusProvider>
+      </MusicProvider>
     </MixerProvider>
   );
 }

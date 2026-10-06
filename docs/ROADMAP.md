@@ -108,9 +108,9 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 7 — Music: upload + player + suggestions (est. 2 sessions)
 
-- [ ] Supabase Storage bucket `music` with per-user policy
-- [ ] `music_tracks` table + upload dropzone
-- [ ] Client-side size/quota check
+- [x] Supabase Storage bucket `music` with per-user policy — private, 10 MB / `audio/mpeg` only, policies per `{user_id}/`, 10-object backstop
+- [x] `music_tracks` table + upload — signed upload URL, server verifies the stored object (real size, first bytes), orphan cleanup, rename / delete (a plain file chooser; drag-and-drop is a design-stage nicety)
+- [x] Client-side size/quota check — plus the same checks again in the server action, the trigger and the bucket, each refusing by a named reason
 - [ ] Playlist model + reorder
 - [ ] **Choose music for focus sessions** (Minh, 2026-10-05): pick what plays when a session starts / inside Focus Mode (uploaded tracks, community picks, or the ambient mix); remember the choice
 - [ ] Mini-player (persistent, cross-page)

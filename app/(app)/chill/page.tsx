@@ -1,4 +1,5 @@
 import MixerPanel from "@/components/mixer/MixerPanel";
+import MusicLibrary from "@/components/music/MusicLibrary";
 import ChillStage from "@/components/scene/ChillStage";
 
 export const metadata = { title: "Chill — FindYourself" };
@@ -15,6 +16,7 @@ export default function ChillPage() {
       </header>
       <ChillStage />
       <MixerPanel />
+      <MusicLibrary />
     </div>
   );
 }

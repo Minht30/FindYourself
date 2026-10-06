@@ -136,19 +136,23 @@ Indexes: `(user_id, started_at desc)`, partial on `task_id` and `time_block_id` 
 RLS: select / insert / update own (`(select auth.uid()) = user_id`); **no delete policy** (the row goes with the profile, "reset" is an update); `anon` has no access. The server action also validates every field and names the reason it refuses a save.
 
 ### `music_tracks`
+*(Built in Phase 7, Session 40.)*
+
 | column | type | notes |
 |---|---|---|
-| id | uuid PK |  |
-| user_id | uuid FK |  |
-| title | text |  |
-| artist | text |  |
-| storage_path | text | e.g. `music/{user_id}/{filename}` |
-| duration_seconds | int |  |
-| mime | text |  |
-| size_bytes | bigint |  |
+| id | uuid PK | default `gen_random_uuid()`; the upload flow supplies it and it **is the object's file name** |
+| user_id | uuid FK profiles | default `auth.uid()`, cascade |
+| title | text | 1-120 chars (check) |
+| artist | text | default `''`, ≤ 120 |
+| storage_path | text unique | CHECK: exactly `{user_id}/{id}.mp3`, so the stored name is always a generated uuid, never what the user typed |
+| duration_seconds | int | 1..7200; read by the browser's decoder, display only |
+| mime | text | CHECK `audio/mpeg` |
+| size_bytes | bigint | 1..10 MB (check); the **real stored size**, read from the object by the server |
 | created_at | timestamptz |  |
 
-Constraint (enforced in app + trigger): max **10** rows per `user_id`; size_bytes ≤ 10 MB per file; sum(size_bytes) ≤ 50 MB per `user_id`; mime = `audio/mpeg` only. (Changed 2026-10-05 from 20 tracks / mp3 + m4a + ogg.)
+Limits (changed 2026-10-05 from 20 tracks / mp3 + m4a + ogg): max **10** rows per user, 10 MB per file, 50 MB per user in total, `audio/mpeg` only. Enforced in the app (friendly refusal), by the bucket and storage policies, and authoritatively by a BEFORE INSERT trigger that takes a per-user advisory lock (so two simultaneous uploads cannot both slip under the cap) and raises `too_big` / `library_full` / `quota_exceeded`.
+
+RLS: select / insert / update / delete own. Column privileges: a user may update **only `title` and `artist`**; nothing for `anon`. The bucket `music` is private (`file_size_limit` 10 MB, `allowed_mime_types` `audio/mpeg`); storage policies allow a user to read / delete under `{their id}/` and to insert only a generated `{their id}/{uuid}.mp3` while they hold fewer than 10 objects and under 50 MB (a backstop that works through `private.music_room_left()`, a SECURITY DEFINER helper in a schema the API does not expose). There is no update policy on the objects: nothing is overwritten. Deleting an account removes the rows by cascade but **not** the stored objects: the Phase 9 delete-account flow must remove `{user_id}/` from the bucket.
 
 ### `playlists` / `playlist_tracks`
 Standard M..N. Cascade on user delete.

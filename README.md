@@ -61,7 +61,7 @@ npm run lighthouse -- --base http://localhost:3200
 
 ## Status
 
-Phases 1-9 (the whole app) are built and deployed. Next: a hands-on test, then a design pass (original pixel-art scenes, final landing page, decoration). Original art and sounds only; nothing here uses AI features.
+Phases 1-9 (the whole app) are built and deployed. Next: a hands-on test, then a design pass (original pixel-art scenes, final landing page, decoration). Original art and sounds only; the app has no AI features. It was built by Minh with Claude (Anthropic) as a coding assistant.
 
 ## Author
 

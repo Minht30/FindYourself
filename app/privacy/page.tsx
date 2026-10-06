@@ -143,6 +143,30 @@ export default function PrivacyPage() {
           well. As above, a hosting provider&apos;s routine backups can hold a copy for a short while.
         </p>
 
+        <H2>Who runs this, and how to reach them</H2>
+        <p>
+          FindYourself is a personal project by Minh Tran. For a question, a correction or a request about your data, write
+          to{" "}
+          <a href="mailto:qminh30k3@gmail.com" className="text-accent-strong underline underline-offset-4 hover:no-underline">
+            qminh30k3@gmail.com
+          </a>
+          , or open an issue on{" "}
+          <a
+            href="https://github.com/Minht30/FindYourself"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-strong underline underline-offset-4 hover:no-underline"
+          >
+            GitHub
+          </a>
+          .
+        </p>
+        <p className="mt-3">
+          The app was built by Minh with Claude, an AI coding assistant made by Anthropic, which helped write and test the
+          code under Minh&apos;s direction. Claude is a tool used while building it. It is not part of the running app,
+          and nothing in FindYourself sends your writing or your data to it or to any other AI service.
+        </p>
+
         <H2>If this changes</H2>
         <p>This page is updated when the app changes in a way that matters here, and the date at the top changes with it.</p>
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Timer, Music, Plus, LogOut } from "lucide-react";
+import { Calendar, BookOpen, Timer, Music, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import MiniMixer from "@/components/mixer/MiniMixer";
 
@@ -38,16 +38,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-
-      <button
-        aria-label="Create block"
-        className="self-start flex items-center gap-2.5 px-4 py-3 rounded-full bg-bg-elevated border border-[var(--border-strong)] text-ink-primary font-ui text-sm font-medium shadow-card hover:bg-accent-soft hover:border-accent transition"
-      >
-        <span className="w-5 h-5 rounded-full bg-accent text-cat-ink flex items-center justify-center font-bold text-sm">
-          <Plus size={14} strokeWidth={2.5} />
-        </span>
-        Create
-      </button>
 
       <div className="text-[11px] font-ui font-semibold text-ink-muted uppercase tracking-wider px-2">
         My categories

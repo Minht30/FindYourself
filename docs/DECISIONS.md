@@ -1533,4 +1533,19 @@ Four boxes, four commits (Sessions 46-49): the streak, the daily quote, the week
 
 ---
 
+## 2026-10-06 — Session 50: Feedback pass on /today (layout, top bar, Create)
+
+Minh's feedback after seeing Phase 8: (1) the rings should be at the side, the timetable is the main thing; (2) the top bar's "Sep 14 – 20, 2026" does nothing (remove it, or show today's day and time), and its `<` `>` arrows duplicate the page's Prev / Next (keep only one); (3) the sidebar's **Create** button does nothing; (4) when do Day / Week / Month start?
+
+**What changed:**
+- **Layout:** the Wins / Rings / Streak / Quote cards moved out of the top of the page into the **right-hand column** (`TasksShell` got a `side` slot above the Tasks drawer; the column is sticky and scrolls on its own). The timetable starts at the top of the main column again (grid header at y=188 at 1280 wide, was 538-758). The cards were made narrow-column friendly (rings in three equal columns, 64 px; the wins stats in two columns). On a phone the column stacks after the timetable.
+- **Top bar:** the hard-coded date is replaced by the live **day and time** ("Tue, Oct 6 · 1:51 AM", already used on /chill, now on every page, in the visitor's zone, no hydration mismatch); the `<` `>` arrows are gone (the timetable keeps its Prev / This week / Next pills, the diary its Prev / Today / Next pills). The Today button stays (it returns to today on the timetable and the diary).
+- **Create:** the inert sidebar button is removed. It comes back when a "new block" flow exists (it belongs with the mini-month / Day view work below).
+
+**Verified (signed in, localhost, three loads each, zero console errors or warnings apart from the known Diary duplicate-key warning that was already there):** header text on /today, /diary and /chill (clock, no arrows, no date, no Create); on /today at 1280 the grid header sits at x=305 and the cards at x=901 (340 px column); the simulated Sunday evening puts "Your week" first in that column; ring text fits its column (no clipping); phone 390 px no horizontal overflow.
+
+**Day / Week / Month:** the switcher is still inert (only Week exists). Not part of Phase 8; proposed as the first item of the inert-controls sweep (see the reply to Minh).
+
+---
+
 <!-- New entries append below with date + session number -->

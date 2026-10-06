@@ -123,6 +123,16 @@ export default async function TodayPage({ searchParams }: Props) {
   return (
     <TasksShell
       initialOpen={drawerOpen}
+      // The timetable is the main thing; the day's rings, streak and quote sit in the
+      // side column (plain placement: the real layout is the Figma stage).
+      side={
+        <>
+          {wins ? <WeeklyWinsCard wins={wins} /> : null}
+          <ProgressRings rings={rings} goalMinutes={goalMinutes} />
+          <StreakChip view={streak} />
+          <QuoteCard quote={quote} />
+        </>
+      }
       drawer={
         <TaskBoard
           tasks={tasks}
@@ -163,17 +173,6 @@ export default async function TodayPage({ searchParams }: Props) {
       </div>
 
       <WinsClock timeZone={timeZone} open={winsOpen} />
-      {/* Plain placement for now (the real layout is the Figma stage): the quote and the
-          streak share a row on wide screens so the timetable below stays in reach. */}
-      <div className="mt-4 flex flex-col gap-3">
-        {wins ? <WeeklyWinsCard wins={wins} /> : null}
-        <ProgressRings rings={rings} goalMinutes={goalMinutes} />
-        <div className="grid gap-3 lg:grid-cols-2">
-          <QuoteCard quote={quote} />
-          <StreakChip view={streak} />
-        </div>
-      </div>
-
       <WeekGrid
         weekStart={thisWeek}
         blocks={(blocks ?? []) as TimeBlockDTO[]}

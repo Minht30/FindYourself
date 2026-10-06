@@ -21,7 +21,7 @@ export default function WeeklyWinsCard({ wins }: { wins: WeekWins }) {
         <span className="font-mono text-[12px] text-ink-muted">{weekRangeLabel(wins.mondayISO)}</span>
       </div>
       <p className="mt-1 text-[14px] text-ink-secondary">{winsHeadline(wins)}</p>
-      <dl className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <dl className="mt-3 grid grid-cols-2 gap-3">
         {stats.map((s) => (
           <div key={s.key} data-stat={s.key}>
             <dt className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">{s.label}</dt>

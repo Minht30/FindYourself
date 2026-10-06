@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Menu, ChevronLeft, ChevronRight, Search, Settings } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, Search, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
-import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } from "@/lib/dates";
 
 const VIEWS = ["Day", "Week", "Month"] as const;
 type View = (typeof VIEWS)[number];
@@ -19,32 +18,10 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // The topbar arrows step weeks on /today and days on /diary. Pages without
-  // their own prev/next yet (/focus, /chill) short-circuit to /today so the
-  // user is never staring at inert controls.
-  const isTimetable = pathname?.startsWith("/today");
+  // Prev / next live on the pages themselves (the timetable's week pills, the
+  // diary's day pills); the top bar keeps only "Today" and the live clock.
   const isDiary = pathname === "/diary" || pathname?.startsWith("/diary/");
-
-  function goWeek(deltaDays: number) {
-    const current = parseWeekParam(searchParams?.get("week") ?? undefined);
-    const target = toISODateOnly(addDays(current, deltaDays));
-    router.push(`/today?week=${target}`);
-  }
-  function goDay(delta: number) {
-    const fromPath = pathname?.split("/")[2];
-    const current = isValidISODate(fromPath) ? fromPath : toISODateOnly(new Date());
-    router.push(`/diary/${shiftISODate(current, delta)}`);
-  }
-  function goPrev() {
-    if (isDiary) goDay(-1);
-    else goWeek(-7);
-  }
-  function goNext() {
-    if (isDiary) goDay(1);
-    else goWeek(7);
-  }
   function goToday() {
     router.push(isDiary ? "/diary" : "/today");
   }
@@ -64,7 +41,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   }
 
   const isNight = theme === "netcafe-night";
-  // Chill is for being, not planning: no week navigation, no search, just the day and time.
+  // Chill is for being, not planning: no Today button, no search, no view switcher.
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
   return (
@@ -80,39 +57,17 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         <span className="hidden sm:inline">FindYourself</span>
       </div>
 
-      {isChill ? (
-        // Chill: just the day and time, like a clock on the cafe wall.
-        <ClockLabel className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink" />
-      ) : (
-        <>
-          <button
-            onClick={goToday}
-            className="px-4 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary font-ui text-sm hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
-          >
-            Today
-          </button>
-
-          {/* Phones: the pages carry their own prev / next, and the sound button needs the room */}
-          <div className="hidden sm:flex gap-1">
-            <button
-              onClick={goPrev}
-              aria-label={isTimetable ? "Previous week" : isDiary ? "Previous day" : "Previous"}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              onClick={goNext}
-              aria-label={isTimetable ? "Next week" : isDiary ? "Next day" : "Next"}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <div className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink">Sep 14 – 20, 2026</div>
-        </>
+      {/* Chill is for being, not planning: no Today button there. Everywhere else the
+          bar shows the current day and time, in the visitor's own zone and clock style. */}
+      {!isChill && (
+        <button
+          onClick={goToday}
+          className="px-4 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary font-ui text-sm hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+        >
+          Today
+        </button>
       )}
+      <ClockLabel className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink" />
 
       <div className="flex-1" />
 

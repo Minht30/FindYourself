@@ -14,10 +14,13 @@ const DrawerContext = createContext<{ open: boolean; toggle: () => void } | null
 export function TasksShell({
   initialOpen,
   drawer,
+  side,
   children,
 }: {
   initialOpen: boolean;
   drawer: React.ReactNode;
+  /** Always-visible side panel above the drawer (the day's rings, streak and quote). */
+  side?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(initialOpen);
@@ -32,14 +35,19 @@ export function TasksShell({
     <DrawerContext.Provider value={{ open, toggle }}>
       <div className="flex flex-col lg:flex-row lg:items-start gap-5">
         <div className="flex-1 min-w-0 space-y-4">{children}</div>
-        {open && (
-          <aside
-            id={DRAWER_ID}
-            aria-label="Tasks"
-            className="w-full lg:w-[340px] shrink-0 lg:sticky lg:top-[76px] lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-4"
-          >
-            {drawer}
-          </aside>
+        {(side || open) && (
+          <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-3 lg:sticky lg:top-[76px] lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
+            {side}
+            {open && (
+              <aside
+                id={DRAWER_ID}
+                aria-label="Tasks"
+                className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-4"
+              >
+                {drawer}
+              </aside>
+            )}
+          </div>
         )}
       </div>
     </DrawerContext.Provider>

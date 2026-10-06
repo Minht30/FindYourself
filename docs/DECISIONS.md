@@ -1676,4 +1676,21 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 58: Lighthouse >= 90 (Phase 9), with real accessibility fixes
+
+**Setup (approved by Minh):** `lighthouse` added as a dev dependency (13.5; no other download). `scripts/lighthouse.mjs` (`npm run lighthouse`) audits a running **production build** (`npm run build`, `npx next start -p 3200`): the four scores, the main timings and what holds a page below 90, for the public pages and, with a Playwright storage-state file, the signed-in ones. Chrome is the installed one. The signed-in session is put into the audit browser through puppeteer (Lighthouse's own storage reset wipes cookies and Chrome ignores a `Cookie` extra-header), and the script warns if a page redirected somewhere it should not have, so a signed-in score can never silently be the login page's. (First runs did exactly that: nine pages ended on `/login`. Caught by the script's own redirect note, then fixed.) On Windows Git Bash prefix the command with `MSYS_NO_PATHCONV=1` when passing `--only /today,/settings`.
+
+**Findings and fixes:**
+- **Colour contrast was a real WCAG AA failure** (a stated goal). The theme's own tokens were below 4.5:1 on the cream and white surfaces: `--ink-muted` 3.6:1, `--accent-strong` 3.5:1 (the design doc claimed 5.2:1), `--danger` 4.2-4.7:1, and the success green under 3:1; in the night theme `--ink-muted` 3.5-4.4:1. Smallest shifts that clear AA, keeping primary > secondary > muted: day `ink-secondary #6B5842 -> #604F3B`, `ink-muted #957F65 -> #796752`, `accent-strong #B87700 -> #8C5A00`, `danger #B0553F -> #A7513C` (white on it 5.4:1), `success #6E9F5B -> #699756`, `warning #C88A2A -> #BA8027`; night `ink-muted #6E7898 -> #848CA7`. `docs/DESIGN_SYSTEM.md` corrected (it had the wrong ratios).
+- **`lib/contrast.test.ts` (12 tests)** reads the real tokens from `globals.css` and fails if any text colour drops below 4.5:1 on any surface (or a graphic below 3:1), in both themes, and checks the ink hierarchy and the text on the accent fills. It would have failed on the old values.
+- **Faded text:** out-of-month days in the sidebar calendar (`ink-muted/70`) and the diary prompts' "+ add" hint (`opacity-70`) were 2.9:1: now plain `ink-muted`.
+- **Label in name (WCAG 2.5.3):** the two diary prompt buttons had an `aria-label` ("Insert heading: ...") that did not contain their visible text. The accessible name is now the visible text, with the action in a `title` (a tooltip for everyone, a description for screen readers).
+- **A favicon** (`app/icon.svg`, a plain honey-coloured cup; placeholder art for Stage 2): removes the 404 that Lighthouse counted as a console error on every page.
+
+**Result (production build on localhost, signed in as the throwaway account for the app pages):** mobile (the stricter default): `/` 96 / 100 / 100 / 100, `/login` 97, `/signup` 97, `/privacy` 97, `/today` 100, `/diary` 97, `/focus` 100, `/chill` 100, `/settings` 100 performance, **accessibility, best practices and SEO 100 on all nine pages**; desktop: **100 on all four axes on all nine pages**. Lowest single score: 96 (landing page performance, LCP 2.6 s). `typecheck` + `lint` + `test` (**720**, +12) green.
+
+**Caveats:** local numbers (no CDN, no network latency): re-run against production after the push deploys: `npm run lighthouse -- --base https://findyourself-mu.vercel.app` (public pages) and, for the app pages, a storage-state file with a session for that domain. Dark theme was checked by the contrast maths and test, not by Lighthouse (headless Chrome renders the light theme). The input borders (`--border-strong`, about 1.4:1) are below the 3:1 that WCAG 1.4.11 asks of a form field's edge; Lighthouse does not test it. It is a design-stage item and is listed in the follow-ups.
+
+---
+
 <!-- New entries append below with date + session number -->

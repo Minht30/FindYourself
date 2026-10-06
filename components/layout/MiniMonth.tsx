@@ -119,7 +119,7 @@ export default function MiniMonth() {
                     ? "bg-accent text-cat-ink font-bold"
                     : c.inMonth
                       ? "text-ink-primary hover:bg-accent-soft"
-                      : "text-ink-muted/70 hover:bg-accent-soft"
+                      : "text-ink-muted hover:bg-accent-soft"
                 } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-transparent" : ""}`;
                 return (
                   <div key={c.iso} role="gridcell">

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FindYourself">
+  <rect width="64" height="64" rx="14" fill="#F5C243"/>
+  <path d="M18 27h26v11a10 10 0 0 1-10 10h-6a10 10 0 0 1-10-10z" fill="#2A2018"/>
+  <path d="M44 30h3a5 5 0 0 1 0 10h-3" fill="none" stroke="#2A2018" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M26 21c-2-3 2-4 0-7M34 21c-2-3 2-4 0-7" fill="none" stroke="#2A2018" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

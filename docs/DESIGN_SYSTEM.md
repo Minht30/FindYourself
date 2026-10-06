@@ -30,13 +30,13 @@ Named tokens are shared across themes. Values below are per-theme.
 
   /* Ink — warm dark browns for high contrast on cream */
   --ink-primary:   #2A2018;  /* ≥ 14:1 on --bg-base ✓ */
-  --ink-secondary: #6B5842;  /* ≥ 5.5:1 ✓ */
-  --ink-muted:     #957F65;  /* ≥ 3.6:1 — use only for large text / borders */
+  --ink-secondary: #604F3B;  /* ≥ 6.5:1 on every surface ✓ */
+  --ink-muted:     #796752;  /* ≥ 4.5:1 on every surface ✓ (was #957F65, 3.6:1: Phase 9 fix) */
 
   /* Accents — honey & butter (BRIGHTER yellow) */
   --accent:        #F5C243;  /* honey — decorative + button bg with dark ink */
   --accent-soft:   #FFE082;  /* butter — highlights, pill backgrounds */
-  --accent-strong: #B87700;  /* dark honey — for small text on cream, 5.2:1 ✓ */
+  --accent-strong: #8C5A00;  /* dark honey — text on cream and on accent-soft, ≥ 4.5:1 ✓ (was #B87700, 3.5:1: Phase 9 fix) */
 
   /* Categorical — pastel with dark ink inside */
   --cat-deep:      #A8C4A2;  /* sage */
@@ -47,9 +47,9 @@ Named tokens are shared across themes. Values below are per-theme.
   --cat-ink:       #2A2018;  /* text inside category chips — ≥ 7:1 on all above ✓ */
 
   /* Feedback — warm, no shame */
-  --success:       #6E9F5B;  /* moss */
-  --warning:       #C88A2A;  /* burnt honey */
-  --danger:        #B0553F;  /* clay */
+  --success:       #699756;  /* moss — graphics, ≥ 3:1 */
+  --warning:       #BA8027;  /* burnt honey — graphics, ≥ 3:1 */
+  --danger:        #A7513C;  /* clay — text ≥ 4.5:1; white on it 5.4:1 */
 
   /* Effects */
   --border:        rgba(42, 32, 24, 0.08);
@@ -59,6 +59,8 @@ Named tokens are shared across themes. Values below are per-theme.
   --grain-opacity: 0.02;
 }
 ```
+
+> **Contrast is tested.** `lib/contrast.test.ts` reads these tokens from `app/globals.css` and fails if any text colour drops below 4.5:1 on any surface (or a graphic below 3:1) in either theme. Change a colour and the test tells you.
 
 ### 🌃 Netcafe After Dark (`data-theme="netcafe-night"`)
 
@@ -74,7 +76,7 @@ Named tokens are shared across themes. Values below are per-theme.
   /* Ink — cool off-white */
   --ink-primary:   #E8EEFF;  /* ≥ 15:1 on --bg-base ✓ */
   --ink-secondary: #9AA5C4;  /* ≥ 7:1 ✓ */
-  --ink-muted:     #6E7898;  /* ≥ 4:1 — borders + large text */
+  --ink-muted:     #848CA7;  /* ≥ 4.5:1 on every surface ✓ (was #6E7898: Phase 9 fix) */
 
   /* Accents — neon canary bridges the two themes with yellow */
   --accent:        #F4D03F;  /* neon canary — ≥ 13:1 as text on --bg-base ✓ */

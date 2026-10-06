@@ -77,7 +77,7 @@ export default function PromptChips({ editor }: { editor: Editor | null }) {
             // new heading. Keyboard activation still works via onClick.
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => onPrompt(prompt)}
-            aria-label={isPresent ? `Jump to: ${prompt}` : `Insert heading: ${prompt}`}
+            title={isPresent ? "Jump to this question in your entry" : "Add this question to your entry as a heading"}
             className="group flex items-baseline gap-3 text-left rounded-md disabled:opacity-60"
           >
             <span
@@ -87,7 +87,7 @@ export default function PromptChips({ editor }: { editor: Editor | null }) {
             >
               {prompt}
             </span>
-            <span aria-hidden className="font-mono text-[11px] text-ink-muted opacity-70 group-hover:opacity-100 transition">
+            <span aria-hidden className="font-mono text-[11px] text-ink-muted">
               {isPresent ? "↓ jump" : "+ add"}
             </span>
           </button>

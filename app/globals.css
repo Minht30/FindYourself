@@ -13,12 +13,13 @@
   --bg-alt: #F9F2E3;
 
   --ink-primary: #2A2018;
-  --ink-secondary: #6B5842;
-  --ink-muted: #957F65;
+  /* Text colours are held to WCAG AA (4.5:1) on every day surface; see docs/DESIGN_SYSTEM.md */
+  --ink-secondary: #604F3B;
+  --ink-muted: #796752;
 
   --accent: #F5C243;
   --accent-soft: #FFE082;
-  --accent-strong: #B87700;
+  --accent-strong: #8C5A00;
 
   --cat-deep: #A8C4A2;
   --cat-meeting: #F4B48A;
@@ -27,9 +28,9 @@
   --cat-personal: #EBB0BC;
   --cat-ink: #2A2018;
 
-  --success: #6E9F5B;
-  --warning: #C88A2A;
-  --danger: #B0553F;
+  --success: #699756;
+  --warning: #BA8027;
+  --danger: #A7513C;
 
   --border: rgba(42, 32, 24, 0.08);
   --border-strong: rgba(42, 32, 24, 0.16);
@@ -52,7 +53,7 @@
 
   --ink-primary: #E8EEFF;
   --ink-secondary: #9AA5C4;
-  --ink-muted: #6E7898;
+  --ink-muted: #848CA7;
 
   --accent: #F4D03F;
   --accent-soft: #FFF08A;

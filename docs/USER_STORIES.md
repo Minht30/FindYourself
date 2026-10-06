@@ -127,8 +127,9 @@ Acceptance criteria in Given/When/Then.
 
 ### US-6.2 Upload music
 **Acceptance:**
-- Given the music panel, when I drop an MP3 file (< 50 MB, mp3/m4a/ogg), then it uploads to my private bucket and appears in my library.
-- Given my library is full (20 tracks), when I try to upload, then an error appears with clear message.
+- Given the music panel, when I drop an MP3 file (mp3 only, at most 10 MB each, 50 MB in total), then it uploads to my private bucket and appears in my library.
+- Given my library is full (10 tracks), when I try to upload, then an error appears with clear message.
+- Given a file that is not an MP3 (wrong type, wrong content, too big) or would push my total past 50 MB, when I try to upload, then it is refused with the specific reason and nothing is stored.
 
 ### US-6.3 Music recommendation form
 **Acceptance:**

@@ -148,7 +148,7 @@ RLS: select / insert / update own (`(select auth.uid()) = user_id`); **no delete
 | size_bytes | bigint |  |
 | created_at | timestamptz |  |
 
-Constraint (enforced in app + trigger): max 20 rows per `user_id`; sum(size_bytes) ≤ 50 MB per `user_id`.
+Constraint (enforced in app + trigger): max **10** rows per `user_id`; size_bytes ≤ 10 MB per file; sum(size_bytes) ≤ 50 MB per `user_id`; mime = `audio/mpeg` only. (Changed 2026-10-05 from 20 tracks / mp3 + m4a + ogg.)
 
 ### `playlists` / `playlist_tracks`
 Standard M..N. Cascade on user delete.

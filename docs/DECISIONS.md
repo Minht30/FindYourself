@@ -1219,4 +1219,16 @@ Minh's feedback on /chill: the Day / Week / Month switcher has no job there (hid
 
 ---
 
+## 2026-10-05 — Session 39: Phase 7 limits set, kickoff prepared
+
+Minh asked what Phase 7 is and said he wants **all core functions built and tested before any design or small adjustments**. Phase 7 (music: upload, playlists, a persistent player, music for focus sessions, track suggestions, community picks) is next; the remaining core work after it is Phase 8 (motivation), Phase 9's functional items, and a sweep of the controls that are still inert (view switcher, sidebar Create / mini-month, Search, Settings, categories / timezone editing), then Minh's manual test, then Stage 2 (Figma).
+
+**Decision (Minh): music is MP3 only, at most 10 tracks per user** (was 20 tracks, mp3 + m4a + ogg in the original planning; Session 1 above is left as history). I proposed 10 MB per file and 50 MB per user in total (to be confirmed at the start of Phase 7). Updated: PRD (6.7 and constraints), ERD (`music_tracks` constraint), ARCHITECTURE (upload checks), USER_STORIES (US-6.2, plus a refusal-by-reason story), ROADMAP (Phase 7 limits).
+
+`docs/PHASE7_KICKOFF.md` is the hand-over: state of play (three commits not yet pushed), five decisions to confirm with recommended answers (size limits, where the music UI lives, where the focus-music choice is stored, how the admin is identified, how music and ambient volumes relate), a six-box plan with the technical approach for each (including the race-safe quota trigger, server-side verification of the uploaded object with orphan cleanup, signed URLs for a private bucket, a pure queue state machine, a link allow-list for suggestions, and an atomic admin approve function), a headless test plan (generated silent MP3 fixtures so nothing is downloaded, RLS and storage-policy tests in SQL, expected-failure tests by reason), gotchas learned in Phase 6, open items, and a paste-ready first message.
+
+No application code changed this session.
+
+---
+
 <!-- New entries append below with date + session number -->

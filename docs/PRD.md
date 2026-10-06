@@ -113,7 +113,7 @@ Design principle: the first three are *doing*; Chill is *being*. Keeping Chill s
 - **Ambient mixer:** independent volume sliders for layers:
   - Rain, Fireplace, Keyboard clicks, Cafe chatter, Piano
 - **Music:**
-  - User can upload MP3/M4A/OGG files (stored in Supabase Storage, per-user private bucket)
+  - User can upload **MP3** files, at most **10** in the library (stored in Supabase Storage, per-user private bucket)
   - Playlist management: create playlists, reorder, shuffle
   - "Community picks" — a small curated list I (admin) maintain
   - **Music recommendation form:** users can submit a track suggestion via a simple form (title, artist, YouTube/Spotify link, why they like it). Admin reviews and adds picks to the curated list
@@ -137,7 +137,7 @@ Design principle: the first three are *doing*; Chill is *being*. Keeping Chill s
 ## 8. Constraints
 
 - Free tier only: Supabase (500 MB db, 1 GB storage, 50k MAU), Vercel Hobby
-- User-uploaded music capped at 50 MB per user, max 20 tracks (enforced in UI + storage policy)
+- User-uploaded music capped at 50 MB per user (10 MB per file), max 10 MP3 tracks (enforced in UI, the server action, a database trigger and the storage bucket)
 - All build decisions made day-by-day, one small milestone at a time
 
 ## 9. Open questions

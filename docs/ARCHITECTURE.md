@@ -100,7 +100,7 @@ findyourself/
 - Diary content is never sent to any 3rd party, never logged, never used for analytics
 - HTTPS-only cookies for session
 - CSP header excluding inline scripts (Next.js default is safe with nonces)
-- Music uploads: MIME-type verified server-side (audio/mpeg, audio/mp4, audio/ogg), size ≤ 50 MB, filename sanitized
+- Music uploads: MP3 only (audio/mpeg), checked by the bucket's allowed types, by the file's own header bytes on the server, size ≤ 10 MB per file and ≤ 50 MB per user, at most 10 files, filename sanitized (the stored name is a generated id, never the user's filename)
 
 ## 7. Performance targets
 

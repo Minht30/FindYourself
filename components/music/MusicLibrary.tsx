@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Trash2, Upload } from "lucide-react";
+import { Play, Trash2, Upload } from "lucide-react";
 import {
   deleteTrack,
   finalizeTrack,
@@ -12,6 +12,7 @@ import { readDuration } from "@/lib/music/duration";
 import { MAX_ARTIST, MAX_TITLE, REASON_TEXT, type MusicReason } from "@/lib/music/limits";
 import { usageText } from "@/lib/music/quota";
 import { formatDuration, type Track } from "@/lib/music/types";
+import { LIBRARY, useMusicStore } from "@/lib/music/store";
 import { uploadTrack, type Outcome, type UploadDeps, type UploadOptions } from "@/lib/music/upload";
 import { useMusic } from "./MusicProvider";
 
@@ -151,6 +152,7 @@ export default function MusicLibrary() {
 }
 
 function TrackRow({ track }: { track: Track }) {
+  const { tracks } = useMusic();
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [title, setTitle] = useState(track.title);
@@ -237,6 +239,21 @@ function TrackRow({ track }: { track: Track }) {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label={`Play ${track.title}`}
+              data-testid="track-play"
+              onClick={() =>
+                useMusicStore.getState().playList(
+                  tracks.map((t) => t.id),
+                  track.id,
+                  LIBRARY,
+                )
+              }
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-accent text-cat-ink hover:bg-accent-soft"
+            >
+              <Play size={14} />
+            </button>
             <button
               type="button"
               onClick={() => setEditing(true)}

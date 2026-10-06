@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Play, Trash2, X } from "lucide-react";
 import {
   addToPlaylist,
   createPlaylist,
@@ -13,6 +13,7 @@ import {
 } from "@/app/(app)/chill/playlist-actions";
 import { MAX_PLAYLIST_NAME, MAX_PLAYLISTS, REASON_TEXT, type MusicReason } from "@/lib/music/limits";
 import { moveDown, moveUp, type Playlist } from "@/lib/music/playlist";
+import { useMusicStore } from "@/lib/music/store";
 import { formatDuration } from "@/lib/music/types";
 import { useMusic } from "./MusicProvider";
 
@@ -118,6 +119,9 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
     return reason === null;
   }
 
+  // Start this playlist (from a given track, or the top).
+  const play = (startId: string | null) =>
+    useMusicStore.getState().playList(playlist.trackIds, startId, { kind: "playlist", id: playlist.id });
   const addable = tracks.filter((t) => !playlist.trackIds.includes(t.id));
   const move = (index: number, dir: "up" | "down") =>
     run(() =>
@@ -176,6 +180,16 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
             </h3>
             <button
               type="button"
+              data-testid="playlist-play"
+              aria-label={`Play playlist ${playlist.name}`}
+              disabled={playlist.trackIds.length === 0}
+              onClick={() => play(null)}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-accent text-cat-ink hover:bg-accent-soft disabled:opacity-40"
+            >
+              <Play size={14} />
+            </button>
+            <button
+              type="button"
               onClick={() => setEditing(true)}
               className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft"
             >
@@ -222,6 +236,14 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
                 <span className="flex-1 min-w-0 truncate">
                   {t.title} <span className="text-xs text-ink-secondary">{formatDuration(t.durationSeconds)}</span>
                 </span>
+                <button
+                  type="button"
+                  aria-label={`Play ${t.title} from ${playlist.name}`}
+                  onClick={() => play(id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft"
+                >
+                  <Play size={13} />
+                </button>
                 <button
                   type="button"
                   aria-label={`Move ${t.title} up`}

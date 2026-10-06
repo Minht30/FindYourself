@@ -267,3 +267,20 @@ export async function getTrackUrl(input: unknown): Promise<UrlResult> {
   if (error || !data) return fail("db_error", error?.message);
   return { ok: true, url: data.signedUrl, expiresAt: Date.now() + PLAY_URL_SECONDS * 1000 };
 }
+
+// Remembers which track the player was on (null = none), in the mixer_state
+// row, so a new device opens on the same track (paused). Only that column is
+// written: levels, master and mute belong to saveMixerState. The policy and the
+// FK refuse a track that is not the caller's own; a track that was deleted in
+// the meantime is `not_found`.
+export async function saveCurrentTrack(input: unknown): Promise<SimpleResult> {
+  const a = await authed();
+  if (!a) return fail("unauthenticated");
+  const id = input && typeof input === "object" ? (input as Record<string, unknown>).trackId : undefined;
+  if (id !== null && !isUuid(id)) return fail("bad_id");
+  const { error } = await a.supabase
+    .from("mixer_state")
+    .upsert({ user_id: a.user.id, current_track_id: id }, { onConflict: "user_id" });
+  if (error) return fail(error.code === "42501" || error.code === "23503" ? "not_found" : "db_error", error.code);
+  return { ok: true };
+}

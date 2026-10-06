@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
+import MiniPlayer from "@/components/music/MiniPlayer";
 import MusicProvider from "@/components/music/MusicProvider";
 import { TRACK_COLUMNS, toPlaylist, toTrack } from "@/lib/music/types";
 import { mergeCatalogue } from "@/lib/audio/layers";
@@ -18,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const [layers, saved, music, lists] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
-    supabase.from("mixer_state").select("levels, master_volume, muted").maybeSingle(),
+    supabase.from("mixer_state").select("levels, master_volume, muted, current_track_id").maybeSingle(),
     // Their music library (RLS: own rows only). A failed read is an empty library.
     supabase.from("music_tracks").select(TRACK_COLUMNS).order("created_at"),
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
@@ -27,7 +28,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const known = new Set(tracks.map((t) => t.id));
   const playlists = (lists.data ?? []).map((p) => toPlaylist(p, known));
   const catalogue = mergeCatalogue(layers.data);
-  const initial = saved.data
+  // A row whose `levels` is empty exists only because the player remembered a
+  // track (saveCurrentTrack); no mix was ever saved, so it is "no saved mix".
+  const hasMix =
+    !!saved.data && saved.data.levels !== null && typeof saved.data.levels === "object" && Object.keys(saved.data.levels).length > 0;
+  const initial = saved.data && hasMix
     ? sanitizeSettings({
         levels: saved.data.levels,
         master: Number(saved.data.master_volume),
@@ -40,7 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // ticking (and can chime) while you move between Timetable, Diary and Focus.
     // MixerProvider does the same for the ambient sound.
     <MixerProvider catalogue={catalogue} initial={initial}>
-      <MusicProvider tracks={tracks} playlists={playlists}>
+      <MusicProvider tracks={tracks} playlists={playlists} initialTrackId={saved.data?.current_track_id ?? null}>
       <FocusProvider>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
@@ -58,6 +63,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Sidebar />
             <main className="overflow-auto p-6">{children}</main>
           </div>
+          {/* Sticks to the bottom of the window and takes its own space at the end
+              of the page, so it never covers a page's own controls */}
+          <MiniPlayer />
         </div>
       </FocusProvider>
       </MusicProvider>

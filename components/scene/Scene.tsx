@@ -18,7 +18,17 @@ import { SCENE_H, SCENE_W, type SceneDef } from "./types";
 //  * parallax only follows a mouse / pen (never touch) and never with
 //    prefers-reduced-motion; reduced motion also freezes every CSS animation
 //    on its first frame (see globals.css), so the scene is a still picture.
-export default function Scene({ scene, className = "" }: { scene?: SceneDef; className?: string }) {
+export default function Scene({
+  scene,
+  fill = false,
+  className = "",
+}: {
+  scene?: SceneDef;
+  // Cover the whole parent (the full-screen view) instead of keeping 16:9. The
+  // layers use "slice", so a screen of any shape is filled; the edges crop.
+  fill?: boolean;
+  className?: string;
+}) {
   const theme = useTheme();
   const def = scene ?? SCENES[theme];
   const reduced = useReducedMotion();
@@ -65,8 +75,14 @@ export default function Scene({ scene, className = "" }: { scene?: SceneDef; cla
       data-glow={vars.glow}
       onPointerMove={onPointerMove}
       onPointerLeave={() => shift(0, 0)}
-      className={`sc-stage rounded-lg border border-[var(--border-strong)] shadow-card ${className}`}
-      style={{ "--rain": vars.rain, "--glow": vars.glow, aspectRatio: `${SCENE_W} / ${SCENE_H}` } as CSSProperties}
+      className={`sc-stage ${fill ? "absolute inset-0" : "rounded-lg border border-[var(--border-strong)] shadow-card"} ${className}`}
+      style={
+        {
+          "--rain": vars.rain,
+          "--glow": vars.glow,
+          ...(fill ? { height: "100%" } : { aspectRatio: `${SCENE_W} / ${SCENE_H}` }),
+        } as unknown as CSSProperties
+      }
     >
       {def.layers.map((layer) => (
         <div key={layer.id} className="sc-layer" data-depth={layer.depth} data-layer={layer.id}>

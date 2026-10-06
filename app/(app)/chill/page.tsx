@@ -1,5 +1,5 @@
 import MixerPanel from "@/components/mixer/MixerPanel";
-import Scene from "@/components/scene/Scene";
+import ChillStage from "@/components/scene/ChillStage";
 
 export const metadata = { title: "Chill — FindYourself" };
 
@@ -13,7 +13,7 @@ export default function ChillPage() {
         <h1 className="font-display text-3xl">Chill</h1>
         <p className="text-ink-secondary mt-1">Rain on the window, a quiet cafe. Leave it running.</p>
       </header>
-      <Scene />
+      <ChillStage />
       <MixerPanel />
     </div>
   );

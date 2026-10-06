@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu, ChevronLeft, ChevronRight, Search, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
+import ClockLabel from "./ClockLabel";
 import { addDays, isValidISODate, parseWeekParam, shiftISODate, toISODateOnly } from "@/lib/dates";
 
 const VIEWS = ["Day", "Week", "Month"] as const;
@@ -63,6 +64,8 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   }
 
   const isNight = theme === "netcafe-night";
+  // Chill is for being, not planning: no week navigation, no search, just the day and time.
+  const isChill = Boolean(pathname?.startsWith("/chill"));
 
   return (
     <header className="sticky top-0 z-50 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] bg-bg-elevated border-b border-[var(--border)] isolate">
@@ -77,51 +80,60 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         <span className="hidden sm:inline">FindYourself</span>
       </div>
 
-      <button
-        onClick={goToday}
-        className="px-4 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary font-ui text-sm hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
-      >
-        Today
-      </button>
+      {isChill ? (
+        // Chill: just the day and time, like a clock on the cafe wall.
+        <ClockLabel className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink" />
+      ) : (
+        <>
+          <button
+            onClick={goToday}
+            className="px-4 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary font-ui text-sm hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+          >
+            Today
+          </button>
 
-      {/* Phones: the pages carry their own prev / next, and the sound button needs the room */}
-      <div className="hidden sm:flex gap-1">
-        <button
-          onClick={goPrev}
-          aria-label={isTimetable ? "Previous week" : isDiary ? "Previous day" : "Previous"}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
-          onClick={goNext}
-          aria-label={isTimetable ? "Next week" : isDiary ? "Next day" : "Next"}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
-        >
-          <ChevronRight size={16} />
-        </button>
-      </div>
+          {/* Phones: the pages carry their own prev / next, and the sound button needs the room */}
+          <div className="hidden sm:flex gap-1">
+            <button
+              onClick={goPrev}
+              aria-label={isTimetable ? "Previous week" : isDiary ? "Previous day" : "Previous"}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={goNext}
+              aria-label={isTimetable ? "Next week" : isDiary ? "Next day" : "Next"}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
 
-      <div className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink">Sep 14 – 20, 2026</div>
+          <div className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink">Sep 14 – 20, 2026</div>
+        </>
+      )}
 
       <div className="flex-1" />
 
       {/* /chill is free of tasks and timers; /focus already shows the full timer */}
-      {!pathname?.startsWith("/chill") && !pathname?.startsWith("/focus") && <TimerChip />}
-      {!pathname?.startsWith("/chill") && focusSlot}
+      {!isChill && !pathname?.startsWith("/focus") && <TimerChip />}
+      {!isChill && focusSlot}
 
       {/* Always visible, on every page and every width (DESIGN_SYSTEM section 7) */}
       <SoundButton />
 
-      <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
-        <Search size={16} />
-      </button>
+      {!isChill && (
+        <button aria-label="Search" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
+          <Search size={16} />
+        </button>
+      )}
       <button aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Settings size={16} />
       </button>
 
       {/* Day / Week / Month is a timetable control: Chill has nothing to switch */}
-      {!pathname?.startsWith("/chill") && (
+      {!isChill && (
       <div className="hidden md:flex bg-bg-alt rounded-full p-[3px]" role="tablist" aria-label="View">
         {VIEWS.map((v) => (
           <button

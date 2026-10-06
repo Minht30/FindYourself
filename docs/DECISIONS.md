@@ -1204,4 +1204,19 @@ Five boxes, five commits: `ambient_layers` (Session 33), the Web Audio engine an
 
 ---
 
+## 2026-10-05 — Session 38: Chill top bar + full-screen scene (feedback pass)
+
+Minh's feedback on /chill: the Day / Week / Month switcher has no job there (hidden in the previous commit); the Today button, prev / next arrows, the hard-coded date and Search have none either, so show the **current day and time** instead; and make the scene **full screen, like a real environment**. (The design of all of this is still temporary; the Figma stage redoes it.)
+
+**What landed:**
+- **Top bar on /chill:** Today, the arrows, the hard-coded "Sep 14 – 20, 2026", Search and the view switcher are gone; a live **"Mon, Oct 5 · 8:24 PM"** (`ClockLabel`, `lib/clock.ts`) takes the title's place, in the visitor's own locale, clock style and time zone, updating on the minute (and when a background tab returns, since throttled timers drift). The server renders nothing for it and the browser fills it in, so there is no hydration mismatch. The sound button, settings and theme toggle stay. Other pages are unchanged.
+- **Full screen** (`ChillStage`, `Immersive`): a "Full screen" button on the scene asks the browser for real fullscreen (best effort, from the click) and fills the window with the scene either way (`Scene fill`: the layers use `slice`, so any screen shape is covered and the edges crop). On it: a big clock and date, an Exit button, and a pill with Play sound (before sound starts) or Pause / mute / master volume. **The controls fade after 3.5 s** so it can be left running like a screensaver; a pointer move, a tap or Tab brings them back (and the cursor hides while idle). Esc, the Exit button, or the browser's own fullscreen exit leave it; the sound keeps playing. Space plays / pauses. The page behind is inert and does not scroll while it is open, focus is trapped inside and returns to the Full screen button on close. Parallax still follows the mouse. Only one copy of the scene SVG exists at a time.
+- A **usability bug found by the test, fixed:** focus first went to the Exit button, so pressing Space (play / pause) would have pressed Exit and closed the view. Focus now starts on the dialog itself. A related guard: **the tap that wakes hidden controls is swallowed**, so on a touch screen the first tap never presses a button that was invisible a moment earlier.
+
+**Verified (Playwright, signed in, localhost):** /chill header on 3 loads: only Menu, sound, Settings and the theme toggle, no "Sep 14", no tablist, clock text equal to the browser's own time; /today keeps Today, both arrows, Search and the switcher. Full screen: the stage was exactly the viewport (1280 x 800) with **real fullscreen granted**, one live scene, body scroll locked, the rest of the page inert; controls opacity 1 -> **0 after 4.2 s idle** -> 1 after a mouse move; F opens nothing (Focus Mode is /focus-only); Space started the sound (graph running, RMS 0.105) without closing the view; mute inside the overlay -> master target 0, RMS 0; 8 Tabs stayed inside and Shift+Tab from the dialog wrapped to the last control; **a real click on the hidden Pause button only woke the controls (still playing), the next click paused**; Esc closed it with the sound still running, focus back on "Full screen", no inert elements or scroll lock left; `document.exitFullscreen()` (what the browser's Esc does) closed the overlay too. Phone 390 x 844: the scene fills it, the pill fits. Night and day looked right. Zero console errors or warnings (only the favicon 404). `typecheck` + `lint` + `test` (**307**, +6 clock tests) + `build` green; `/chill` 7.42 kB (First Load 107 kB).
+
+**Known / for Stage 2:** on a tall portrait phone the 16:9 art is cropped to its middle (a portrait variant of the scene is a design item); the favicon (the tab icon) still does not exist.
+
+---
+
 <!-- New entries append below with date + session number -->

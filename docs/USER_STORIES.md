@@ -172,9 +172,12 @@ Acceptance criteria in Given/When/Then.
 
 ### US-8.1 Manage categories
 - Rename, recolor, reorder, delete (with reassign prompt).
+- Given I delete a category that blocks or tasks use, then I choose another category to move them to (or none), and the move and the delete happen together or not at all.
+- Given I try a name that is empty, over 40 characters or already mine (ignoring case), then I am told why and nothing changes. I can have up to 12 categories and must keep at least one.
+- Given I recolour or rename one of the five defaults, then my colour is the colour I see, in both themes.
 
 ### US-8.2 Timezone
-- Auto-detect on signup, editable.
+- Auto-detect on signup, editable. *(Built as auto-detect only: the zone follows the device and is shown in Settings; a manual override is not built, because every page works out "today" from the device's zone and a second source would disagree. Decision 2026-10-06.)*
 
 ### US-8.3 Delete account
 - Two-step confirmation; deletes all rows and storage objects.

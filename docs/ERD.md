@@ -57,6 +57,8 @@ A **streak day** is a calendar day, in `timezone`, with a diary entry (text or a
 
 Seeded per user on signup: Deep Work, Meetings, Learning, Rest, Personal.
 
+*(Phase 9, Session 56.)* Rules in the database: `name` 1-40 characters after trimming and **unique per person ignoring case** (index on `user_id, lower(btrim(name))`); `color` `#RRGGBB`; `sort_order` 0..1000; **at most 12 per person** (a locking trigger, `category_limit`); a person may update only `name`, `color` and `sort_order` (column privileges). Three SECURITY INVOKER functions, so RLS still applies and they only ever touch the caller's own rows: `delete_category(id, move_to)` (optionally moves the blocks and tasks that used it, then deletes, atomically; `not_found`, `bad_target`, `last_category`), `reorder_categories(ids[])` (must be exactly the caller's categories, each once: `bad_order`) and `category_usage()` (blocks and tasks per category). The theme-following colour of the five defaults (`lib/categories.ts`) applies only while a default keeps its default name **and** colour.
+
 ### `time_blocks`
 | column | type | notes |
 |---|---|---|

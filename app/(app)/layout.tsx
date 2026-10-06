@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // `ambient_layers`. If the read fails for any reason the built-in list is
   // used, so the mixer never disappears over a database hiccup.
   const supabase = createClient();
-  const [layers, saved, music, lists, profile] = await Promise.all([
+  const [layers, saved, music, lists, profile, cats] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
     supabase.from("mixer_state").select("levels, master_volume, muted, current_track_id").maybeSingle(),
@@ -26,6 +26,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
     // The zone the database counts days in (the streak); kept equal to the browser's.
     supabase.from("profiles").select("timezone").maybeSingle(),
+    // The categories the sidebar lists (RLS: own rows only, in the person's order).
+    supabase.from("categories").select("id, name, color").order("sort_order"),
   ]);
   const tracks = (music.data ?? []).map(toTrack);
   const known = new Set(tracks.map((t) => t.id));
@@ -64,7 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             />
           </Suspense>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-0">
-            <Sidebar />
+            <Sidebar categories={cats.data ?? []} />
             <main className="overflow-auto p-6">{children}</main>
           </div>
           {/* Sticks to the bottom of the window and takes its own space at the end

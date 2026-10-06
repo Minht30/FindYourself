@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, Search, Settings } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
@@ -79,9 +80,9 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
           <Search size={16} />
         </button>
       )}
-      <button aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
+      <Link href="/settings" aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Settings size={16} />
-      </button>
+      </Link>
 
       <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
         <span>{isNight ? "🌃" : "☀️"}</span>

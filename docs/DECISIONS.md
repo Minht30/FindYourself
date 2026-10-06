@@ -1632,4 +1632,30 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 56: Settings page and category management (Phase 9)
+
+**Decisions from Minh (this session):** (1) the guest demo is a **per-visitor sandbox** (anonymous sign-in with seeded data, writable, temporary) rather than a shared read-only account; (2) he created a second throwaway account for the delete-account test (its details are in the gitignored `.env.test.local` as `FY_TEST2_*`); (3) Lighthouse may be added as a dev dependency. Order from here: Settings + categories (this entry) -> delete-account -> the sandbox demo -> Lighthouse.
+
+**Why Settings first:** the top bar's gear did nothing, delete-account needs a home, the focus goal had no place to change it, and the sidebar's "My categories" was a hard-coded list that ignored the person's real categories.
+
+**What landed (migration `20261006062143_phase9_categories`):**
+- **Database rules:** a category name is 1-40 characters, **unique per person ignoring case and spaces**, the colour is `#RRGGBB`, **at most 12 per person** (locking trigger, `category_limit`), and a person may update only name / colour / order. Three SECURITY INVOKER functions (so RLS applies inside them): `delete_category(id, move_to)` (moves the blocks and tasks, then deletes, atomically; refuses the last category), `reorder_categories(ids[])`, `category_usage()`.
+- **`/settings`** (protected; gear in the top bar; "Edit" in the sidebar): Account (email, the detected time zone), Focus (the daily goal picker, here as well as on the rings card), Categories, and a Privacy link. **Categories editor:** rename in place (blur / Enter saves, Esc cancels), a colour palette (12 swatches), up / down buttons, add (with the count "N of 12"), and a two-step delete that says how many blocks and tasks use the category and offers "Move them to ...". Server actions (`category-actions.ts`) validate first and name every refusal (`bad_name`, `name_too_long`, `bad_color`, `duplicate_name`, `category_limit`, `last_category`, `bad_target`, `bad_order`, `not_found`, `unauthenticated`).
+- **Sidebar** now lists the person's real categories in their order (it was the five defaults hard-coded).
+- **A latent bug fixed:** `categoryColor` mapped a default name to its theme token regardless of the stored colour, so recolouring "Deep Work" would have done nothing. A default now follows the theme only while it keeps its default name **and** colour.
+- **Time zone is auto-detect only** (US-8.2 amended): every page works out "today" from the device's zone (cookie), so a manual override would make the database's streak day and the page's day disagree. Shown read-only in Settings. Say if you want an override anyway.
+
+**Verified:**
+- **SQL (`supabase/tests/phase9_categories.sql`, as `authenticated`, aborting block):** empty name / 41 characters / bad colour / sort 5000 -> `23514`; a duplicate ignoring case and spaces -> `23505`; inserting as another person and updating `user_id` -> `42501`; the 13th -> `category_limit`; another person's rows untouched; reorder with a short, duplicated, foreign-id or null list -> `bad_order`; delete: move to self / foreign / unknown -> `bad_target`, unknown or foreign category -> `not_found` and nothing deleted; delete+move moves the block and the task; delete with no target leaves them uncategorised; the last category -> `last_category`; `anon` -> `42501`. (My first run failed because a foreign id read under RLS came back null and null means "do not move": a test mistake, now noted in the file.)
+- **Live (signed in, localhost):** /settings x3 loads with the five real categories and zero console messages; adding "FYTEST gym" shows it in the list and the sidebar; **an empty name and a 41-character name send no request** (`bad_name`, `name_too_long`); a duplicate ("  deep WORK ") sends one request and is refused by the database (`duplicate_name`), and so is renaming onto "rest"; recolouring Deep Work changed the swatch and **the block on the timetable painted #E3B04B**; reorder survives a reload and the sidebar follows; deleting a used category showed "used by 1 block and 1 task", moving them to Rest **moved both in the database**; Keep cancels; an unused one shows no move choice; **12 categories hides the add form and says so**; **signed out mid-session** the rename sent its request and showed `unauthenticated`; signed out, /settings redirects to `/login?next=/settings`; phone 390 px no overflow. The throwaway account's categories were restored.
+- Unit: `categoryRules.test.ts` (15: names incl. emoji counted as one and separators collapsing to a space, colours, clash rule, DB error mapping, `categoryColor`, reorder helpers). `typecheck` + `lint` + `test` (**701**, +15) green.
+
+**Gotcha worth remembering:** escape sequences such as a backslash-u2028 in tool input can be turned into the raw character, which silently breaks string and regex literals; build such characters with `String.fromCharCode` in source files. Long heredocs with mixed quotes can also break the shell tool: write a script file instead.
+
+**Not covered:** the look of the page (Stage 2); drag-to-reorder (up / down buttons are keyboard- and screen-reader friendly); a manual time-zone override.
+
+**Next:** delete-account (service role key; tested on the second throwaway account).
+
+---
+
 <!-- New entries append below with date + session number -->

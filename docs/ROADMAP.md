@@ -144,6 +144,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Reduced-motion pass — audited every animation; the cat, scene, Focus Mode and drag-drop already had their own rules, and a global safety net now catches the rest (the timer's pulsing dot, every transition, smooth scroll); measured: 0 ongoing animations on every page with the preference, 73 on Chill without it
 - [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
 - [ ] Lighthouse ≥ 90 on all axes
+- [x] Settings page + category management (US-8.1) - `/settings` (the top bar's gear now goes there): account, time zone (detected), daily focus goal, and categories: add, rename, recolour, reorder, delete with "move things to..."; the sidebar lists the person's real categories
 - [ ] Delete-account flow
 - [ ] README polish with GIFs
 

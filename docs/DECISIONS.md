@@ -1786,4 +1786,16 @@ Tests: **732** unit tests (was 659 at the end of Phase 8); SQL test files for ca
 
 ---
 
+## 2026-10-06 — Session 64: The guest demo verified on a real guest
+
+Minh clicked "Try the demo" in an incognito window (on the live site); the guest account `d72e32f5-...` was created at 20:17:10 UTC. Checked by SQL:
+- **A guest:** `is_anonymous = true`, no email, profile in `America/Toronto` (the visitor's zone, saved by the browser) with **streak 4, last day today**.
+- **Seed exactly as designed:** 5 categories; **8 sample blocks, all with a category**, at the right local times (e.g. "Outline the project" Monday 09:00 EDT = 13:00 UTC); **7 tasks** (3 for today, 2 for tomorrow, 2 for someday; "Water the plants" done; "Outline the demo talk" is "Focus first" with its 17:00 EDT deadline; priorities as seeded); **3 diary entries**; **4 focus sessions**; 0 tracks, 0 suggestions.
+- **It is writable, as decided:** a 9th block, "New block", appeared **9 seconds after the seed**: Minh dragged one onto the timetable in the sandbox, which worked.
+- It will be deleted automatically by the hourly purge about 24 hours after creation (20:17 UTC on 7 October).
+
+**Closes:** the guest demo (happy path). **Still untested:** "Create an account to keep it" with a real email (it sends a confirmation email; the guest becomes a permanent account only after the link is clicked).
+
+---
+
 <!-- New entries append below with date + session number -->

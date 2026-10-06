@@ -136,7 +136,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 ## Phase 9 — Polish & launch (est. 2 sessions)
 
-- [x] Guest demo mode with seeded data - **built; waiting for Minh to switch on "Allow anonymous sign-ins"** in Supabase (it refuses gracefully until then). A per-visitor sandbox: a temporary anonymous account seeded with this week's blocks, tasks, three diary days and sessions, fully writable, no uploads or suggestions, a banner offering "create an account to keep it", deleted after 24 hours by an hourly pg_cron purge, at most 300 at once
+- [x] Guest demo mode with seeded data - **live and verified on a real guest** (anonymous sign-ins on; seed checked row by row). Only the "create an account to keep it" email round trip is untested. A per-visitor sandbox: a temporary anonymous account seeded with this week's blocks, tasks, three diary days and sessions, fully writable, no uploads or suggestions, a banner offering "create an account to keep it", deleted after 24 hours by an hourly pg_cron purge, at most 300 at once
 - [ ] Landing page final copy + screenshots
 - [x] Privacy note (plain-language) — public `/privacy`, linked from the landing page, sign-in / sign-up and the sidebar; a guard test keeps its cookie / device-storage table in step with the code. *Needs Minh's read before launch (it speaks for him); the deletion paragraph is added with the delete-account box.*
 - [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one

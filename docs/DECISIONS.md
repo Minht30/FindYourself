@@ -1599,4 +1599,21 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 54: The privacy note (Phase 9, Box 3)
+
+**What landed:**
+- **`/privacy`** (public, no sign-in; `app/privacy/page.tsx`): "Privacy, in plain words". The short version (private to you; no ads, analytics or tracking cookies; nothing sold or shared; no AI reads your writing; only essential cookies), what is kept (email and a scrambled password, profile, timetable, tasks, diary text + mood, focus sessions, the sound mix, music files, playlists, suggestions), where it lives (Supabase and Vercel; fonts are bundled, nothing goes to analytics / ads / AI), **who can see it** (you; the one exception, track suggestions, which the person running FindYourself reads and which appear as community picks without a name; and, honestly, that the person who runs the service has administrator access to the hosting accounts), the cookie / device-storage table, links you click (YouTube / Spotify open in a new tab only on click), retention (until you delete; routine backups may linger briefly) and a "if this changes" line with a date.
+- **The table cannot go stale:** the 12 cookie / device-storage entries live in `lib/privacyFacts.ts` and `privacyFacts.test.ts` scans `app/`, `components/` and `lib/` for every `fy-...` key and **fails if one is not documented (or if a documented one is no longer used)**. On its first run it caught `fy-roll-handled:DATE`, which I had missed.
+- Linked from the landing page, the sign-in / sign-up layout and the sidebar.
+
+**Facts checked before writing (so every sentence is true of the code):** no analytics / tracking package in `package.json`; no third-party requests (the only external URLs are the YouTube / Spotify links the user clicks); fonts via `next/font` (self-hosted at build); email + password sign-in only; RLS own-row on every table except the suggestions / picks described; music links expire after an hour.
+
+**Verified (localhost):** `/privacy` returns 200 signed out and signed in on three loads, zero console messages; the table lists all 12 entries; the landing page, `/login`, `/signup` and the sidebar each link to it; no horizontal overflow at 390 px; `typecheck` + `lint` + `test` (**683**, +4) green.
+
+**For Minh before launch (it speaks in your voice):** (1) read it through, especially "Who can see it" and "How long it is kept"; (2) add a **contact line** (an email or a GitHub issues link: I did not publish your address without asking); (3) the deletion paragraph arrives with the delete-account box; (4) there is **no data export** yet, and the page does not promise one.
+
+**Next — Box 4:** the reduced-motion pass.
+
+---
+
 <!-- New entries append below with date + session number -->

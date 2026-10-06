@@ -138,7 +138,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 - [ ] Guest demo mode with seeded data
 - [ ] Landing page final copy + screenshots
-- [ ] Privacy note (plain-language)
+- [x] Privacy note (plain-language) — public `/privacy`, linked from the landing page, sign-in / sign-up and the sidebar; a guard test keeps its cookie / device-storage table in step with the code. *Needs Minh's read before launch (it speaks for him); the deletion paragraph is added with the delete-account box.*
 - [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one
 - [x] Error boundaries — `error.tsx` inside the app shell (the player, timer and sidebar keep running), `error.tsx` for pages outside it, `global-error.tsx` for a broken root layout, and a `not-found.tsx` 404; calm copy, a retry that re-fetches, a way out, and the error's reference number (never its message)
 - [ ] Reduced-motion pass

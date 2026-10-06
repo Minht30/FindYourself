@@ -30,6 +30,11 @@ export default function LandingPage() {
             Sign in
           </Link>
         </div>
+        <p className="mt-12 font-ui text-sm text-ink-muted">
+          <Link href="/privacy" className="underline underline-offset-4 hover:no-underline">
+            Privacy, in plain words
+          </Link>
+        </p>
       </div>
     </main>
   );

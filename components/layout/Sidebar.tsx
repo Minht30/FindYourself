@@ -76,6 +76,9 @@ export default function Sidebar() {
           Sign out
         </button>
       </form>
+      <Link href="/privacy" className="px-3.5 -mt-3 font-ui text-[12px] text-ink-muted hover:text-ink-primary underline-offset-4 hover:underline">
+        Privacy
+      </Link>
     </aside>
   );
 }

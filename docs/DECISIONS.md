@@ -1587,4 +1587,16 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 53: Empty states (Phase 9, Box 2)
+
+**Audit (the throwaway account has no data, so every page showed as a first-time user sees it):** /focus (week tile + recent sessions), /chill (music, playlists, picks, review queue, link picker) and the Streak / rings / quote cards already had gentle empty copy. **Gaps found and filled:** (1) each empty **task bucket** showed only "Add task": now "Nothing planned for today yet." / "Nothing for tomorrow yet." / "Ideas for someday go here." (hidden while dragging, so it never fights the drop target); (2) a week with **no blocks** showed a blank grid whose only hint sat below the fold: now one line above it, "Nothing scheduled this week. Drag on the grid to add your first block."; (3) the diary's **year heatmap** with zero entries read "0 days written in the last 12 months": now "No pages yet. Your first entry will colour the first square."
+
+**Verified (signed in, localhost):** the three bucket lines, the week line and the diary line on three loads, zero console messages; adding a task removed **only** Today's line (Tomorrow and Backlog kept theirs); another empty week (`?week=2026-10-12`) shows the week line; with a block in the week the line is gone and the block shows. Unit: `lib/tasks.test.ts` (4: a line for every bucket, buckets, overdue) -> **679** tests. Test data deleted.
+
+**Not covered:** the look of the lines (Stage 2), illustrations for empty states (Stage 2).
+
+**Next — Box 3:** the privacy note.
+
+---
+
 <!-- New entries append below with date + session number -->

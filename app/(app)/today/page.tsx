@@ -173,6 +173,12 @@ export default async function TodayPage({ searchParams }: Props) {
       </div>
 
       <WinsClock timeZone={timeZone} open={winsOpen} />
+      {(blocks ?? []).length === 0 ? (
+        <p data-empty-week className="font-ui text-sm text-ink-secondary">
+          Nothing scheduled this week. Drag on the grid to add your first block.
+        </p>
+      ) : null}
+
       <WeekGrid
         weekStart={thisWeek}
         blocks={(blocks ?? []) as TimeBlockDTO[]}

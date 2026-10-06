@@ -12,6 +12,13 @@ export const BUCKET_LABELS: Record<Bucket, string> = {
   backlog: "Backlog",
 };
 
+// What an empty bucket says, instead of a bare "Add task".
+export const BUCKET_EMPTY: Record<Bucket, string> = {
+  today: "Nothing planned for today yet.",
+  tomorrow: "Nothing for tomorrow yet.",
+  backlog: "Ideas for someday go here.",
+};
+
 export type TaskPriority = "low" | "med" | "high";
 
 export type TaskDTO = {

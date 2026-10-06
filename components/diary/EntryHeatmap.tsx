@@ -104,7 +104,9 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <h2 className="font-display text-xl">Your year in pages</h2>
         <span className="font-mono text-xs text-ink-muted">
-          {written} {written === 1 ? "day" : "days"} written in the last 12 months
+          {written === 0
+            ? "No pages yet. Your first entry will colour the first square."
+            : `${written} ${written === 1 ? "day" : "days"} written in the last 12 months`}
         </span>
       </div>
 

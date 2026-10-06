@@ -34,6 +34,7 @@ import { useFocusStore } from "@/lib/focus/store";
 import { categoryColor } from "@/lib/categories";
 import {
   BUCKETS,
+  BUCKET_EMPTY,
   BUCKET_LABELS,
   bucketOf,
   isBucket,
@@ -485,6 +486,11 @@ function BucketSection({
           ))}
         </ul>
       </SortableContext>
+      {empty && !dragging ? (
+        <p data-empty-bucket={bucket} className="px-1 text-[12px] text-ink-muted">
+          {BUCKET_EMPTY[bucket]}
+        </p>
+      ) : null}
       <AddTaskRow bucket={bucket} />
     </section>
   );

@@ -139,7 +139,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [ ] Guest demo mode with seeded data
 - [ ] Landing page final copy + screenshots
 - [ ] Privacy note (plain-language)
-- [ ] Empty states (every page)
+- [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one
 - [x] Error boundaries — `error.tsx` inside the app shell (the player, timer and sidebar keep running), `error.tsx` for pages outside it, `global-error.tsx` for a broken root layout, and a `not-found.tsx` 404; calm copy, a retry that re-fetches, a way out, and the error's reference number (never its message)
 - [ ] Reduced-motion pass
 - [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood

@@ -1733,4 +1733,25 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+### Phase 9 summary (hand-off, 2026-10-06)
+
+**Done and verified:** error boundaries and a 404 (Session 52); empty states (53); the privacy note with a test that keeps its storage table honest (54); the reduced-motion pass with a global safety net (55); Settings and category management (56); Lighthouse >= 90 with real contrast fixes (58); phone navigation (60); the diary duplicate-key warning (52). **Built, waiting on one action from Minh each:** delete-account (57) and the guest demo (59). **Not built (design / later):** landing page final copy and screenshots, the decoration-zones brainstorm, README polish with GIFs (Stage 2 / launch prep). **Not decided:** the top bar's Search button (build a search or remove it).
+
+Tests: **732** unit tests (was 659 at the end of Phase 8); SQL test files for categories, the demo, the streak, quotes and the focus goal in `supabase/tests/`. Migrations this phase: `20261006062143_phase9_categories`, `20261006065509_phase9_demo_sandbox`.
+
+**What Minh has to do (in this order):**
+1. **Service-role key** (secret): Supabase dashboard -> Project Settings -> API keys -> copy the **secret** key into `.env.local` as `SUPABASE_SERVICE_ROLE_KEY=...` (the line exists and is **empty**) and into Vercel (Production). Then I run the final delete-account check on the second throwaway account (it is still sitting there with 2 stored files, a playlist, a suggestion...), add the deletion paragraph to the privacy page and tick the box. Until then "Delete everything" says "not available right now" and deletes nothing.
+2. **Anonymous sign-ins:** Supabase -> Authentication -> Sign In / Providers -> **Allow anonymous sign-ins**. (Consider CAPTCHA too.) Then click "Try the demo" on the landing page; I check the seeded rows by SQL. Also try "Create an account to keep it" with a real address (the one path I could not test).
+3. **Read the privacy page** (it speaks in Minh's voice) and add a contact line.
+4. **Decide Search:** build it (diary text, tasks, blocks) or remove the button until Stage 2.
+5. After the push deploys, **re-run Lighthouse on the live site**: `npm run lighthouse -- --base https://findyourself-mu.vercel.app` (public pages; for the app pages pass a storage-state file with a session for that domain).
+
+**Known follow-ups (not blockers):** input borders are about 1.4:1 (WCAG 1.4.11 asks 3:1 for a field's edge) -> Stage 2; focus is not trapped inside the phone drawer; no data export; manual time-zone override not built (auto-detect only, by decision); the favicon is a plain placeholder cup; pg_cron is now enabled in the database (hourly purge of guest accounts, `cron.unschedule('purge-demo-users')` to stop it).
+
+**Next:** after the two actions above, Minh's manual test of everything (Phases 1-9), then Stage 2 (the Figma design pass; do not touch Figma without telling Minh).
+
+**Blocked on:** the service-role key (delete-account) and the anonymous-sign-ins setting (demo).
+
+---
+
 <!-- New entries append below with date + session number -->

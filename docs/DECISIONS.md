@@ -1548,4 +1548,18 @@ Minh's feedback after seeing Phase 8: (1) the rings should be at the side, the t
 
 ---
 
+## 2026-10-06 — Session 51: Week view only; the sidebar month calendar
+
+**Decision (Minh): no Day or Month view.** The week grid stays the only timetable view; "the month, like a full calendar" is the **calendar widget in the left sidebar**. So the inert Day / Week / Month switcher is **removed** from the top bar, and the deferred functional mini-month (Phase 2 follow-up) is built. PRD and user stories updated; the "Day / Month views" idea is dropped from the inert-controls sweep (and Create stays removed: a "new block" entry point is not needed while drag-to-create is the way).
+
+**What landed:**
+- `MiniMonth` in the sidebar (`components/layout/MiniMonth.tsx`, logic in `lib/miniMonth.ts`, 16 tests): a Monday-first month grid (always six rows, so it never jumps), today ringed, the week (or diary day) you are looking at highlighted, **previous / next month** arrows to browse. Clicking a day opens **that week in the timetable** (`/today?week=DATE`) from any page except the diary, where it opens **that day** (`/diary/DATE`) and **future days are greyed out and not links** (the diary takes no entries for them). It shows the month holding the selection (the middle of a week, so a week straddling two months shows the one it mostly belongs to); browsing snaps back when you go to another week. Real links (keyboard, middle-click, screen readers: each day's label is its full date, today has `aria-current="date"`); `prefetch` off so 42 links do not each fetch a dynamic page. Today comes from the browser after mount, so the server renders only a placeholder (no hydration mismatch).
+- Top bar: the Day / Week / Month tabs are gone.
+
+**Verified (signed in, localhost, three loads then interaction; zero console errors or warnings apart from the Diary duplicate-key warning that was already there):** October 2026 with Oct 6 ringed and "5,6,7,8,9,10,11" highlighted; clicking Sep 30 -> `/today?week=2026-09-30`, the timetable header reads "Sep 28 – Oct 4, 2026" and that row is highlighted; previous x2 -> August, clicking Aug 12 -> `?week=2026-08-12`, "Aug 10 – 16"; next without clicking -> September, then the page's "This week" snapped the calendar back to October; three nexts from October -> January 2027. In the diary: Oct 6 selected, **33 future cells disabled and not links**, today a link; clicking Oct 5 -> `/diary/2026-10-05`; previous month + Sep 15 -> `/diary/2026-09-15`, September shown, "14..20" highlighted. On /focus nothing is highlighted and a click goes to `/today?week=2026-10-09`. The calendar is present on /chill. `typecheck` + `lint` + `test` (**675**, +16) green.
+
+**Not covered:** the calendar on a phone (the whole sidebar is hidden below 768 px, as before: the timetable has its own Prev / Next pills there); dots marking days with diary entries or blocks (a possible later touch); the autumn decoration (Stage 2).
+
+---
+
 <!-- New entries append below with date + session number -->

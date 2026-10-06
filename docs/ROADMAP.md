@@ -51,7 +51,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 **Deferred inside Phase 2** (do before Phase 9 polish):
 - Cross-day drag-move
-- Mini-month calendar in sidebar (functional day-picker)
+- ~~Mini-month calendar in sidebar (functional day-picker)~~ — done 2026-10-06 (Session 51)
 
 ---
 

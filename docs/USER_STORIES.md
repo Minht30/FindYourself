@@ -30,7 +30,7 @@ Acceptance criteria in Given/When/Then.
 **As a** user, **I want to** click-and-drag on the day grid to create a time-block, **so that** I can plan my hours quickly.
 
 **Acceptance:**
-- Given day view, when I press mouse on the grid at 09:00 and drag to 10:30, then a block appears from 09:00–10:30.
+- Given the week view, when I press mouse on the grid at 09:00 and drag to 10:30, then a block appears from 09:00–10:30.
 - Given a new block, when I release the mouse, then a title input auto-focuses.
 - Given a block, when I press Enter without typing, then it saves as "Untitled block".
 

@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Calendar, BookOpen, Timer, Music, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import MiniMixer from "@/components/mixer/MiniMixer";
+import MiniMonth from "./MiniMonth";
 
 const PAGES = [
   { href: "/today", label: "Timetable", Icon: Calendar },
@@ -38,6 +40,11 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Reads the URL (?week=), hence the Suspense boundary */}
+      <Suspense fallback={<div aria-hidden className="h-[236px]" />}>
+        <MiniMonth />
+      </Suspense>
 
       <div className="text-[11px] font-ui font-semibold text-ink-muted uppercase tracking-wider px-2">
         My categories

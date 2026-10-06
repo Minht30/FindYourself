@@ -55,7 +55,7 @@ Navigation lives at the top of the left sidebar (icon + label rail). Four top-le
 
 | Page | Route | Purpose |
 |---|---|---|
-| **📅 Timetable** *(default)* | `/today` → `/week` | The main course. Google-Calendar-style week/day/month view. Tasks live in a right-side drawer. Mini-mixer in sidebar. |
+| **📅 Timetable** *(default)* | `/today` → `/week` | The main course. Google-Calendar-style **week view** (decision 2026-10-06: no separate day or month view; the sidebar's month calendar is the month overview and day-picker). Tasks live in a right-side drawer. Mini-mixer in sidebar. |
 | **📓 Diary** | `/diary/[date]` | Free-form daily entries with mood, prompts, heatmap. Warm serif body. |
 | **🎯 Focus** | `/focus` | Pomodoro timer + session log + full-screen focus mode. |
 | **🎵 Chill** | `/chill` | *Zero productivity UI.* Music player + animated cozy scene (rain, steam, cafe). Designed to be left running as a screensaver-vibe. Master mute in top bar. |
@@ -69,7 +69,7 @@ Design principle: the first three are *doing*; Chill is *being*. Keeping Chill s
 - Password reset by email
 
 ### 6.2 Timetable (calendar view)
-- Day view (primary) and Week view
+- Week view (the only view; a month calendar in the sidebar picks the week; Minh, 2026-10-06)
 - Time axis 5:00 → 26:00 (2am next day), 30-min minor gridlines
 - Click-drag to create a time-block; drag edges to resize; drag body to move
 - Each block has: title, category (color), optional notes, optional linked task

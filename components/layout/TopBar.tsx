@@ -7,13 +7,9 @@ import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
 
-const VIEWS = ["Day", "Week", "Month"] as const;
-type View = (typeof VIEWS)[number];
-
 // focusSlot: the "🔒 Focus first" reminder, rendered on the server by the
 // layout. Hidden on /chill, which is deliberately free of tasks and timers.
 export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
-  const [view, setView] = useState<View>("Week");
   const [theme, setTheme] = useState<"sunny-cafe" | "netcafe-night">("sunny-cafe");
 
   const pathname = usePathname();
@@ -41,7 +37,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   }
 
   const isNight = theme === "netcafe-night";
-  // Chill is for being, not planning: no Today button, no search, no view switcher.
+  // Chill is for being, not planning: no Today button, no search.
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
   return (
@@ -86,25 +82,6 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
       <button aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
         <Settings size={16} />
       </button>
-
-      {/* Day / Week / Month is a timetable control: Chill has nothing to switch */}
-      {!isChill && (
-      <div className="hidden md:flex bg-bg-alt rounded-full p-[3px]" role="tablist" aria-label="View">
-        {VIEWS.map((v) => (
-          <button
-            key={v}
-            role="tab"
-            aria-selected={view === v}
-            onClick={() => setView(v)}
-            className={`px-3.5 py-1.5 rounded-full text-[13px] font-ui font-medium transition ${
-              view === v ? "bg-bg-elevated text-ink-primary shadow-card" : "text-ink-secondary"
-            }`}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
-      )}
 
       <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
         <span>{isNight ? "🌃" : "☀️"}</span>

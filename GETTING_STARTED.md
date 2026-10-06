@@ -1,58 +1,43 @@
 # Getting started
 
-## 1. Install dependencies
+How to run FindYourself on your own machine and your own Supabase project.
+
+## 1. Install and run
 
 ```bash
 npm install
+cp .env.local.example .env.local   # then fill it in (step 2)
+npm run dev                         # http://localhost:3000
 ```
 
-## 2. Run the dev server
+## 2. Create a Supabase project
+
+1. https://supabase.com/dashboard -> **New project** (any name, a region near you, a strong database password).
+2. **Project Settings -> API Keys**. Put these in `.env.local`:
+   - Project URL -> `NEXT_PUBLIC_SUPABASE_URL`
+   - the publishable / **anon** key -> `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - the **secret** (`service_role`) key -> `SUPABASE_SERVICE_ROLE_KEY`. Server-only: it bypasses all row-level security, so never commit it and never give it a `NEXT_PUBLIC_` name. The app uses it for one thing, deleting an account (and its music files); without it "Delete account" refuses and deletes nothing.
+3. **Database**: apply every file in [`supabase/migrations/`](supabase/migrations) in filename order (the SQL editor, or `supabase db push`). They create the tables, row-level security, storage bucket and policies, triggers and functions, and seed the quotes and ambient layers.
+   - The admin (who reviews track suggestions) is whoever the `phase7_admins_track_suggestions` migration inserts into `admins`; change that email before applying, or add your user id to `admins` afterwards.
+4. **Authentication -> Sign In / Providers**:
+   - Email: on (email confirmation on is fine).
+   - **Allow anonymous sign-ins**: on, if you want the "Try the demo" button to work. Turning on CAPTCHA for it is advisable on a public site.
+5. The demo's cleanup runs as a `pg_cron` job (created by the `phase9_demo_sandbox` migration, hourly, deleting guest accounts older than 24 hours).
+
+## 3. Deploy (Vercel)
+
+Import the repository, and add the same three environment variables (Production). Every push to `main` deploys.
+
+## 4. Check it
 
 ```bash
-npm run dev
+npm run typecheck && npm run lint && npm test     # 700+ unit tests
+npm run build && npx next start -p 3200            # a production build
+npm run lighthouse -- --base http://localhost:3200 # accessibility / performance, per page
 ```
 
-Open http://localhost:3000 — you'll see the landing page. Click **Enter →** to see the app shell with sidebar and theme toggle.
+The SQL tests (row-level security, triggers, limits, the demo) are in [`supabase/tests/`](supabase/tests): run each block in the SQL editor against a throwaway account; every block ends in an exception that carries its results, so nothing is saved.
 
-## 3. Later — connect Supabase
+## More
 
-When we wire up auth, copy `.env.local.example` to `.env.local` and fill in your Supabase project's URL and keys. See [Supabase setup](#supabase-setup) below.
-
----
-
-## What's in this scaffold (Phase 1 slice 1)
-
-| File | Purpose |
-|---|---|
-| `package.json` | Next.js 14, React 18, TypeScript, Tailwind, Supabase SSR, Lucide icons |
-| `app/globals.css` | Design tokens for both themes (Sunny Cafe + Netcafe After Dark) |
-| `app/layout.tsx` | Root layout + Google Fonts + no-flash theme restore script |
-| `app/page.tsx` | Landing page |
-| `app/(app)/layout.tsx` | App shell (top bar + sidebar) |
-| `app/(app)/today/page.tsx` | Timetable placeholder |
-| `app/(app)/diary/page.tsx` | Diary placeholder |
-| `app/(app)/focus/page.tsx` | Focus placeholder |
-| `app/(app)/chill/page.tsx` | Chill placeholder |
-| `components/layout/TopBar.tsx` | Top bar with view switcher + theme toggle |
-| `components/layout/Sidebar.tsx` | Left rail with 4-page nav + categories |
-| `lib/supabase/*` | Supabase client factories (unused until Phase 1 slice 2) |
-| `tailwind.config.ts` | Colors mapped to CSS variables so themes swap live |
-
-## Supabase setup
-
-1. Go to https://supabase.com/dashboard → **New project**
-2. Pick a name (e.g. `findyourself`), region closest to you, and a strong database password
-3. Once the project is ready, go to **Project Settings → API**
-4. Copy the three values into `.env.local`:
-   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` *(keep secret; server-only)*
-5. Send me the first two values in chat when you're ready and I'll wire the auth flow.
-
-## GitHub setup
-
-1. Go to https://github.com/new
-2. Repository name: `findyourself`
-3. Public or private — your call. Public is fine for CV visibility.
-4. Do NOT initialize with a README (we have one).
-5. After creating, GitHub shows the remote URL. Send it to me and I'll wire git.
+[README](README.md) · [Roadmap](docs/ROADMAP.md) · [Decision log](docs/DECISIONS.md) (the dated record of what was built and how it was checked)

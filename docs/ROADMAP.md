@@ -137,19 +137,21 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 9 — Polish & launch (est. 2 sessions)
 
 - [x] Guest demo mode with seeded data - **live and verified on a real guest** (anonymous sign-ins on; seed checked row by row). Only the "create an account to keep it" email round trip is untested. A per-visitor sandbox: a temporary anonymous account seeded with this week's blocks, tasks, three diary days and sessions, fully writable, no uploads or suggestions, a banner offering "create an account to keep it", deleted after 24 hours by an hourly pg_cron purge, at most 300 at once
-- [ ] Landing page final copy + screenshots
+- [ ] Landing page final copy + screenshots — *design stage (Stage 2): the landing page works today (Enter, Sign in, Try the demo, Privacy) but its final design and copy are part of the Figma pass*
 - [x] Privacy note (plain-language) — public `/privacy`, linked from the landing page, sign-in / sign-up and the sidebar; a guard test keeps its cookie / device-storage table in step with the code. *Needs Minh's read before launch (it speaks for him); the deletion paragraph is added with the delete-account box.*
 - [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one
 - [x] Error boundaries — `error.tsx` inside the app shell (the player, timer and sidebar keep running), `error.tsx` for pages outside it, `global-error.tsx` for a broken root layout, and a `not-found.tsx` 404; calm copy, a retry that re-fetches, a way out, and the error's reference number (never its message)
 - [x] Reduced-motion pass — audited every animation; the cat, scene, Focus Mode and drag-drop already had their own rules, and a global safety net now catches the rest (the timer's pulsing dot, every transition, smooth scroll); measured: 0 ongoing animations on every page with the preference, 73 on Chill without it
-- [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
+- [ ] *(Stage 2)* **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
 - [x] Lighthouse ≥ 90 on all axes — measured on a production build: mobile 96-100 and desktop 100 on all four axes for all nine pages (`npm run lighthouse`); the run found and fixed real WCAG AA contrast failures in the theme tokens (now guarded by a test), two label-in-name mismatches and a missing favicon; re-run against the deployed site after the push
 - [x] Settings page + category management (US-8.1) - `/settings` (the top bar's gear now goes there): account, time zone (detected), daily focus goal, and categories: add, rename, recolour, reorder, delete with "move things to..."; the sidebar lists the person's real categories
 - [x] Phone navigation — the Menu button opens the sidebar as a drawer below 768 px (there was no way to change page on a phone); Settings added to the page list
 - [x] Delete-account flow - Settings -> Delete account (type DELETE): removes the account, every row by cascade and the stored music files; verified end to end on a throwaway account (0 rows left in every table, 0 stored files, the other accounts and the real track untouched); refuses by name (`not_configured`) if the service key is missing
-- [ ] README polish with GIFs
+- [x] README refreshed and made accurate (live link, what it does, what is worth a closer look, real stack, run / test / Lighthouse commands) and `GETTING_STARTED.md` rewritten (Supabase settings incl. anonymous sign-ins, env vars, migrations, deploy) - **GIFs and screenshots wait for the design pass**
 
-**Exit criteria:** public live URL, shared for feedback.
+**Phase 9 status (2026-10-06): every functional item is built and verified.** What is left is design and launch prep (landing copy and screenshots, the decoration zones, GIFs), which fold into Stage 2 below instead of being done twice, and Minh's hands-on test of Phases 1-9.
+
+**Exit criteria:** public live URL, shared for feedback. *(The URL is live; sharing it waits for Minh's test and the design pass.)*
 
 ---
 

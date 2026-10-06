@@ -1798,4 +1798,14 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 
 ---
 
+## 2026-10-06 — Session 65: Phase 9 closed (functional); README and setup guide made accurate
+
+**Phase 9 is complete as far as functionality goes.** Built and verified: the guest demo (live, checked on a real guest), the privacy note, empty states, error boundaries, the reduced-motion pass, Lighthouse >= 90 (with real contrast fixes), Settings and category management, delete-account (run for real on a throwaway account), phone navigation, and the removal of the dead Search button. Left, deliberately, for Stage 2 (design, as the roadmap already said): landing page final design / copy / screenshots, the decoration-zones brainstorm, and README GIFs. Untested by choice (Minh, 2026-10-06): the "create an account to keep it" email round trip.
+
+**Docs:** `README.md` was from Phase 0 ("Currently in Phase 0", Framer Motion and shadcn/ui that the app does not use, a Day/Week view that no longer exists). Rewritten from what the code is: the live link, what each area does, the things worth a closer look (database as the security boundary, the computed streak, measured accessibility, honest failure, the sandbox demo), the real stack, run / test / Lighthouse commands, and an accurate status. `GETTING_STARTED.md` was the scaffold-era note ("placeholder pages", "send me the keys in chat"); now real setup: the Supabase project and keys (with the service-role warning), applying the migrations, the admin email, the auth settings (anonymous sign-ins, CAPTCHA advice), the pg_cron cleanup, Vercel, and how to run the checks and the SQL tests.
+
+**Next:** Minh's hands-on test of everything (Phases 1-9; the checklists are at the end of each phase summary), then Stage 2: the Figma design pass (original pixel-art scenes, final landing, decoration, GIFs for the README). **Do not touch Figma without telling Minh first.** Open decisions for then: the input-border contrast (about 1.4:1; WCAG asks 3:1), a manual time-zone override, CAPTCHA on the demo, a contact line on the privacy page.
+
+---
+
 <!-- New entries append below with date + session number -->

@@ -1498,4 +1498,39 @@ Six boxes, six commits (Sessions 40-45): the music bucket + `music_tracks` + upl
 
 ---
 
+### Phase 8 summary (hand-off)
+
+Four boxes, four commits (Sessions 46-49): the streak, the daily quote, the weekly wins card, the progress rings. Four migrations (`20261006050028`, `…050337`, `…050844`, `…051425`, applied to the live database) and **659 unit tests** (was 587 at the end of Phase 7), plus SQL test files in `supabase/tests/` (`phase8_streak.sql`, `phase8_quotes.sql`, `phase8_focus_goal.sql`). No Figma file was touched or created. Nothing was downloaded (the 120 quotes are original). One production build was green (`/today` 34.9 kB, First Load 124 kB).
+
+**Exit criterion, run on a simulated Sunday evening (localhost, `fy-now` = Sunday 19:00 Toronto):** /today shows "Your week" (2 tasks finished, 25m of focus, 1 day in the diary), the three rings, the Streak card ("Welcome back..."), and the quote of that date (#120), identical on three loads with zero console errors or warnings, and no horizontal overflow at 390 px. A production build with the same cookie ignores it (no card on a Tuesday), and a non-server time zone hydrates cleanly in production. All test data was deleted again (0 FYTEST rows, 0 test tasks / diary / sessions; the test profile reset).
+
+**Layout note:** the four cards sit above the timetable, which pushed the grid below the fold (its header at y=815 px at 1280 wide). The final arrangement: Wins and Rings on full-width rows, the quote and the streak side by side on wide screens (header at y=538 on a weekday, 758 on a Sunday evening). The real placement (a strip, a side column, or a separate home page) is a Stage 2 design item.
+
+**For Minh to check by hand (a headless browser cannot judge these):**
+1. **A real Sunday evening:** open /today after 18:00 on a Sunday (local time). Does "Your week" feel right: the sentence, the four numbers, the streak line? Leave /today open from the afternoon: the card should appear by itself at 18:00 (a timer; if your laptop slept through 18:00 it appears when the tab wakes).
+2. **The streak with your real habits:** complete a task or write a diary line (a mood alone also counts) for a few days. Does the "day" end where you expect (it is your own time zone, saved on your profile the first time you open the app)? On a missed day, is "Welcome back" gentle enough? Is "one small thing today keeps it going" a good nudge or noise?
+3. **The rings:** does "done today / done + still open for today" match how you think about a day's tasks? Is 2 hours a sensible default focus goal (change it with "Daily focus goal")?
+4. **The quotes:** read a few days' worth. 120 lines are original and unattributed; tell me which tone to add, drop or change (one line each in the `quotes` table, via a migration).
+5. **Prod smoke test with your account:** the migrations are already live, so sign in at https://findyourself-mu.vercel.app after the push deploys and open /today.
+
+**Decisions I made for you (change any):**
+- A diary day counts with **text or a mood** (a mood-only check-in keeps a streak).
+- A back-dated diary entry counts for its own day, so writing yesterday's entry this morning repairs yesterday (a person could also fabricate old rows for themselves; accepted for a personal motivator). Future days never count.
+- The focus goal is a **profile setting** (follows you across devices), default 2 h.
+- Rings and the wins card live on /today because there is no dashboard route yet (the ROADMAP's word); a separate home page is a Stage 2 question.
+- No grace day (your rule A). If it feels harsh in practice, the change is local: `private.refresh_streak` would count a single missing day as bridged once per week.
+
+**Known follow-ups (not blockers):**
+- The favicon 404 and the top bar's hard-coded "Sep 14 – 20, 2026" are still there (from before).
+- Time-zone editing UI (US-8.2) does not exist: the zone follows the browser automatically; a manual override is part of the Settings sweep.
+- `saveTimeZone` has no live test with an unknown zone (a browser cannot produce one); unit tests and the database trigger cover it.
+- Delete-account (Phase 9) must keep removing `{user_id}/` from the `music` bucket (Phase 7 note); the new columns need nothing extra.
+- The `fy-now` cookie is a development-only hook (documented in `lib/nowOverride.ts`); remove it if you prefer no test hooks in the repo.
+
+**Next:** the remaining core work before Minh's manual test: Phase 9's functional items (guest demo mode, privacy note, empty states, error boundaries, delete-account) and the sweep of inert controls (view switcher, sidebar Create / mini-month, Search, Settings, categories / timezone editing, the top bar's hard-coded date), then Stage 2 (Figma), unless Minh's feedback on Phases 6-8 asks for changes first.
+
+**Blocked on:** nothing.
+
+---
+
 <!-- New entries append below with date + session number -->

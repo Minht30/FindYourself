@@ -163,11 +163,15 @@ export default async function TodayPage({ searchParams }: Props) {
       </div>
 
       <WinsClock timeZone={timeZone} open={winsOpen} />
+      {/* Plain placement for now (the real layout is the Figma stage): the quote and the
+          streak share a row on wide screens so the timetable below stays in reach. */}
       <div className="mt-4 flex flex-col gap-3">
         {wins ? <WeeklyWinsCard wins={wins} /> : null}
         <ProgressRings rings={rings} goalMinutes={goalMinutes} />
-        <QuoteCard quote={quote} />
-        <StreakChip view={streak} />
+        <div className="grid gap-3 lg:grid-cols-2">
+          <QuoteCard quote={quote} />
+          <StreakChip view={streak} />
+        </div>
       </div>
 
       <WeekGrid

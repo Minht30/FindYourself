@@ -5,6 +5,8 @@ import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
 import TimeZoneSync from "@/components/layout/TimeZoneSync";
+import DemoBanner from "@/components/demo/DemoBanner";
+import { isGuest } from "@/lib/demo";
 import MiniPlayer from "@/components/music/MiniPlayer";
 import MusicProvider from "@/components/music/MusicProvider";
 import { TRACK_COLUMNS, toPlaylist, toTrack } from "@/lib/music/types";
@@ -17,6 +19,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // `ambient_layers`. If the read fails for any reason the built-in list is
   // used, so the mixer never disappears over a database hiccup.
   const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const guest = isGuest(user);
   const [layers, saved, music, lists, profile, cats] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
@@ -65,6 +71,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               }
             />
           </Suspense>
+          {guest ? <DemoBanner /> : null}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-0">
             <Sidebar categories={cats.data ?? []} />
             <main className="overflow-auto p-6">{children}</main>

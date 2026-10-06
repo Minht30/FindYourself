@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import DeletedNotice from "@/components/settings/DeletedNotice";
+import TryDemoButton from "@/components/demo/TryDemoButton";
 
 export default function LandingPage() {
   return (
@@ -34,6 +35,9 @@ export default function LandingPage() {
           >
             Sign in
           </Link>
+        </div>
+        <div className="mt-4">
+          <TryDemoButton />
         </div>
         <p className="mt-12 font-ui text-sm text-ink-muted">
           <Link href="/privacy" className="underline underline-offset-4 hover:no-underline">

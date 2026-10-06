@@ -232,6 +232,10 @@ Seeded with 120 original lines. RLS: select for `authenticated` only; **no inser
 
 RLS: select for `authenticated` only; **no insert / update / delete policy** and the write privileges are revoked from `anon` and `authenticated`, so only migrations change it. Seeded: rain, fire, keyboard, cafe, piano.
 
+## Guest demo (Phase 9, Session 59)
+
+No new tables. A guest is an `auth.users` row with `is_anonymous = true` (no email); `handle_new_user` gives it a profile and the five default categories like anyone else. `public.seed_demo(p_today date, p_tz text)` (SECURITY INVOKER, authenticated only) fills a fresh guest account with sample rows relative to the visitor's own day; it refuses non-guests, bad dates / zones and accounts that already have data. `private.is_anonymous()` reads the token; with it the storage upload policy, `music_tracks` insert and `track_suggestions` insert refuse guests. A trigger on `auth.users` caps live guests at 300 (`demo_full`). `private.purge_demo_users(age)` deletes guests older than `age` (minimum 1 hour; cascade removes everything they made) and is run hourly by pg_cron (`purge-demo-users`).
+
 ## Storage buckets
 
 | bucket | access | contents |

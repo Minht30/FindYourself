@@ -19,8 +19,9 @@ Acceptance criteria in Given/When/Then.
 **As a** portfolio reviewer, **I want to** click "Try demo", **so that** I can see the app populated without signing up.
 
 **Acceptance:**
-- Given the landing page, when I click "Try demo", then I am signed in as a read-only demo user with pre-seeded timetable, tasks, and diary entries.
-- Given demo mode, when I try to save changes, then a toast appears: "Sign up to save your own version."
+- Given the landing page, when I click "Try the demo", then I am signed in to my own temporary guest account with a pre-seeded week of timetable blocks, tasks, diary entries and focus sessions (nothing is shared with other visitors).
+- Given the demo, then I can change anything, except uploading music and suggesting tracks (those need an account), and a banner says the demo is deleted after 24 hours and offers "Create an account to keep it"; creating one keeps my data once I confirm my email.
+- Given the demo is unavailable or full, then I am told so in words and offered to create an account instead.
 
 ---
 

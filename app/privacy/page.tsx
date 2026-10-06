@@ -60,6 +60,13 @@ export default function PrivacyPage() {
           shown to anyone else.
         </p>
 
+        <H2>The demo</H2>
+        <p>
+          &ldquo;Try the demo&rdquo; makes a temporary guest account with sample data and no email address. It is deleted automatically
+          after 24 hours, and guests cannot upload music or send track suggestions. If you create an account from the
+          demo, your demo data becomes your account.
+        </p>
+
         <H2>Where it lives</H2>
         <p>
           Your data is kept with Supabase (a hosted database and file storage service), and the site itself is served by

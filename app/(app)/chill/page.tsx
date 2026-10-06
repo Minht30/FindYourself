@@ -2,6 +2,8 @@ import MixerPanel from "@/components/mixer/MixerPanel";
 import MusicLibrary from "@/components/music/MusicLibrary";
 import { AdminReview, CommunityPicks, type CommunityPick, type PendingSuggestion } from "@/components/music/Picks";
 import Playlists from "@/components/music/Playlists";
+import GuestMusicNote from "@/components/music/GuestMusicNote";
+import { isGuest } from "@/lib/demo";
 import Suggestions, { type MySuggestion } from "@/components/music/Suggestions";
 import ChillStage from "@/components/scene/ChillStage";
 import { createClient } from "@/lib/supabase/server";
@@ -16,6 +18,8 @@ export default async function ChillPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const guest = isGuest(user);
 
   // Am I an admin? A user can read only their own row of `admins`.
   const { data: adminRow } = user ? await supabase.from("admins").select("user_id").maybeSingle() : { data: null };
@@ -61,10 +65,16 @@ export default async function ChillPage() {
       </header>
       <ChillStage />
       <MixerPanel />
-      <MusicLibrary />
-      <Playlists />
+      {guest ? (
+        <GuestMusicNote />
+      ) : (
+        <>
+          <MusicLibrary />
+          <Playlists />
+        </>
+      )}
       <CommunityPicks picks={picks.data ?? []} isAdmin={isAdmin} />
-      <Suggestions mine={mine.data ?? []} />
+      {guest ? null : <Suggestions mine={mine.data ?? []} />}
       {isAdmin && <AdminReview pending={pending.data ?? []} />}
     </div>
   );

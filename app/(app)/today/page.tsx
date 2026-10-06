@@ -6,10 +6,14 @@ import CopyYesterdayButton from "@/components/timetable/CopyYesterdayButton";
 import { TasksShell, TasksToggle, DRAWER_COOKIE } from "@/components/tasks/TasksShell";
 import TaskBoard from "@/components/tasks/TaskBoard";
 import { TASK_COLUMNS, type TaskDTO } from "@/lib/tasks";
-import { getUserTimeZone } from "@/lib/today";
+import { getNow, getUserTimeZone } from "@/lib/today";
 import { STREAK_COLUMNS, streakView, toStoredStreak } from "@/lib/streak";
 import StreakChip from "@/components/motivation/StreakChip";
 import QuoteCard from "@/components/motivation/QuoteCard";
+import WeeklyWinsCard from "@/components/motivation/WeeklyWinsCard";
+import WinsClock from "@/components/motivation/WinsClock";
+import { winsWindowOpen } from "@/lib/wins";
+import { loadWeekWins } from "@/lib/winsData";
 import { QUOTE_COLUMNS, quoteForDate, toQuote } from "@/lib/quotes";
 import {
   addDays,
@@ -39,7 +43,8 @@ export default async function TodayPage({ searchParams }: Props) {
 
   // "Done today" = completed between the user's local midnights.
   const timeZone = getUserTimeZone();
-  const today = todayInTimeZone(timeZone);
+  const now = getNow();
+  const today = todayInTimeZone(timeZone, now);
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
 
@@ -75,6 +80,11 @@ export default async function TodayPage({ searchParams }: Props) {
     (quoteRows ?? []).map(toQuote).filter((q): q is NonNullable<typeof q> => q !== null),
   );
   const streak = streakView(toStoredStreak(profile), today);
+
+  // "Your week" opens on Sunday at 18:00 where the person is; WinsClock asks
+  // for a fresh render if the page is left open across that moment.
+  const winsOpen = winsWindowOpen(now.getTime(), timeZone);
+  const wins = winsOpen ? await loadWeekWins(supabase, user.id, today, timeZone, streak) : null;
   const tasks = openTasks ?? [];
   // Drawer defaults to open; the cookie remembers a user who closed it.
   const drawerOpen = cookies().get(DRAWER_COOKIE)?.value !== "0";
@@ -125,7 +135,9 @@ export default async function TodayPage({ searchParams }: Props) {
         </div>
       </div>
 
+      <WinsClock timeZone={timeZone} open={winsOpen} />
       <div className="mt-4 flex flex-col gap-3">
+        {wins ? <WeeklyWinsCard wins={wins} /> : null}
         <QuoteCard quote={quote} />
         <StreakChip view={streak} />
       </div>

@@ -157,7 +157,8 @@ Acceptance criteria in Given/When/Then.
 
 ### US-7.3 Weekly wins
 **Acceptance:**
-- Given it is Sunday after 18:00 local, when I open the dashboard, then a "Your week" card summarizes tasks done, focus hours, diary entries.
+- Given it is Sunday from 18:00 local (my own zone), when I open /today (there is no separate dashboard yet), then a "Your week" card summarizes my local Monday-Sunday week: focus time, tasks finished, diary days (of 7) and my streak, in a warm sentence (a quiet week is allowed to be quiet).
+- Given I left /today open since the afternoon, when it becomes Sunday 18:00, then the card appears without a manual reload.
 
 ---
 

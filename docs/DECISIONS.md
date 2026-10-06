@@ -1458,4 +1458,25 @@ Six boxes, six commits (Sessions 40-45): the music bucket + `music_tracks` + upl
 
 ---
 
+## 2026-10-06 — Session 48: The weekly wins card (Phase 8, Box 3)
+
+**What landed:**
+- **When (`lib/wins.ts`, pure):** `winsWindowOpen(nowMs, zone)` is true from **Sunday 18:00 to Monday 00:00 in the person's own zone** (18:00 on Sunday in Auckland is still Sunday morning in Toronto). `msUntilWinsWindow` gives the wait until the next opening, computed from the *wall clock* (new `zonedInstantUTC` in `lib/dates.ts`), not "midnight + 18 hours": Sunday is the usual clock-change day, so the two differ (31 hours from Saturday noon to Sunday 18:00 across New York's fall-back).
+- **What (`lib/winsData.ts`):** for the local Monday-Sunday week (reusing the Focus tile's `weekBounds` / `summarizeWeek`, so the two screens agree): focus time and sessions, tasks completed (count by `completed_at` in the week), **diary days** (a date with text or a mood, once each: the same rule as the streak) and the current streak (`streakView`, so the card and the Streak card never disagree). Warm headline (`winsHeadline`): a quiet week says "A quiet week. Rest counts too" and never grades.
+- **Card on /today** (`WeeklyWinsCard`, plain): "Your week", the date range, the sentence, and four stats (Focus, Tasks done, Diary days "N of 7", Streak). Decided on the server from the zone cookie; `WinsClock` (renders nothing) asks for a fresh render when Sunday 18:00 arrives in a tab left open (a timer, plus a check when the tab wakes), and does nothing if the card is already showing.
+- **A dev-only test hook, `fy-now` cookie** (`lib/nowOverride.ts`, `getNow()` in `lib/today.ts`): in development a cookie holding an ISO instant replaces the server clock for /today, so "Sunday evening" can be tested on a Tuesday. `parseNowOverride` returns null whenever `NODE_ENV` is `production` (unit-tested), so it does nothing on prod. Only /today's `now` / `today` use it; server actions and other pages keep the real clock.
+
+**Verified (signed in, localhost, with seeded FYTEST rows just inside and just outside the week):**
+- **Counts (Toronto, week Oct 5-11):** tasks completed Mon 11:00, Wed, Fri, **Sun 22:00 local** (in) and Mon 01:00 local and the Sunday before 23:00 local (out) -> **4**; diary rows with text on Oct 5, a mood-only row Oct 7 (in), an **empty row** Oct 9, and rows on Oct 4 and Oct 12 (out) -> **2 of 7**; focus sessions of 25 min and 10 min (stopped early) inside, plus two outside -> **35m**, headline "4 tasks finished, 35m of focus and 2 days in the diary. That is a real week.", range "Oct 5 – Oct 11", streak line "Starts again with one small thing" (the stored run ended Oct 5). Identical on **three loads, zero console errors or warnings**.
+- **The window, live:** no override (a Tuesday) -> no card; Toronto Sunday **17:59 -> no card, 18:00 -> card**; Monday 00:00 -> no card; Hanoi Sunday 17:59 -> no card, 18:00 -> card (the same instant that is Sunday 07:00 in Toronto).
+- **A tab left open:** with the browser clock faked to Sunday 17:59:30 the page showed no card; when the timer fired exactly one server render was requested and the card appeared, no errors.
+- **Unit (`wins.test.ts` 16, `nowOverride.test.ts` 3):** the window on the minute at both edges; every other weekday closed at four hours of the day; Hanoi, Pago Pago (UTC-11) and Kiritimati (UTC+14); both clock-change Sundays in New York; the countdown (30 h, 1 h, null while open, 150 h from Monday, 31 h across a 25-hour day); **a 400-instant property test over seven zones (Lord Howe's half-hour DST included): the countdown always lands on the first millisecond the window is open**; diary counting; clamping; the copy; week labels across month and year ends; the override is off in production and refuses anything that is not a full ISO instant.
+- `typecheck` + `lint` + `test` (**639**, +19) green.
+
+**Not covered:** the card's look (Stage 2); a real Sunday evening (Minh); whether `WinsClock`'s timer survives a laptop sleeping through 18:00 (the wake-up check covers it in principle; browsers throttle timers, nothing automated can prove a real sleep); the override's absence from a production build is by its guard and test, to be seen once in the end-of-phase build.
+
+**Next — Box 4:** the progress rings.
+
+---
+
 <!-- New entries append below with date + session number -->

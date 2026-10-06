@@ -163,3 +163,14 @@ export function zonedDayStartUTC(iso: string, timeZone: string): Date {
   guess = wall - zoneOffsetMs(guess, timeZone);
   return new Date(guess);
 }
+
+// The UTC instant at which the wall clock in `timeZone` reads `hour`:00 on
+// calendar day `iso`. Not midnight + hour hours: on a DST-change day (often a
+// Sunday) those differ. Same two-pass offset check as zonedDayStartUTC.
+export function zonedInstantUTC(iso: string, hour: number, timeZone: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  const wall = Date.UTC(y, m - 1, d, hour);
+  let guess = wall - zoneOffsetMs(wall, timeZone);
+  guess = wall - zoneOffsetMs(guess, timeZone);
+  return new Date(guess);
+}

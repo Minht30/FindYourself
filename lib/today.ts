@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { todayInTimeZone } from "@/lib/dates";
+import { NOW_COOKIE, parseNowOverride } from "@/lib/nowOverride";
 
 // The server runs in UTC, but "today" belongs to the user. The root layout's
 // inline script writes the browser's IANA zone into the `fy-tz` cookie, so
@@ -24,4 +25,11 @@ export function getUserTimeZone(): string {
 
 export function getUserToday(): string {
   return todayInTimeZone(getUserTimeZone());
+}
+
+// The server's idea of "now". Always the real clock in production; in
+// development a `fy-now` cookie can pretend it is another moment (see
+// lib/nowOverride.ts), which is how a Sunday-evening feature gets tested.
+export function getNow(): Date {
+  return parseNowOverride(cookies().get(NOW_COOKIE)?.value, process.env.NODE_ENV) ?? new Date();
 }

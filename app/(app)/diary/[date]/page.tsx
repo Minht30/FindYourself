@@ -110,9 +110,9 @@ export default async function DiaryDayPage({ params }: Props) {
           <FutureDay />
         ) : (
           <div className="space-y-5">
-            <MoodPicker key={date} date={date} initialMood={entry?.mood ?? null} />
+            <MoodPicker key={`mood-${date}`} date={date} initialMood={entry?.mood ?? null} />
             <DiaryEditor
-              key={date}
+              key={`editor-${date}`}
               date={date}
               initialContent={toEditorContent(entry)}
               initialText={entry?.content_text ?? ""}

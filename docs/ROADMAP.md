@@ -119,7 +119,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 **Limits (Minh, 2026-10-05):** MP3 only, **at most 10 tracks** per user (10 MB per file, 50 MB in total).
 
-**Exit criteria:** author uploads 5 tracks, submits one suggestion, plays music across pages. *(Kickoff for the next chat: `docs/PHASE7_KICKOFF.md`.)*
+**Exit criteria:** author uploads 5 tracks, submits one suggestion, plays music across pages. *(All boxes built 2026-10-06 and the criterion verified end to end headlessly on a clean account; how real music sounds and feels is Minh's to judge, see the Phase 7 summary in `docs/DECISIONS.md`.)*
 
 ---
 

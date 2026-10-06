@@ -1,5 +1,7 @@
 # Phase 7 kickoff — Music: upload, player, suggestions
 
+> **Done (2026-10-06): all six boxes are built and verified. See `docs/DECISIONS.md`, Sessions 40-45 and the "Phase 7 summary". This file is kept as the plan that was followed.**
+
 **For the next chat.** Read this, then `docs/DECISIONS.md` (tail: Sessions 33-38), `docs/ROADMAP.md` (Phase 7 + Stage 2) and `docs/ERD.md` (`music_tracks`, playlists, `track_suggestions`). Exit criterion: *upload 5 tracks, submit one suggestion, play music across pages.*
 
 **Limits set by Minh (2026-10-05): MP3 only, at most 10 tracks per user.** The per-file and total sizes below (10 MB each, 50 MB in total) are my proposal on top of that, so confirm them in section 1. Docs already say 10 (PRD, ERD, ARCHITECTURE, USER_STORIES, ROADMAP).

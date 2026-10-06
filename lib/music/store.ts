@@ -8,8 +8,9 @@ import { getAudio, getEngine } from "./player";
 import * as Q from "./queue";
 import type { Playlist } from "./playlist";
 
-// Where the queue came from: the whole library, or one playlist.
-export type Source = { kind: "library" } | { kind: "playlist"; id: string };
+// Where the queue came from: the whole library, one playlist, or one track
+// (what "music for my focus sessions" can be set to).
+export type Source = { kind: "library" } | { kind: "playlist"; id: string } | { kind: "track"; id: string };
 export const LIBRARY: Source = { kind: "library" };
 
 export const DEFAULT_VOLUME = 0.7;
@@ -24,6 +25,10 @@ type MusicStore = {
   // track change, so a reload opens on the same spot (paused)
   position: number;
 
+  // The library as last synced (not persisted): lets code outside React, such as
+  // the focus-session music, resolve "this playlist" to track ids.
+  library: { trackIds: string[]; playlists: { id: string; trackIds: string[] }[] };
+
   // Never persisted: the player only ever starts from a click, so a reload
   // (or a new tab) always opens silent.
   playing: boolean;
@@ -31,8 +36,9 @@ type MusicStore = {
   problem: Problem | null;
   hydrated: boolean;
 
-  // Start `ids` from `startId`. Called from a click.
-  playList: (ids: readonly string[], startId?: string | null, source?: Source) => void;
+  // Start `ids` from `startId`, optionally setting the repeat mode (focus music
+  // loops, so it lasts the whole session). Called from a click.
+  playList: (ids: readonly string[], startId?: string | null, source?: Source, repeat?: Q.Repeat) => void;
   togglePlay: () => void;
   pause: () => void;
   next: () => void;
@@ -97,14 +103,16 @@ export const useMusicStore = create<MusicStore>()(
         volume: DEFAULT_VOLUME,
         muted: false,
         position: 0,
+        library: { trackIds: [], playlists: [] },
         playing: false,
         loading: false,
         problem: null,
         hydrated: false,
 
-        playList: (ids, startId, source = LIBRARY) => {
+        playList: (ids, startId, source = LIBRARY, repeat) => {
           set({ source });
-          run(Q.playFrom(get().queue, ids, startId, newSeed()));
+          const queue = repeat ? Q.setRepeat(get().queue, repeat).state : get().queue;
+          run(Q.playFrom(queue, ids, startId, newSeed()));
         },
 
         togglePlay: () => {
@@ -155,9 +163,14 @@ export const useMusicStore = create<MusicStore>()(
         syncLibrary: (trackIds, playlists) => {
           const s = get();
           const valid = new Set(trackIds);
+          set({
+            library: { trackIds: [...trackIds], playlists: playlists.map((p) => ({ id: p.id, trackIds: [...p.trackIds] })) },
+          });
           let source = s.source;
           let base: readonly string[] = trackIds;
-          if (source.kind === "playlist") {
+          if (source.kind === "track") {
+            base = [source.id];
+          } else if (source.kind === "playlist") {
             const wanted = source.id;
             const p = playlists.find((x) => x.id === wanted);
             if (p) base = p.trackIds;
@@ -209,7 +222,8 @@ export const useMusicStore = create<MusicStore>()(
       merge: (persisted, current) => {
         const p = (persisted && typeof persisted === "object" ? persisted : {}) as Record<string, unknown>;
         const src = (p.source && typeof p.source === "object" ? p.source : {}) as Record<string, unknown>;
-        const source: Source = src.kind === "playlist" && typeof src.id === "string" ? { kind: "playlist", id: src.id } : LIBRARY;
+        const source: Source =
+          (src.kind === "playlist" || src.kind === "track") && typeof src.id === "string" ? { kind: src.kind, id: src.id } : LIBRARY;
         return {
           ...current,
           queue: Q.sanitizeQueue(p.queue),

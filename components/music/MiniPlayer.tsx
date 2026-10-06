@@ -36,7 +36,12 @@ export default function MiniPlayer() {
   // The current track was just deleted: the queue moves on in a moment. Until
   // then show nothing, rather than flashing the "Play my music" prompt.
   if (currentId && !current) return null;
-  const sourceName = source.kind === "playlist" ? (playlists.find((p) => p.id === source.id)?.name ?? "Your library") : "Your library";
+  const sourceName =
+    source.kind === "playlist"
+      ? (playlists.find((p) => p.id === source.id)?.name ?? "Your library")
+      : source.kind === "track"
+        ? "One track"
+        : "Your library";
   const known = Number.isFinite(duration) && duration > 0 ? duration : (current?.durationSeconds ?? 0);
   const at = Math.min(Math.floor(position), Math.floor(known));
   const vol = Math.round(volume * 100);

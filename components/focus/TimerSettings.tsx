@@ -2,6 +2,9 @@
 
 import { useEffect, useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useMusic } from "@/components/music/MusicProvider";
+import { resolveChoice, type FocusMusicChoice } from "@/lib/focus/music";
+import { useFocusMusicStore } from "@/lib/focus/musicStore";
 import { notifyState, requestNotifications } from "@/lib/focus/notify";
 import { useFocusStore } from "@/lib/focus/store";
 import { LIMITS, type Settings } from "@/lib/focus/timer";
@@ -66,6 +69,8 @@ export default function TimerSettings() {
             </span>
           </label>
 
+          <FocusMusic />
+
           <Toggle label="Soft chime when a session ends" checked={settings.chime} onChange={(chime) => setSettings({ chime })} />
           {settings.chime && (
             <label className="flex items-center justify-between gap-3 -mt-2">
@@ -107,6 +112,77 @@ export default function TimerSettings() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+// What plays while a focus session runs: nothing, the ambient mix, one of your
+// tracks or a playlist. Remembered on this device. It starts when you press Start
+// (never when a page opens) and, by default, pauses on breaks.
+const encode = (c: FocusMusicChoice) => (c.kind === "track" || c.kind === "playlist" ? `${c.kind}:${c.id}` : c.kind);
+function decode(v: string): FocusMusicChoice {
+  if (v === "ambient") return { kind: "ambient" };
+  const [kind, ...rest] = v.split(":");
+  const id = rest.join(":");
+  if ((kind === "track" || kind === "playlist") && id) return { kind, id };
+  return { kind: "none" };
+}
+
+function FocusMusic() {
+  const { tracks, playlists } = useMusic();
+  const choice = useFocusMusicStore((s) => s.settings.choice);
+  const pauseOnBreaks = useFocusMusicStore((s) => s.settings.pauseOnBreaks);
+  const setChoice = useFocusMusicStore((s) => s.setChoice);
+  const setPauseOnBreaks = useFocusMusicStore((s) => s.setPauseOnBreaks);
+  const id = useId();
+  const resolved = resolveChoice(choice, { trackIds: tracks.map((t) => t.id), playlists });
+  const missing = resolved.kind === "missing";
+
+  return (
+    <div className="grid gap-3" data-testid="focus-music">
+      <label htmlFor={id} className="grid gap-1.5">
+        <span className="text-ink-primary">Music during focus sessions</span>
+        <select
+          id={id}
+          data-testid="focus-music-select"
+          value={encode(choice)}
+          onChange={(e) => setChoice(decode(e.target.value))}
+          className="rounded-lg border border-[var(--border-strong)] bg-bg-base px-2 py-1.5 text-ink-primary"
+        >
+          <option value="none">Nothing</option>
+          <option value="ambient">Ambient sound only</option>
+          {playlists.length > 0 && (
+            <optgroup label="Playlists">
+              {playlists.map((p) => (
+                <option key={p.id} value={`playlist:${p.id}`}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {tracks.length > 0 && (
+            <optgroup label="Tracks">
+              {tracks.map((t) => (
+                <option key={t.id} value={`track:${t.id}`}>
+                  {t.title}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {missing && <option value={encode(choice)}>(no longer available)</option>}
+        </select>
+      </label>
+      {missing && (
+        <p role="status" data-testid="focus-music-missing" className="text-[12px] text-[var(--danger)] -mt-1">
+          {choice.kind === "playlist" ? "That playlist is gone or empty" : "That track is gone"}, so no music will play. Pick another.
+        </p>
+      )}
+      {choice.kind !== "none" && (
+        <Toggle label="Pause it on breaks" checked={pauseOnBreaks} onChange={setPauseOnBreaks} />
+      )}
+      <p className="text-[12px] text-ink-muted -mt-1">
+        It starts when you press Start, never when a page opens. Remembered on this device.
+      </p>
     </div>
   );
 }

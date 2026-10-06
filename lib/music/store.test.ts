@@ -32,6 +32,7 @@ const reset = () => {
     volume: 0.7,
     muted: false,
     position: 0,
+    library: { trackIds: [], playlists: [] },
     playing: false,
     loading: false,
     problem: null,
@@ -66,6 +67,43 @@ describe("starting", () => {
   it("remembers where the queue came from", () => {
     S().playList(["x", "y"], "y", { kind: "playlist", id: "p1" });
     expect(S().source).toEqual({ kind: "playlist", id: "p1" });
+  });
+});
+
+describe("focus-session music support", () => {
+  it("playList can set the repeat mode (a playlist loops as a whole, a track on its own)", () => {
+    S().playList(["a", "b"], null, { kind: "playlist", id: "p" }, "all");
+    expect(S().queue.repeat).toBe("all");
+    S().playList(["c"], "c", { kind: "track", id: "c" }, "one");
+    expect(S().queue.repeat).toBe("one");
+    expect(S().queue.current).toBe("c");
+  });
+  it("without a repeat argument the existing mode is kept", () => {
+    S().playList(lib, "a", LIBRARY, "all");
+    S().playList(lib, "b");
+    expect(S().queue.repeat).toBe("all");
+  });
+  it("a single-track source is not widened to the whole library by a sync", () => {
+    S().playList(["c"], "c", { kind: "track", id: "c" }, "one");
+    S().syncLibrary(lib, []);
+    expect(S().queue.order).toEqual(["c"]);
+    expect(S().source).toEqual({ kind: "track", id: "c" });
+  });
+  it("a single-track source whose track is deleted empties the queue", () => {
+    S().playList(["c"], "c", { kind: "track", id: "c" }, "one");
+    useMusicStore.setState({ playing: true });
+    S().syncLibrary(["a", "b", "d"], []);
+    expect(S().queue.current).toBeNull();
+    expect(engine.unload).toHaveBeenCalled();
+  });
+  it("remembers the library snapshot for code outside React", () => {
+    S().syncLibrary(lib, [{ id: "p1", name: "P", trackIds: ["b", "a"] }]);
+    expect(S().library).toEqual({ trackIds: lib, playlists: [{ id: "p1", trackIds: ["b", "a"] }] });
+  });
+  it("a stored track source comes back, an unknown kind does not", () => {
+    const merge = useMusicStore.persist.getOptions().merge!;
+    expect((merge({ source: { kind: "track", id: "t1" } }, S()) as ReturnType<typeof S>).source).toEqual({ kind: "track", id: "t1" });
+    expect((merge({ source: { kind: "weird", id: "t1" } }, S()) as ReturnType<typeof S>).source).toEqual(LIBRARY);
   });
 });
 

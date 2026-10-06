@@ -112,7 +112,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] `music_tracks` table + upload — signed upload URL, server verifies the stored object (real size, first bytes), orphan cleanup, rename / delete (a plain file chooser; drag-and-drop is a design-stage nicety)
 - [x] Client-side size/quota check — plus the same checks again in the server action, the trigger and the bucket, each refusing by a named reason
 - [x] Playlist model + reorder — `playlists` + `playlist_tracks` (own-track check, 20-playlist cap, atomic add / reorder functions), up / down buttons, pure seeded `shuffle`
-- [ ] **Choose music for focus sessions** (Minh, 2026-10-05): pick what plays when a session starts / inside Focus Mode (uploaded tracks, community picks, or the ambient mix); remember the choice
+- [x] **Choose music for focus sessions** (Minh, 2026-10-05) — picker in Timer settings (nothing / ambient only / a playlist / a track), remembered per device, starts on the Start click, pauses on breaks (a setting); community picks are external links so they cannot play in the app
 - [x] Mini-player (persistent, cross-page) — one audio element outside React, pure queue state machine (shuffle / repeat / remove-while-playing), signed-URL refresh, Media Session, independent music volume, never autoplays
 - [ ] `track_suggestions` table + form
 - [ ] "Community picks" list (admin-curated)

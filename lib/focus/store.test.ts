@@ -177,3 +177,71 @@ describe("settings", () => {
     expect(saved.state.settings).toMatchObject({ chime: false, shortMin: 7 });
   });
 });
+
+describe("the timer hook (what focus-session music listens to)", () => {
+  type Call = { prev: string; next: string; cause: string };
+  const calls: Call[] = [];
+  const label = (t: TimerState) => `${t.phase}:${t.status}`;
+
+  beforeEach(async () => {
+    calls.length = 0;
+    const { setTimerHook } = await import("./store");
+    setTimerHook((prev, next, cause) => calls.push({ prev: label(prev), next: label(next), cause }));
+  });
+
+  it("is told about a click: start, pause, resume, reset, as `user`", () => {
+    store().startOrResume();
+    store().pause();
+    store().startOrResume();
+    store().reset();
+    expect(calls.map((c) => `${c.prev} -> ${c.next} (${c.cause})`)).toEqual([
+      "focus:idle -> focus:running (user)",
+      "focus:running -> focus:paused (user)",
+      "focus:paused -> focus:running (user)",
+      "focus:running -> focus:idle (user)",
+    ]);
+  });
+
+  it("is told about the deadline passing as `tick`, with the break the timer moved to", () => {
+    store().startOrResume();
+    calls.length = 0;
+    const endsAt = store().timer.endsAt as number;
+    store().tick(endsAt + 100);
+    expect(calls).toEqual([{ prev: "focus:running", next: "short:idle", cause: "tick" }]);
+  });
+
+  it("an auto-started next phase is one `tick` move into a running break", () => {
+    store().setSettings({ autoStart: true });
+    store().startOrResume();
+    calls.length = 0;
+    store().tick((store().timer.endsAt as number) + 100);
+    expect(calls).toEqual([{ prev: "focus:running", next: "short:running", cause: "tick" }]);
+  });
+
+  it("is not told about anything on a ticks that change nothing, on settings, or on restoring a saved timer", async () => {
+    store().tick(Date.now());
+    store().setSettings({ chime: false });
+    expect(calls).toEqual([]);
+    const running: TimerState = { ...initialState(DEFAULT_SETTINGS), status: "running", sessionId: "s1", startedAt: Date.now(), endsAt: Date.now() + 10 * MIN };
+    persisted(running);
+    await reload();
+    expect(store().timer.status).toBe("running");
+    expect(calls).toEqual([]); // a page load that finds a running timer must not look like "the user started it"
+  });
+
+  it("a timer that finished while the page was closed settles quietly as `tick` (never a start)", () => {
+    store().startOrResume();
+    calls.length = 0;
+    store().tick((store().timer.endsAt as number) + 60 * MIN, { away: true });
+    expect(calls).toHaveLength(1);
+    expect(calls[0].cause).toBe("tick");
+    expect(calls[0].next).toBe("short:idle");
+  });
+
+  it("can be removed", async () => {
+    const { setTimerHook } = await import("./store");
+    setTimerHook(null);
+    store().startOrResume();
+    expect(calls).toEqual([]);
+  });
+});

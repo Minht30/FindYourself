@@ -41,12 +41,24 @@ type FocusStore = {
 
 const newId = () => crypto.randomUUID();
 
+// Something outside the timer (the music for focus sessions) wants to know when
+// the timer moves, and whether a person did it (a click, a key) or the clock did.
+// It is told only about moves: restoring a saved timer on page load is not one,
+// so nothing can start by itself when a page opens.
+export type TimerCause = "user" | "tick";
+type TimerHook = (prev: T.TimerState, next: T.TimerState, cause: TimerCause) => void;
+let timerHook: TimerHook | null = null;
+export function setTimerHook(hook: TimerHook | null) {
+  timerHook = hook;
+}
+
 export const useFocusStore = create<FocusStore>()(
   persist(
     (set, get) => {
       // Applies a transition, hands any finished/abandoned focus session to the
       // outbox, and tells the UI a phase ended.
-      const apply = (t: T.Transition, away = false, at = Date.now()) => {
+      const apply = (t: T.Transition, cause: TimerCause, away = false, at = Date.now()) => {
+        const prev = get().timer;
         if (t.record) enqueueSession(t.record);
         set((s) => ({
           timer: t.state,
@@ -54,6 +66,7 @@ export const useFocusStore = create<FocusStore>()(
             ? { seq: (s.lastFinished?.seq ?? 0) + 1, phase: t.finished, at, away, record: t.record }
             : s.lastFinished,
         }));
+        timerHook?.(prev, t.state, cause);
       };
 
       const initialSettings = T.DEFAULT_SETTINGS;
@@ -64,15 +77,23 @@ export const useFocusStore = create<FocusStore>()(
         lastFinished: null,
         focusMode: false,
 
-        startOrResume: () => set((s) => ({ timer: T.start(s.timer, Date.now(), newId) })),
-        pause: () => set((s) => ({ timer: T.pause(s.timer, Date.now()) })),
+        startOrResume: () => {
+          const prev = get().timer;
+          set((s) => ({ timer: T.start(s.timer, Date.now(), newId) }));
+          timerHook?.(prev, get().timer, "user");
+        },
+        pause: () => {
+          const prev = get().timer;
+          set((s) => ({ timer: T.pause(s.timer, Date.now()) }));
+          timerHook?.(prev, get().timer, "user");
+        },
         reset: () => {
           const { timer, settings } = get();
-          apply(T.reset(timer, Date.now(), settings));
+          apply(T.reset(timer, Date.now(), settings), "user");
         },
         skip: () => {
           const { timer, settings } = get();
-          apply(T.skip(timer, Date.now(), settings, settings.autoStart, newId));
+          apply(T.skip(timer, Date.now(), settings, settings.autoStart, newId), "user");
         },
         tick: (now, opts) => {
           const { timer, settings } = get();
@@ -83,7 +104,7 @@ export const useFocusStore = create<FocusStore>()(
           const t = away
             ? T.complete(timer, timer.endsAt, settings, false, newId)
             : T.complete(timer, timer.endsAt, settings, settings.autoStart, newId);
-          apply(t, away, timer.endsAt);
+          apply(t, "tick", away, timer.endsAt);
         },
         setSettings: (patch) =>
           set((s) => {

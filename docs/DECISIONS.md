@@ -1313,4 +1313,30 @@ No application code changed this session.
 
 ---
 
+## 2026-10-06 — Session 43: Music for focus sessions (Phase 7, Box 4)
+
+**What landed:**
+- **The choice** (`lib/focus/music.ts` pure, `musicStore.ts` persisted as `fy-focus-music`, per device in localStorage as Minh decided): *Nothing*, *Ambient sound only*, *a playlist*, or *a track*, plus "Pause it on breaks" (default on). Picker in **Timer settings** on /focus (an `optgroup` for playlists and one for tracks). A choice whose track or playlist has since been deleted (or a playlist that is now empty) shows as "(no longer available)" with a note, and starts nothing. *Community picks are not offered: they are external links and cannot play in the app (the ROADMAP line is amended).*
+- **The one rule** (`wantsMusic`, `musicStep`): music is wanted while a timer is running, and on a break only if the person asked for it to carry on; a paused or idle timer wants none. A step is `start` when that flips on and `stop` when it flips off, so the same answer comes out whichever way the timer got there (Start, Pause, Resume, Reset, Skip, the deadline, an auto-started phase). Playing means *resume the same queue if it is already the chosen one*, else start it fresh; a track loops on its own (repeat one) and a playlist loops as a whole (repeat all), so music lasts the whole session. `stop` is a pause, never a rewind. An ambient choice starts / pauses the ambient mixer the same way and never touches the music player.
+- **Hooked in without touching the timer's state machine** (`lib/focus/timer.ts` is unchanged): the focus store tells an optional hook about each *move* of the timer and whether a person (`user`) or the clock (`tick`) caused it, from inside the click that caused it (that click is the gesture browsers need). **Restoring a saved timer on page load is not a move**, so nothing can start by itself when a page opens. The runner (`musicRunner.ts`) calls the real player and mixer through injected dependencies, so the decision logic is unit-tested without audio.
+- **Chime:** at the end of a focus session the music pauses in the same transition that plays the chime (default), so the chime is not masked; with "keep playing on breaks" the music carries on and the chime plays over it (no ducking, per decision E).
+- **Support in Box 3's code:** a queue source can now be a single `track` (it is not widened to the whole library by a sync); `playList` takes an optional repeat mode; the music store keeps a non-persisted library snapshot for code outside React.
+
+**Verified (signed in, localhost, real clicks on the real timer; a separate dev server on port 3100 because another session held 3000, with 1-minute phases):**
+- **Never on load:** with a playlist chosen, reloading /focus left the player paused (`paused` true, `played` empty); **with the timer restored as running, three reloads in a row never started the music** and showed no problem.
+- **Start / Pause / Resume / Reset:** "Start focus" played the playlist at once (source playlist, repeat all); Pause paused it and the clock stayed frozen; Resume continued from where it was (not restarted); Reset paused it; Start again continued the same queue.
+- **A session to its end:** the music played through the minute, and when the phase ended it **paused in the same transition** as the break began (chime context running); "Start break" left it paused (pause on breaks); skipping the break left it paused.
+- **Keep playing on breaks + auto-start:** focus -> break was sampled every 4 s: the break started automatically and the music **never paused or restarted** (74 -> 147 s, continuous).
+- **Ambient only:** Start started the ambient mixer (music untouched); pausing the timer paused the mixer. **A single track:** source `track`, repeat one, the mini-player says "One track"; Reset paused it. **Nothing:** Start left the music alone.
+- **Deleted choice:** the picker showed "(no longer available)" and "That track is gone, so no music will play. Pick another."; Start started the timer with no music and no problem.
+- **Hydration:** /focus x3 with a choice saved: the picker showed the saved playlist each time, zero console errors or warnings.
+- **Signed out:** a track whose signed URL was already fetched at page load keeps playing (the URL is a one-hour bearer link by design); a track that needs a fresh URL is refused by name (`unauthenticated`), verified in Box 3.
+- Unit tests: **+38** (`music.test.ts` 26: every way the timer can move, sanitising, resolving a choice, the runner with fakes; the timer hook in `store.test.ts`: `user` vs `tick`, nothing on restore / settings / no-op ticks, away completions are `tick` never a start; the track source in the music store). `typecheck` + `lint` + `test` (**527**) + `build` green; `/focus` 6.62 kB (First Load 118 kB).
+
+**Not covered:** whether a break's music handover *feels* right, and how the chime sounds over music (Minh's ears); Safari's gesture rule for auto-started phases (an auto-started focus phase after a break calls play without a click: Chrome allows it once the page has been clicked, anything refusing it shows the "browser blocked playback" note instead of failing silently).
+
+**Next — Box 5:** suggest a track + `track_suggestions`.
+
+---
+
 <!-- New entries append below with date + session number -->

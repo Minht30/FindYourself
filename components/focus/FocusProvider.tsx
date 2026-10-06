@@ -5,6 +5,8 @@ import { saveFocusSessions } from "@/app/(app)/focus/actions";
 import { primeAudio } from "@/lib/audio/context";
 import { playChime } from "@/lib/focus/chime";
 import { createFlusher, refreshPending } from "@/lib/focus/flush";
+import { connectFocusMusic } from "@/lib/focus/musicRunner";
+import { useFocusMusicStore } from "@/lib/focus/musicStore";
 import { showNotification } from "@/lib/focus/notify";
 import { OUTBOX_EVENT, pendingSessions } from "@/lib/focus/sessions";
 import { syncClock, useClock, useFocusStore } from "@/lib/focus/store";
@@ -44,6 +46,11 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
     });
     const unsub = useFocusStore.subscribe(() => syncClock());
 
+    // The music chosen for focus sessions: remembered per device, and started /
+    // paused as the timer moves (never on load: only a timer move triggers it).
+    void Promise.resolve(useFocusMusicStore.persist.rehydrate());
+    const disconnectMusic = connectFocusMusic();
+
     // Another tab changed the timer: pick it up instead of fighting it.
     const onStorage = (e: StorageEvent) => {
       if (e.key === "fy-focus") {
@@ -76,6 +83,7 @@ export default function FocusProvider({ children }: { children: React.ReactNode 
 
     return () => {
       unsub();
+      disconnectMusic();
       window.clearInterval(retry);
       window.removeEventListener(OUTBOX_EVENT, flush);
       window.removeEventListener("online", flush);

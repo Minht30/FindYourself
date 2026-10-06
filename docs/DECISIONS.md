@@ -1658,4 +1658,22 @@ Minh: "the diary page has been fixed according to another chat, check again, we 
 
 ---
 
+## 2026-10-06 — Session 57: Delete account (Phase 9) — built, final live run waiting for the service key
+
+**What landed:**
+- **Settings -> Delete account** (`DeleteAccount.tsx`, `account-actions.ts`): two steps (open the panel, then **type `DELETE`** exactly; the button stays disabled until then). The panel lists what is removed, says approved community picks stay (they never carried a name) and that routine backups can linger briefly. On success the data kept in the browser (`fy-*` keys only) is cleared and the person lands on `/?deleted=1`, which says so.
+- **Server action `deleteAccount(confirmation)`** (named reasons `unauthenticated`, `confirmation_mismatch`, `not_configured`, `storage_error`, `delete_failed`): checks the session, checks the phrase **again on the server**, then with the service-role client (`lib/supabase/admin.ts`, server only, returns null unless configured) (1) lists and removes the person's own files in the `music` bucket, **only names directly inside `{user_id}/`** (`ownObjectPaths` refuses slashes, `..` and empty names), re-lists to prove the folder is empty, and **stops with nothing deleted if that fails**; (2) deletes the auth user: every table that refers to the person cascades (checked from the foreign-key list: `profiles`, `categories`, `tasks`, `time_blocks`, `diary_entries`, `focus_sessions`, `mixer_state`, `music_tracks`, `playlists`, `playlist_tracks`, `track_suggestions`, `admins`; `reviewed_by` and `community_picks.suggestion_id` are set null, so approved picks stay); (3) signs the browser out.
+- **A deleted person's other devices** stop working by themselves (their session rows go with the user).
+
+**Verified:**
+- **Unit (`accountDeletion.test.ts`, 7):** only the exact phrase counts (`delete`, ` DELETE`, `DELETE `, `DELET`, empty, non-strings all refused); the file-path guard; the admin client is absent unless both the address and the key are set.
+- **Live, on the second throwaway account** (seeded with a task, a block, a diary mood, a focus session, a mixer row, **two real MP3 files in storage** uploaded through the file chooser, a playlist with a track and a suggestion): the section and panel render; the confirm button is **disabled for `delete`, `DELETE `, ` DELETE`, `DELET` and empty**; "Keep my account" closes the panel; React ignores a click on the disabled button even when the DOM attribute is forced off. **The server's own phrase check, with the click handler called directly: four wrong phrases each sent a request and came back `confirmation_mismatch`**, and the account and its files were intact. **Signed out mid-session** the confirm sent its request and showed `unauthenticated`. **With the service key not configured** the real click showed `not_configured`, "Nothing was deleted", and nothing was touched (this is the live proof of the graceful refusal).
+- **Not yet run:** the successful deletion. `.env.local` has the line `SUPABASE_SERVICE_ROLE_KEY=` with an **empty value**, and it is a secret only Minh can paste. Until then the second account (with its seeded rows and 2 stored files) is waiting to be the subject of that run: after it, the checks are: its `auth.users` row, identities, sessions, every table above and its storage objects all 0; the first test account and the one real music file untouched; signing in again with the deleted credentials fails by reason; `fy-*` device keys cleared and other keys kept.
+
+**For Minh:** (1) Supabase dashboard -> Project Settings -> API keys -> copy the **secret / service_role** key into `.env.local` as `SUPABASE_SERVICE_ROLE_KEY=...` (never commit it; `.env*.local` is gitignored); (2) add the same variable in Vercel (Production). Without (2) a visitor's "Delete everything" says "not available right now" and deletes nothing. Then tell me and I run the final check, add the deletion paragraph to the privacy page and tick the box.
+
+**Not covered:** exporting data before deleting (none exists; the panel does not promise it); the look of the page (Stage 2).
+
+---
+
 <!-- New entries append below with date + session number -->

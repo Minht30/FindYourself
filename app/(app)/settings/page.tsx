@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import CategoriesEditor, { type CategoryUsage, type EditableCategory } from "@/components/settings/CategoriesEditor";
 import FocusGoalSelect from "@/components/motivation/FocusGoalSelect";
+import DeleteAccount from "@/components/settings/DeleteAccount";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeFocusGoal } from "@/lib/rings";
 
@@ -72,6 +73,13 @@ export default async function SettingsPage() {
           ones you do not use.
         </p>
         <CategoriesEditor categories={cats ?? []} usage={usage} />
+      </Section>
+
+      <Section id="delete" title="Delete account">
+        <p className="mb-3 text-[14px] text-ink-secondary">
+          Remove your account and everything in it. There is no way to get it back.
+        </p>
+        <DeleteAccount />
       </Section>
 
       <p className="text-[13px] text-ink-muted">

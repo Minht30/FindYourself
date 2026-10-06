@@ -1,9 +1,14 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import DeletedNotice from "@/components/settings/DeletedNotice";
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-24">
       <div className="max-w-2xl text-center">
+        <Suspense fallback={null}>
+          <DeletedNotice />
+        </Suspense>
         <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full bg-accent-soft text-cat-ink text-xs font-ui font-semibold uppercase tracking-wider">
           <span>☕</span> A cozy sanctuary
         </div>

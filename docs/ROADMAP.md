@@ -145,7 +145,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [ ] **Decoration zones brainstorm** — Minh's direction (2026-09-29): wide empty areas (e.g. right of the diary column) stay blank until then; ideas to explore: pixel-art animations, scenes tied to theme / season / mood
 - [ ] Lighthouse ≥ 90 on all axes
 - [x] Settings page + category management (US-8.1) - `/settings` (the top bar's gear now goes there): account, time zone (detected), daily focus goal, and categories: add, rename, recolour, reorder, delete with "move things to..."; the sidebar lists the person's real categories
-- [ ] Delete-account flow
+- [ ] Delete-account flow - built and verified except the final successful run, which waits for Minh to put `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (empty today) and in Vercel; refuses safely (`not_configured`) until then
 - [ ] README polish with GIFs
 
 **Exit criteria:** public live URL, shared for feedback.

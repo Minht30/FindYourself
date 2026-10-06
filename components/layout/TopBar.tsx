@@ -120,6 +120,8 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         <Settings size={16} />
       </button>
 
+      {/* Day / Week / Month is a timetable control: Chill has nothing to switch */}
+      {!pathname?.startsWith("/chill") && (
       <div className="hidden md:flex bg-bg-alt rounded-full p-[3px]" role="tablist" aria-label="View">
         {VIEWS.map((v) => (
           <button
@@ -135,6 +137,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
           </button>
         ))}
       </div>
+      )}
 
       <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
         <span>{isNight ? "🌃" : "☀️"}</span>

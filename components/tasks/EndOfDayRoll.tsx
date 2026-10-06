@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import RollModal, { type RollMode } from "@/components/tasks/RollModal";
 import { isOverdue, type TaskDTO } from "@/lib/tasks";
+import { hourInZone } from "@/lib/zoned";
 
 const EVENING_HOUR = 23;
 
@@ -13,16 +14,17 @@ const EVENING_HOUR = 23;
 // - "evening" from 23:00 local while tasks are still open on today.
 // Each mode is offered at most once per day per device: "Decide later" and
 // "Done" both mark it handled (localStorage, a per-device convenience).
-export default function EndOfDayRoll({ tasks, today }: { tasks: TaskDTO[]; today: string }) {
+export default function EndOfDayRoll({ tasks, today, timeZone }: { tasks: TaskDTO[]; today: string; timeZone: string }) {
   const router = useRouter();
   const [hour, setHour] = useState<number | null>(null); // null until mounted
   const [open, setOpen] = useState<{ mode: RollMode; tasks: TaskDTO[] } | null>(null);
 
   useEffect(() => {
-    setHour(new Date().getHours());
-    const t = window.setInterval(() => setHour(new Date().getHours()), 60_000);
+    // The hour on the clock in the app's zone, not the browser's
+    setHour(hourInZone(Date.now(), timeZone));
+    const t = window.setInterval(() => setHour(hourInZone(Date.now(), timeZone)), 60_000);
     return () => window.clearInterval(t);
-  }, []);
+  }, [timeZone]);
 
   useEffect(() => {
     if (hour === null || open) return;

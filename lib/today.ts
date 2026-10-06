@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
 import { todayInTimeZone } from "@/lib/dates";
 import { NOW_COOKIE, parseNowOverride } from "@/lib/nowOverride";
+import { TZ_COOKIE } from "@/lib/timezone";
 
 // The server runs in UTC, but "today" belongs to the user. The root layout's
 // inline script writes the browser's IANA zone into the `fy-tz` cookie, so
 // server components can resolve the user's calendar day. Before that cookie
 // exists (very first request) we fall back to UTC.
-export const TZ_COOKIE = "fy-tz";
+export { TZ_COOKIE };
 
 export function getUserTimeZone(): string {
   const raw = cookies().get(TZ_COOKIE)?.value;

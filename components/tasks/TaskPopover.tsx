@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { updateTask } from "@/app/(app)/today/task-actions";
 import type { TaskDTO, TaskPriority } from "@/lib/tasks";
+import { fromZonedInput, toZonedInput } from "@/lib/zoned";
 
 type Category = { id: string; name: string; color: string };
 
@@ -12,6 +13,8 @@ type Props = {
   task: TaskDTO;
   anchor: DOMRect;
   categories: Category[];
+  /** The zone the deadline is read and written in (the app's own, not the browser's). */
+  timeZone: string;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -35,24 +38,19 @@ const ERROR_COPY: Record<string, string> = {
   not_found: "This task no longer exists. It may have been deleted elsewhere.",
 };
 
-// <input type="datetime-local"> speaks the browser's wall-clock time, which is
-// the same zone the app's "today" comes from (fy-tz cookie).
-const pad = (n: number) => String(n).padStart(2, "0");
-function toLocalInput(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+// <input type="datetime-local"> has no zone of its own: its text is read and
+// written on the wall clock of the app's zone (lib/zoned.ts), the same zone
+// "today" comes from, whether that is the browser's or one chosen in Settings.
 
 const fieldLabel = "block text-[11px] font-semibold text-ink-secondary mb-1 uppercase tracking-wider";
 const fieldInput =
   "w-full px-3 py-2 rounded-lg bg-bg-alt border border-[var(--border)] text-ink-primary text-sm focus:outline-none focus:border-accent";
 
-export default function TaskPopover({ task, anchor, categories, onClose, onSaved }: Props) {
+export default function TaskPopover({ task, anchor, categories, timeZone, onClose, onSaved }: Props) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description);
   const [priority, setPriority] = useState<TaskPriority>(task.priority);
-  const [deadline, setDeadline] = useState(toLocalInput(task.deadline));
+  const [deadline, setDeadline] = useState(toZonedInput(task.deadline, timeZone));
   const [categoryId, setCategoryId] = useState<string | null>(task.category_id);
   const [isRestriction, setIsRestriction] = useState(task.is_restriction);
   const [saving, setSaving] = useState(false);
@@ -87,7 +85,7 @@ export default function TaskPopover({ task, anchor, categories, onClose, onSaved
       title,
       description,
       priority,
-      deadline: deadline ? new Date(deadline).toISOString() : null,
+      deadline: deadline ? fromZonedInput(deadline, timeZone) : null,
       categoryId,
       isRestriction,
     }).catch(() => ({ ok: false, error: "network" }) as const);

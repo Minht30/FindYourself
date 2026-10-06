@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatDayLabel, formatTimeLabel, msToNextMinute } from "@/lib/clock";
+import { useAppZone } from "./ZoneContext";
 
 // The current time, or null until the page has mounted. The server cannot
 // know the visitor's clock or zone, so it renders nothing and the browser
@@ -32,11 +33,13 @@ export function useNow(): Date | null {
 // "Mon, Oct 5 · 8:42 PM" in the top bar of Chill.
 export default function ClockLabel({ className = "" }: { className?: string }) {
   const now = useNow();
+  // The day and time in the app's zone (the browser's, or the one chosen in Settings)
+  const timeZone = useAppZone();
   return (
     <div className={className} data-clock>
       {now && (
         <time dateTime={now.toISOString()}>
-          {formatDayLabel(now)} <span aria-hidden>·</span> {formatTimeLabel(now)}
+          {formatDayLabel(now, undefined, timeZone)} <span aria-hidden>·</span> {formatTimeLabel(now, undefined, timeZone)}
         </time>
       )}
     </div>

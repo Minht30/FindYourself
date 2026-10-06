@@ -178,7 +178,11 @@ Acceptance criteria in Given/When/Then.
 - Given I recolour or rename one of the five defaults, then my colour is the colour I see, in both themes.
 
 ### US-8.2 Timezone
-- Auto-detect on signup, editable. *(Built as auto-detect only: the zone follows the device and is shown in Settings; a manual override is not built, because every page works out "today" from the device's zone and a second source would disagree. Decision 2026-10-06.)*
+- Given I sign up, then my zone is detected from my device and saved.
+- Given I choose "Choose a time zone" in Settings and pick one, then my days start and end there on every page and every device I sign in on: the timetable, the clock, the calendar, the task deadlines, the end-of-day roll and my streak.
+- Given I switch back to "Detect it automatically", then the zone follows this device again.
+- Given a zone the app cannot use is sent (a forged request), or I am signed out, then I am told why and nothing changes.
+*(Auto-detect only until 2026-10-06; the manual override was built the same day, see DECISIONS Session 66.)*
 
 ### US-8.3 Delete account
 - Two-step confirmation; deletes all rows and storage objects.

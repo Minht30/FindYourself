@@ -9,11 +9,9 @@ import {
   HOUR_HEIGHT_PX,
   HOURS_IN_VIEW,
   formatHour,
-  isSameDay,
-  minutesFromDayStart,
   minutesToPx,
-  weekDays,
 } from "@/lib/dates";
+import { dayIsoOf, dayOfMonth, formatWallMinutes, minutesIntoDay, wallToInstant, weekDayIsos, zoneAbbrev } from "@/lib/zoned";
 import { createBlock, moveBlock } from "@/app/(app)/today/actions";
 import BlockPopover from "./BlockPopover";
 import { categoryColor } from "@/lib/categories";
@@ -34,7 +32,8 @@ export type CategoryDTO = {
 };
 
 type Props = {
-  weekStart: string;      // ISO date-only, e.g. "2026-09-14"
+  weekStart: string;      // the Monday, ISO date-only, e.g. "2026-09-14"
+  timeZone: string;       // the zone the grid is drawn in (the person's own, automatic or chosen)
   blocks: TimeBlockDTO[];
   categories: CategoryDTO[];
 };
@@ -52,27 +51,17 @@ function snap(min: number): number {
 function pxToMinutes(y: number): number {
   return DAY_START_HOUR * 60 + Math.round((y / HOUR_HEIGHT_PX) * 60);
 }
-function minutesToDate(day: Date, min: number): Date {
-  const d = new Date(day);
-  d.setHours(0, 0, 0, 0);
-  d.setMinutes(min);
-  return d;
-}
 function fmtRange(startMin: number, endMin: number): string {
   return `${fmtMin(startMin)} – ${fmtMin(endMin)}`;
 }
 function fmtMin(m: number): string {
-  const h24 = Math.floor(m / 60);
-  const mm = String(m % 60).padStart(2, "0");
-  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
-  const suffix = h24 < 12 ? "AM" : "PM";
-  return `${h12}:${mm} ${suffix}`;
+  return formatWallMinutes(m);
 }
 
-export default function WeekGrid({ weekStart, blocks, categories }: Props) {
-  const [y, m, d] = weekStart.split("-").map(Number);
-  const ws = new Date(y, m - 1, d);
-  const days = weekDays(ws);
+export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Props) {
+  // The seven calendar days of the week (ISO dates). Every time on this grid is
+  // a wall-clock time in `timeZone`, never the browser's.
+  const days = weekDayIsos(weekStart);
   const catById = new Map(categories.map((c) => [c.id, c]));
 
   const router = useRouter();
@@ -94,6 +83,8 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
     const t = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(t);
   }, []);
+
+  const todayIso = now ? dayIsoOf(now.getTime(), timeZone) : null;
 
   const hourRows = Array.from({ length: HOURS_IN_VIEW + 1 }, (_, i) => DAY_START_HOUR + i);
 
@@ -149,8 +140,8 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
       if (d.endMin - d.startMin < SNAP_MIN) return;
 
       const day = days[d.dayIndex];
-      const startDate = minutesToDate(day, d.startMin);
-      const endDate = minutesToDate(day, d.endMin);
+      const startDate = wallToInstant(day, d.startMin, timeZone);
+      const endDate = wallToInstant(day, d.endMin, timeZone);
       const defaultCategoryId = categories[0]?.id ?? null;
 
       void submitBlock({
@@ -216,11 +207,11 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
         style={{ gridTemplateColumns: `72px repeat(7, minmax(0, 1fr))` }}
       >
         <div className="p-2 text-[11px] font-mono text-ink-muted uppercase tracking-wider">
-          {/* The server's zone is not the visitor's: fill this in after mount (like the NOW line) */}
-          {now ? tzAbbrev() : ""}
+          {/* The zone's short name changes with the date (EST / EDT): fill it in after mount, like the NOW line */}
+          {now ? zoneAbbrev(timeZone, now.getTime()) : ""}
         </div>
         {days.map((day, i) => {
-          const today = now ? isSameDay(day, now) : false;
+          const today = todayIso === day;
           return (
             <div
               key={i}
@@ -236,7 +227,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
                   today ? "text-accent-strong font-bold" : "text-ink-primary"
                 }`}
               >
-                {day.getDate()}
+                {dayOfMonth(day)}
               </span>
             </div>
           );
@@ -263,13 +254,10 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
 
         {/* Day columns */}
         {days.map((day, i) => {
-          const today = now ? isSameDay(day, now) : false;
-          const dayBlocks = blocks.filter((b) => {
-            const s = new Date(b.starts_at);
-            return isSameDay(s, day);
-          });
+          const today = todayIso === day;
+          const dayBlocks = blocks.filter((b) => dayIsoOf(Date.parse(b.starts_at), timeZone) === day);
 
-          const nowMinutes = today && now ? minutesFromDayStart(now, day) : null;
+          const nowMinutes = today && now ? minutesIntoDay(now.getTime(), day, timeZone) : null;
           const showNowLine =
             nowMinutes !== null &&
             nowMinutes >= DAY_START_HOUR * 60 &&
@@ -301,6 +289,7 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
                   key={b.id}
                   block={b}
                   day={day}
+                  timeZone={timeZone}
                   category={b.category_id ? catById.get(b.category_id) : undefined}
                   onOpen={(anchor) => setEditing({ block: b, anchor })}
                   onError={setErrorMsg}
@@ -384,20 +373,22 @@ const EDGE_HANDLE_PX = 8;
 function BlockCard({
   block,
   day,
+  timeZone,
   category,
   onOpen,
   onError,
 }: {
   block: TimeBlockDTO;
-  day: Date;
+  day: string;
+  timeZone: string;
   category: CategoryDTO | undefined;
   onOpen: (anchor: DOMRect) => void;
   onError: (msg: string | null) => void;
 }) {
   const router = useRouter();
 
-  const baseStartMin = minutesFromDayStart(new Date(block.starts_at), day);
-  const baseEndMin = minutesFromDayStart(new Date(block.ends_at), day);
+  const baseStartMin = minutesIntoDay(Date.parse(block.starts_at), day, timeZone);
+  const baseEndMin = minutesIntoDay(Date.parse(block.ends_at), day, timeZone);
 
   // Optimistic offset shown while the user is dragging or the server call is
   // in flight. Cleared once the RSC refetch delivers the new times.
@@ -495,8 +486,8 @@ function BlockCard({
         return;
       }
 
-      const startDate = minutesToDate(day, pendingStart);
-      const endDate = minutesToDate(day, pendingEnd);
+      const startDate = wallToInstant(day, pendingStart, timeZone);
+      const endDate = wallToInstant(day, pendingEnd, timeZone);
 
       setSaving(true);
       onError(null);
@@ -582,15 +573,3 @@ function clamp(x: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, x));
 }
 
-function fmtClock(d: Date): string {
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-}
-
-function tzAbbrev(): string {
-  try {
-    const parts = new Intl.DateTimeFormat([], { timeZoneName: "short" }).formatToParts(new Date());
-    return parts.find((p) => p.type === "timeZoneName")?.value ?? "";
-  } catch {
-    return "";
-  }
-}

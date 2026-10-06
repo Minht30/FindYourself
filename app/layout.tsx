@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Tell the server the browser's timezone so it can resolve "today" (see lib/today.ts) */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var z=Intl.DateTimeFormat().resolvedOptions().timeZone;if(z){document.cookie='fy-tz='+encodeURIComponent(z)+';path=/;max-age=31536000;samesite=lax';}}catch(e){}})();`,
+            __html: `(function(){try{var z=Intl.DateTimeFormat().resolvedOptions().timeZone;var m=document.cookie.match(/(?:^|; )fy-tz-manual=([^;]*)/);if(m){try{var c=decodeURIComponent(m[1]);Intl.DateTimeFormat(undefined,{timeZone:c});z=c;}catch(e){}}if(z){document.cookie='fy-tz='+encodeURIComponent(z)+';path=/;max-age=31536000;samesite=lax';}}catch(e){}})();`,
           }}
         />
       </head>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import CategoriesEditor, { type CategoryUsage, type EditableCategory } from "@/components/settings/CategoriesEditor";
 import FocusGoalSelect from "@/components/motivation/FocusGoalSelect";
 import DeleteAccount from "@/components/settings/DeleteAccount";
+import TimeZoneSetting from "@/components/settings/TimeZoneSetting";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeFocusGoal } from "@/lib/rings";
 
@@ -29,7 +30,7 @@ export default async function SettingsPage() {
   if (!user) redirect("/login?next=/settings");
 
   const [{ data: profile }, { data: cats }, { data: usageRows }] = await Promise.all([
-    supabase.from("profiles").select("timezone, daily_focus_goal_minutes").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("timezone, timezone_manual, daily_focus_goal_minutes").eq("id", user.id).maybeSingle(),
     supabase.from("categories").select("id, name, color").eq("user_id", user.id).order("sort_order").returns<EditableCategory[]>(),
     supabase.rpc("category_usage"),
   ]);
@@ -52,14 +53,14 @@ export default async function SettingsPage() {
           <dd className="text-ink-primary break-all" data-account-email>
             {user.email}
           </dd>
-          <dt className="text-ink-muted">Time zone</dt>
-          <dd className="text-ink-primary" data-account-timezone>
-            {profile?.timezone ?? "UTC"}
-            <span className="block text-[13px] text-ink-secondary">
-              Detected from your device, so a day starts and ends where you are.
-            </span>
-          </dd>
         </dl>
+      </Section>
+
+      <Section id="timezone" title="Time zone">
+        <p className="mb-3 text-[14px] text-ink-secondary" data-account-timezone>
+          A day starts and ends in this zone: the timetable, the clock, your streak and your week all follow it.
+        </p>
+        <TimeZoneSetting savedZone={profile?.timezone ?? "UTC"} manual={profile?.timezone_manual === true} />
       </Section>
 
       <Section id="focus" title="Focus">

@@ -6,6 +6,8 @@ import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
 import TimeZoneSync from "@/components/layout/TimeZoneSync";
 import { NavProvider } from "@/components/layout/NavContext";
+import { ZoneProvider } from "@/components/layout/ZoneContext";
+import { getUserTimeZone } from "@/lib/today";
 import DemoBanner from "@/components/demo/DemoBanner";
 import { isGuest } from "@/lib/demo";
 import MiniPlayer from "@/components/music/MiniPlayer";
@@ -32,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("music_tracks").select(TRACK_COLUMNS).order("created_at"),
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
     // The zone the database counts days in (the streak); kept equal to the browser's.
-    supabase.from("profiles").select("timezone").maybeSingle(),
+    supabase.from("profiles").select("timezone, timezone_manual").maybeSingle(),
     // The categories the sidebar lists (RLS: own rows only, in the person's order).
     supabase.from("categories").select("id, name, color").order("sort_order"),
   ]);
@@ -59,7 +61,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <MixerProvider catalogue={catalogue} initial={initial}>
       <MusicProvider tracks={tracks} playlists={playlists} initialTrackId={saved.data?.current_track_id ?? null}>
       <FocusProvider>
-        {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} /> : null}
+        {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} manual={profile.data.timezone_manual === true} /> : null}
+        <ZoneProvider zone={getUserTimeZone()}>
         <NavProvider>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
@@ -83,6 +86,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <MiniPlayer />
         </div>
         </NavProvider>
+        </ZoneProvider>
       </FocusProvider>
       </MusicProvider>
     </MixerProvider>

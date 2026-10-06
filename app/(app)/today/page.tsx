@@ -17,15 +17,9 @@ import { loadWeekWins } from "@/lib/winsData";
 import ProgressRings from "@/components/motivation/ProgressRings";
 import { diaryRing, diaryWritten, focusRing, sanitizeFocusGoal, sumFocusSeconds, taskRing } from "@/lib/rings";
 import { QUOTE_COLUMNS, quoteForDate, toQuote } from "@/lib/quotes";
-import {
-  addDays,
-  formatWeekRange,
-  parseWeekParam,
-  shiftISODate,
-  toISODateOnly,
-  todayInTimeZone,
-  zonedDayStartUTC,
-} from "@/lib/dates";
+import { shiftISODate, todayInTimeZone, zonedDayStartUTC } from "@/lib/dates";
+import { weekBounds } from "@/lib/focus/week";
+import { formatWeekRangeIso, weekMondayFromParam } from "@/lib/zoned";
 
 // Always fresh — reflects newly-created blocks immediately.
 export const dynamic = "force-dynamic";
@@ -40,13 +34,17 @@ export default async function TodayPage({ searchParams }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/today");
 
-  const weekStart = parseWeekParam(searchParams.week);
-  const weekEnd = addDays(weekStart, 7);
-
-  // "Done today" = completed between the user's local midnights.
+  // Everything here is in the person's own zone (the automatic one or the one they
+  // chose): "today", the week to show, and where that week starts and ends. The
+  // week used to be the server's own (UTC) week, so a block late on a Sunday
+  // evening could be fetched for the wrong week.
   const timeZone = getUserTimeZone();
   const now = getNow();
   const today = todayInTimeZone(timeZone, now);
+  const mondayISO = weekMondayFromParam(searchParams.week, today);
+  const bounds = weekBounds(mondayISO, timeZone);
+
+  // "Done today" = completed between the user's local midnights.
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
 
@@ -55,8 +53,8 @@ export default async function TodayPage({ searchParams }: Props) {
     supabase
       .from("time_blocks")
       .select("id, title, starts_at, ends_at, category_id, notes")
-      .gte("starts_at", weekStart.toISOString())
-      .lt("starts_at", weekEnd.toISOString())
+      .gte("starts_at", new Date(bounds.startMs).toISOString())
+      .lt("starts_at", new Date(bounds.endMs).toISOString())
       .order("starts_at"),
     supabase
       .from("tasks")
@@ -116,9 +114,8 @@ export default async function TodayPage({ searchParams }: Props) {
   // Drawer defaults to open; the cookie remembers a user who closed it.
   const drawerOpen = cookies().get(DRAWER_COOKIE)?.value !== "0";
 
-  const prev = toISODateOnly(addDays(weekStart, -7));
-  const next = toISODateOnly(addDays(weekStart, 7));
-  const thisWeek = toISODateOnly(weekStart);
+  const prev = shiftISODate(mondayISO, -7);
+  const next = shiftISODate(mondayISO, 7);
 
   return (
     <TasksShell
@@ -145,10 +142,10 @@ export default async function TodayPage({ searchParams }: Props) {
     >
       <div className="flex items-baseline gap-4 flex-wrap">
         <h1 className="font-display text-3xl">Timetable</h1>
-        <span className="font-mono text-sm text-ink-muted">{formatWeekRange(weekStart)}</span>
+        <span className="font-mono text-sm text-ink-muted">{formatWeekRangeIso(mondayISO)}</span>
         <div className="ml-auto flex items-center gap-2 font-ui text-sm flex-wrap">
           <TasksToggle openCount={tasks.length} />
-          <CopyYesterdayButton />
+          <CopyYesterdayButton timeZone={timeZone} />
           <nav className="flex items-center gap-2">
             <a
               href={`/today?week=${prev}`}
@@ -180,7 +177,8 @@ export default async function TodayPage({ searchParams }: Props) {
       ) : null}
 
       <WeekGrid
-        weekStart={thisWeek}
+        weekStart={mondayISO}
+        timeZone={timeZone}
         blocks={(blocks ?? []) as TimeBlockDTO[]}
         categories={(categories ?? []) as CategoryDTO[]}
       />

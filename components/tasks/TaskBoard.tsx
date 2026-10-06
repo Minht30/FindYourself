@@ -360,13 +360,14 @@ export default function TaskBoard({ tasks, doneToday, categories, today, timeZon
         </DragOverlay>
       </DndContext>
       <DoneSection tasks={done} timeZone={timeZone} onUncomplete={uncomplete} />
-      <EndOfDayRoll tasks={tasks} today={today} />
+      <EndOfDayRoll tasks={tasks} today={today} timeZone={timeZone} />
       {editing && (
         <TaskPopover
           key={editing.task.id}
           task={editing.task}
           anchor={editing.anchor}
           categories={categories}
+          timeZone={timeZone}
           onClose={() => closeEditor(false)}
           onSaved={() => closeEditor(true)}
         />

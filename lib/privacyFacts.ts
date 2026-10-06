@@ -13,6 +13,7 @@ export type StoredItem = {
 export const STORED_ITEMS: readonly StoredItem[] = [
   { key: "sb-…-auth-token", kind: "cookie", what: "Keeps you signed in (set by the sign-in service)." },
   { key: "fy-tz", kind: "cookie", what: "Your time zone, so the server knows which day it is for you." },
+  { key: "fy-tz-manual", kind: "cookie", what: "Only if you pick your own time zone in Settings: the zone you chose." },
   { key: "fy-tasks-drawer", kind: "cookie", what: "Whether the task drawer is open." },
   { key: "fy-theme", kind: "device storage", what: "Sunny or Netcafe night." },
   { key: "fy-mixer", kind: "device storage", what: "Your ambient sound mix, so it is there before you sign in." },

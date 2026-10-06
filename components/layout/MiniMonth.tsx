@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { todayInTimeZone } from "@/lib/dates";
+import { useAppZone } from "./ZoneContext";
 import {
   WEEKDAY_LETTERS,
   anchorMonth,
@@ -18,20 +19,14 @@ import {
   shiftMonth,
 } from "@/lib/miniMonth";
 
-// The visitor's calendar day, or null until the page has mounted: the server
-// does not know the visitor's zone, so nothing date-dependent is rendered
-// there (no hydration mismatch). Re-read on the minute, so the "today" mark
-// moves at midnight.
-function useToday(): string | null {
+// The calendar day in the app's zone (the automatic one or the one chosen in
+// Settings), or null until the page has mounted: nothing that depends on the
+// clock is rendered on the server (no hydration mismatch). Re-read on the
+// minute, so the "today" mark moves at midnight.
+function useToday(timeZone: string): string | null {
   const [today, setToday] = useState<string | null>(null);
   useEffect(() => {
-    const read = () => {
-      try {
-        setToday(todayInTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone));
-      } catch {
-        setToday(todayInTimeZone("UTC"));
-      }
-    };
+    const read = () => setToday(todayInTimeZone(timeZone));
     read();
     const t = window.setInterval(read, 60_000);
     document.addEventListener("visibilitychange", read);
@@ -39,7 +34,7 @@ function useToday(): string | null {
       window.clearInterval(t);
       document.removeEventListener("visibilitychange", read);
     };
-  }, []);
+  }, [timeZone]);
   return today;
 }
 
@@ -49,7 +44,7 @@ function useToday(): string | null {
 export default function MiniMonth() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const today = useToday();
+  const today = useToday(useAppZone());
 
   const selection = selectionFor(pathname, searchParams?.get("week"), today);
   const anchor = anchorMonth(selection, today);

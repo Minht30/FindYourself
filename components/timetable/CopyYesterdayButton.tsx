@@ -4,10 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy } from "lucide-react";
 import { copyDayBlocks } from "@/app/(app)/today/actions";
+import { shiftISODate, todayInTimeZone, zonedDayStartUTC } from "@/lib/dates";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-export default function CopyYesterdayButton() {
+export default function CopyYesterdayButton({ timeZone }: { timeZone: string }) {
   const router = useRouter();
   const [status, setStatus] = useState<
     { kind: "idle" } | { kind: "loading" } | { kind: "done"; count: number } | { kind: "error"; msg: string }
@@ -16,17 +15,18 @@ export default function CopyYesterdayButton() {
   async function onClick() {
     setStatus({ kind: "loading" });
 
-    // Compute yesterday's day-range in the user's own tz, then send those
-    // instants as ISO UTC to the server. Offset is fixed at 24h — cheap and
-    // wrong only on DST transition days, which we accept for now.
-    const now = new Date();
-    const yesterdayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Yesterday's day-range in the app's zone (the automatic or the chosen one),
+    // sent as UTC instants. The offset is the real distance between the two
+    // midnights, so blocks land at the same wall-clock time even when a clock
+    // change makes yesterday 23 or 25 hours long.
+    const today = todayInTimeZone(timeZone);
+    const yesterdayStart = zonedDayStartUTC(shiftISODate(today, -1), timeZone);
+    const todayStart = zonedDayStartUTC(today, timeZone);
 
     const res = await copyDayBlocks({
       sourceStart: yesterdayStart.toISOString(),
       sourceEnd: todayStart.toISOString(),
-      offsetMs: DAY_MS,
+      offsetMs: todayStart.getTime() - yesterdayStart.getTime(),
     });
 
     if (!res.ok) {

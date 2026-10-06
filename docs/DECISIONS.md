@@ -1808,4 +1808,20 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 
 ---
 
+## 2026-10-06 — Session 66: Manual time zone (US-8.2)
+
+**Decision (Minh):** yes to a manual override, no CAPTCHA on the demo, yes to a privacy page (a contact line is still to be added before launch: needs Minh's choice of address or a GitHub issues link; nothing published without his OK).
+
+**Built:** Settings → Time zone: "Detect it automatically" or "Choose a time zone" (a grouped list of every IANA zone with a live "it is now ..." preview). The choice is saved in `profiles.timezone` + the new `profiles.timezone_manual` (migration `20261006202338_phase9_timezone_manual`), so it follows the person to every device. Two cookies carry it to the server: `fy-tz` (the zone in effect) and `fy-tz-manual` (present only in manual mode; the root layout's inline script lets it win over the device, and `TimeZoneSync` reconciles cookies and profile on a new device). The privacy page lists `fy-tz-manual` (the privacyFacts test fails if a cookie is not documented).
+
+**The real work was not the setting but the maths.** Every page used to take "today", the week, a block's day and a deadline's wall-clock from the BROWSER's zone, so a second source would have disagreed with the server. Now nothing reads the browser zone: `lib/zoned.ts` does wall-clock arithmetic in a named zone (`dayIsoOf`, `wallMinutes`, `minutesIntoDay`, `wallToInstant` with a two-pass offset check for clock-change days, `weekMondayFromParam`, deadline input in the app's zone), and a `ZoneProvider` hands the zone to client components. Converted: the week grid (columns are ISO days, drag-create / move / resize build instants with `wallToInstant`), the NOW line, Copy yesterday, the task deadline popover, the end-of-day roll, the clock and the mini calendar. Also fixed on the way: the week's blocks used to be fetched for a UTC week, which cut the edges off in zones far from UTC; it now uses the zone's own week bounds. Eight helpers in `lib/dates.ts` that nothing used (and that read the browser zone) were deleted.
+
+**Verified:** 759 unit tests (18 new for `lib/zoned.ts`, including a 600-sample round trip over 9 zones and both New York clock-change days), typecheck, lint, production build. Live on the +fytest account, browser in Toronto while the app was set to Tokyo: the grid, clock, calendar and zone label all in Tokyo (GMT+9); a drag-created Thursday 10:00-11:30 stored as 01:00Z-02:30Z (Tokyo wall time); a deadline of 21:00Z shows 6:00 AM Oct 7 in the popover and the list; a fresh device with no cookies and a Toronto browser ends up in Tokyo and does NOT overwrite the profile; the end-of-day roll correctly offered the Oct 6 task because it was already Oct 7 in Tokyo; switching back to automatic restored Toronto / `manual=false` and removed the manual cookie; a forged zone (`Mars/Phobos`) is refused with `bad_timezone` after the request was sent, a signed-out save with `unauthenticated`, and the profile stayed unchanged in both; phone width has no overflow; five loads, zero console errors. Test rows deleted, profile reset to America/Toronto automatic.
+
+**Lesson:** an "it did nothing" failure in a live test was a modal (the end-of-day roll) covering the page; look at `elementFromPoint` before suspecting the handler.
+
+**Still open:** the privacy-page contact line; input-border contrast (about 1.4:1, WCAG asks 3:1); Minh's hands-on test; Stage 2 (Figma, tell Minh first).
+
+---
+
 <!-- New entries append below with date + session number -->

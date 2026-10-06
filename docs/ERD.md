@@ -183,6 +183,24 @@ Two SECURITY INVOKER functions, so RLS still applies to them and they are expose
 
 RLS: **insert** only as yourself, with `status = 'pending'` and no `reviewed_by`; **select** own, or all if `private.is_admin()`; **update** admin only, and only the columns `status` and `reviewed_by` (column privileges); **delete** your own suggestion while it is still pending (withdraw); nothing for `anon`. A BEFORE INSERT trigger under a per-user advisory lock allows at most **5 pending** per user (`too_many_pending`).
 
+### `community_picks` (read by every signed-in user, written by an admin)
+*(Built in Phase 7, Session 45.)*
+
+| column | type | notes |
+|---|---|---|
+| id | uuid PK |  |
+| title | text | 1-120 |
+| artist | text | ≤ 120 |
+| link | text | the same `suggestion_link_ok` check as suggestions |
+| note | text | ≤ 500, the admin's remark |
+| suggestion_id | uuid nullable | -> `track_suggestions`, set null on delete; **unique** where not null, so a suggestion yields at most one pick |
+| sort_order | int | ≥ 0; a new pick goes last |
+| created_at | timestamptz |  |
+
+RLS: select for every `authenticated` user; insert / update / delete only when `private.is_admin()`; nothing for `anon`.
+
+`review_suggestion(p_id, p_action, p_note)` (SECURITY INVOKER, so RLS still applies inside it): `not_admin` unless the caller is an admin; `bad_action` (not approve / reject); `bad_note` (> 500); locks the suggestion row; `not_found`; `already_reviewed` unless it is pending. **Approve** inserts the pick (title, artist and link copied, the trimmed note, the next sort order) and sets the suggestion to `approved` with `reviewed_by`, **in one transaction**; **reject** sets `rejected`. Returns the pick's id or null.
+
 ### `quotes` (global read-only)
 | column | type |
 |---|---|

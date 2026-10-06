@@ -115,7 +115,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] **Choose music for focus sessions** (Minh, 2026-10-05) — picker in Timer settings (nothing / ambient only / a playlist / a track), remembered per device, starts on the Start click, pauses on breaks (a setting); community picks are external links so they cannot play in the app
 - [x] Mini-player (persistent, cross-page) — one audio element outside React, pure queue state machine (shuffle / repeat / remove-while-playing), signed-URL refresh, Media Session, independent music volume, never autoplays
 - [x] `track_suggestions` table + form — `admins` table (Minh), own-or-admin RLS, link allow-list enforced in the app **and** the database, 5-pending cap, markup shown as text, named refusal reasons
-- [ ] "Community picks" list (admin-curated)
+- [x] "Community picks" list (admin-curated) — readable by everyone, writable only by an admin; an admin-only review queue approves (status + pick in one DB function) or rejects; `not_admin` refusals by name
 
 **Limits (Minh, 2026-10-05):** MP3 only, **at most 10 tracks** per user (10 MB per file, 50 MB in total).
 

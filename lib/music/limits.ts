@@ -12,6 +12,7 @@ export const MAX_PLAYLISTS = 20;
 export const MAX_PLAYLIST_NAME = 60;
 export const MAX_LINK = 500;
 export const MAX_REASON = 500;
+export const MAX_NOTE = 500;
 export const MAX_PENDING_SUGGESTIONS = 5;
 export const MP3_MIME = "audio/mpeg";
 
@@ -44,6 +45,9 @@ export type MusicReason =
   | "link_has_credentials" // user:password@ or the youtube.com@evil.com trick
   | "link_too_long"
   | "not_admin"
+  | "already_reviewed" // approved or rejected already (maybe by another admin)
+  | "bad_action"
+  | "bad_note" // a pick's note is over 500 characters
   | "db_error";
 
 export const REASON_TEXT: Record<MusicReason, string> = {
@@ -73,5 +77,8 @@ export const REASON_TEXT: Record<MusicReason, string> = {
   link_has_credentials: "That link contains a user name or password part, so it was not accepted.",
   link_too_long: "That link is too long (500 characters at most).",
   not_admin: "Only an admin can do that.",
+  already_reviewed: "That suggestion has already been reviewed.",
+  bad_action: "That action is not recognised.",
+  bad_note: "The note can be up to 500 characters.",
   db_error: "Something went wrong saving that, please try again.",
 };

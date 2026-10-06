@@ -1562,4 +1562,29 @@ Minh's feedback after seeing Phase 8: (1) the rings should be at the side, the t
 
 ---
 
+## 2026-10-06 — Session 52: Phase 9 begins — diary key fix and error boundaries (Phase 9, Box 1)
+
+Minh: "the diary page has been fixed according to another chat, check again, we can move to Phase 9 today."
+
+**Diary re-check:** the other chat's fix was **not in the repository** (nothing new on `origin/main`, no unmerged commits on the two worktree branches, a clean tree) and the React "two children with the same key" warning was still logged on every diary page. Cause: `MoodPicker` and `DiaryEditor` are siblings and both had `key={date}`. They now use `mood-${date}` / `editor-${date}` (each still remounts when the day changes). Six diary loads and a client-side Prev click: zero console messages. If the other chat fixes it differently, drop whichever is redundant when merging.
+
+**Phase 9 plan (functional boxes first; design polish stays with Stage 2):** error boundaries -> empty states -> privacy note -> reduced-motion pass -> guest demo -> delete-account -> Lighthouse. Landing copy / screenshots, the decoration-zones brainstorm and README GIFs go with the Figma stage or the end.
+
+**What landed (Box 1):**
+- `components/layout/ErrorPanel.tsx` (client): "Something spilled." + "Anything you had already saved is untouched", **Try again**, a link out, and **`Reference: <digest>`** so a bug report can name the error. It never shows the error's message or stack. Try again does `router.refresh()` then `reset()`, so a page that failed on the server fetches its data again.
+- `app/(app)/error.tsx`: sits **below** the app layout, so the top bar, sidebar, focus timer and music player survive a broken page. `app/error.tsx`: pages outside the shell (landing, sign in / up), full-screen. `app/global-error.tsx`: the root layout itself failed; brings its own `<html>` / `<body>`, and "Try again" is a full page reload (the router may be what broke). `app/not-found.tsx`: a 404 for any unknown address, with links to the timetable and home.
+
+**Verified (production build, signed in; throwaway crash routes and a cookie-switched root-layout crash, all deleted afterwards):**
+- A **server crash inside the shell**: HTTP 500, panel shown, sidebar nav / top bar / calendar still present, `Reference: 2539702156`, the thrown message **not anywhere in the HTML**. "Try again" while the cause persists stays on the panel without looping; with the cause removed (cookie cleared) **one click recovered the page in place** (shell intact).
+- A **client-side crash** (a button that throws on render): panel shown, shell intact, message absent. **A running focus timer kept counting down** with the panel on screen (24:57 -> 24:56 -> 24:53), then was reset.
+- A crash **outside the shell**: HTTP 500, full-screen panel with the fonts loaded and a "Go home" link. A **root-layout crash** (global-error): HTTP 500, panel with system fonts, message absent; after the cause was removed "Try again" **reloaded into the working app** (it did not recover before the reload fix).
+- **404:** `/nope`, `/today/abc` and `/diary/2026-10-05/extra` are all HTTP 404 with the 404 page and working links, signed in and signed out.
+- `typecheck` + `lint` + `test` (675, unchanged: the boundaries are UI) green.
+
+**Not covered:** how the panels look (Stage 2); reporting errors to a service (none exists; the reference number is for Minh to grep in Vercel's logs).
+
+**Next — Box 2:** empty states on every page.
+
+---
+
 <!-- New entries append below with date + session number -->

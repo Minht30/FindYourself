@@ -7,6 +7,8 @@ import { TasksShell, TasksToggle, DRAWER_COOKIE } from "@/components/tasks/Tasks
 import TaskBoard from "@/components/tasks/TaskBoard";
 import { TASK_COLUMNS, type TaskDTO } from "@/lib/tasks";
 import { getUserTimeZone } from "@/lib/today";
+import { STREAK_COLUMNS, streakView, toStoredStreak } from "@/lib/streak";
+import StreakChip from "@/components/motivation/StreakChip";
 import {
   addDays,
   formatWeekRange,
@@ -39,7 +41,7 @@ export default async function TodayPage({ searchParams }: Props) {
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
 
-  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }] = await Promise.all([
+  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }, { data: profile }] = await Promise.all([
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
@@ -61,7 +63,10 @@ export default async function TodayPage({ searchParams }: Props) {
       .lt("completed_at", dayEnd)
       .order("completed_at", { ascending: false })
       .returns<TaskDTO[]>(),
+    // Written only by the database (see lib/streak.ts); read here to show it.
+    supabase.from("profiles").select(STREAK_COLUMNS).eq("id", user.id).maybeSingle(),
   ]);
+  const streak = streakView(toStoredStreak(profile), today);
   const tasks = openTasks ?? [];
   // Drawer defaults to open; the cookie remembers a user who closed it.
   const drawerOpen = cookies().get(DRAWER_COOKIE)?.value !== "0";
@@ -110,6 +115,10 @@ export default async function TodayPage({ searchParams }: Props) {
             </a>
           </nav>
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-3">
+        <StreakChip view={streak} />
       </div>
 
       <WeekGrid

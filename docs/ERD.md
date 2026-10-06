@@ -38,9 +38,12 @@ ambient_layers    (global, read-only — rain, fire, etc.)
 | display_name | text |  |
 | timezone | text | IANA, e.g. `Asia/Ho_Chi_Minh` |
 | theme | text | default `'night_cafe'` |
-| streak_count | int | default 0 |
-| streak_last_date | date |  |
+| streak_count | int | default 0; the run of consecutive active days ending at `streak_last_date`. **Written only by the database** (Phase 8): no client privilege |
+| streak_last_date | date | the most recent active day (never in the future); null = never |
+| streak_best | int | longest run so far, never decreases (added in Phase 8) |
 | created_at | timestamptz | default now() |
+
+A **streak day** is a calendar day, in `timezone`, with a diary entry (text or a mood) or a completed task. A missed day resets the run (no grace days). The database recomputes `streak_count` / `streak_last_date` / `streak_best` from the source rows after every change that can matter (triggers on `diary_entries` and `tasks`, plus a zone change on `profiles`), through `private.refresh_streak` and the pure `private.streak_run(date[])`; whether the run is still alive *today* is answered at read time by `lib/streak.ts`. `UPDATE` privilege is granted only on `username, display_name, timezone, theme`; a trigger refuses a `timezone` that is not in `pg_timezone_names` (`bad_timezone`). The browser keeps `timezone` equal to its own (`TimeZoneSync`).
 
 ### `categories`
 | column | type | notes |

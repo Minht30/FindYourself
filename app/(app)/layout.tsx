@@ -4,6 +4,7 @@ import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
+import TimeZoneSync from "@/components/layout/TimeZoneSync";
 import MiniPlayer from "@/components/music/MiniPlayer";
 import MusicProvider from "@/components/music/MusicProvider";
 import { TRACK_COLUMNS, toPlaylist, toTrack } from "@/lib/music/types";
@@ -16,13 +17,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // `ambient_layers`. If the read fails for any reason the built-in list is
   // used, so the mixer never disappears over a database hiccup.
   const supabase = createClient();
-  const [layers, saved, music, lists] = await Promise.all([
+  const [layers, saved, music, lists, profile] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
     supabase.from("mixer_state").select("levels, master_volume, muted, current_track_id").maybeSingle(),
     // Their music library (RLS: own rows only). A failed read is an empty library.
     supabase.from("music_tracks").select(TRACK_COLUMNS).order("created_at"),
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
+    // The zone the database counts days in (the streak); kept equal to the browser's.
+    supabase.from("profiles").select("timezone").maybeSingle(),
   ]);
   const tracks = (music.data ?? []).map(toTrack);
   const known = new Set(tracks.map((t) => t.id));
@@ -47,6 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <MixerProvider catalogue={catalogue} initial={initial}>
       <MusicProvider tracks={tracks} playlists={playlists} initialTrackId={saved.data?.current_track_id ?? null}>
       <FocusProvider>
+        {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} /> : null}
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
               the surrounding shell static-renderable in Next.js 14. */}

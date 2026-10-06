@@ -216,7 +216,8 @@ export default function WeekGrid({ weekStart, blocks, categories }: Props) {
         style={{ gridTemplateColumns: `72px repeat(7, minmax(0, 1fr))` }}
       >
         <div className="p-2 text-[11px] font-mono text-ink-muted uppercase tracking-wider">
-          {tzAbbrev()}
+          {/* The server's zone is not the visitor's: fill this in after mount (like the NOW line) */}
+          {now ? tzAbbrev() : ""}
         </div>
         {days.map((day, i) => {
           const today = now ? isSameDay(day, now) : false;

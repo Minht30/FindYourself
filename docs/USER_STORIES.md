@@ -147,8 +147,9 @@ Acceptance criteria in Given/When/Then.
 
 ### US-7.1 Streak
 **Acceptance:**
-- Given I write a diary entry or complete a task on day N, when day N ends, then my streak increments by 1.
-- Given I miss a day, when I return, then the streak resets to 1 (with a gentle "welcome back" message, not shame).
+- Given I write a diary entry (text or a mood) or complete a task on day N (my own calendar day), then my streak counts day N; the number is computed by the database and I cannot edit it.
+- Given I miss a whole day, when I return, then the streak is 0 and I see a gentle "welcome back" message (not shame); the first entry or task after that makes it 1. My best streak is kept.
+- Given it is a day after a streak day and I have done nothing yet, then the streak still shows, with a prompt that one thing today keeps it going.
 
 ### US-7.2 Daily quote
 **Acceptance:**

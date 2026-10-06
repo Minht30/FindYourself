@@ -134,6 +134,15 @@ export default function PrivacyPage() {
           for good.
         </p>
 
+        <H2>Deleting your account</H2>
+        <p>
+          In Settings, &ldquo;Delete account&rdquo; removes your account and everything in it: your diary, tasks, timetable,
+          categories, focus history, profile and settings, your uploaded music files, your playlists and your track
+          suggestions. It cannot be undone, and you confirm it by typing a word on purpose. Community picks that were
+          approved earlier stay, because they never carried your name. Data this app keeps in your browser is cleared as
+          well. As above, a hosting provider&apos;s routine backups can hold a copy for a short while.
+        </p>
+
         <H2>If this changes</H2>
         <p>This page is updated when the app changes in a way that matters here, and the date at the top changes with it.</p>
 

@@ -146,7 +146,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 - [x] Lighthouse ≥ 90 on all axes — measured on a production build: mobile 96-100 and desktop 100 on all four axes for all nine pages (`npm run lighthouse`); the run found and fixed real WCAG AA contrast failures in the theme tokens (now guarded by a test), two label-in-name mismatches and a missing favicon; re-run against the deployed site after the push
 - [x] Settings page + category management (US-8.1) - `/settings` (the top bar's gear now goes there): account, time zone (detected), daily focus goal, and categories: add, rename, recolour, reorder, delete with "move things to..."; the sidebar lists the person's real categories
 - [x] Phone navigation — the Menu button opens the sidebar as a drawer below 768 px (there was no way to change page on a phone); Settings added to the page list
-- [ ] Delete-account flow - built and verified except the final successful run, which waits for Minh to put `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` (empty today) and in Vercel; refuses safely (`not_configured`) until then
+- [x] Delete-account flow - Settings -> Delete account (type DELETE): removes the account, every row by cascade and the stored music files; verified end to end on a throwaway account (0 rows left in every table, 0 stored files, the other accounts and the real track untouched); refuses by name (`not_configured`) if the service key is missing
 - [ ] README polish with GIFs
 
 **Exit criteria:** public live URL, shared for feedback.

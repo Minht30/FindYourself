@@ -1762,4 +1762,18 @@ Tests: **732** unit tests (was 659 at the end of Phase 8); SQL test files for ca
 
 ---
 
+## 2026-10-06 — Session 62: Delete account verified end to end; setup checks
+
+**Minh's setup (confirmed):** anonymous sign-ins on (the project's public settings now report `anonymous_users: true`), the Search button removed, the service-role key in `.env.local` (a new-style `sb_secret_...` key, non-empty, `.env.local` is gitignored, the variable is never `NEXT_PUBLIC_`) and in Vercel (I cannot see Vercel's settings; the live site's behaviour is the check). The pasted Supabase docs excerpt (restrictive policy on `is_anonymous`) matches how the demo is built: the guest rules are in the database, as extra conditions on the insert policies for uploads, tracks and suggestions (equivalent to a restrictive policy).
+
+**The real deletion, run on the second throwaway account** (seeded earlier with a task, a block, a diary mood, a focus session, a mixer row, **2 real MP3 files in storage**, a playlist with a track and a suggestion), through the UI with the full confirmation:
+- Landed on `/?deleted=1` with "Your account and everything in it have been deleted"; `/today` then redirects to login; **signing in again fails with "Invalid login credentials"**.
+- **Database after:** `auth.users`, `auth.identities`, `auth.sessions` and every table that referred to the account (profile, categories, tasks, blocks, diary, focus, mixer, tracks, playlists, suggestions) **0 rows; 0 orphaned playlist links; 0 stored files** in its folder. The database went from 4 users / 3 stored files / 3 tracks to **3 users / 1 stored file / 1 track**: the one real track and its file, and the first throwaway account (profile and 5 categories), are untouched.
+- **A small bug found and fixed:** after deletion one device key (`fy-music`) was still in the browser: the page being left rewrites the music queue as it unloads, after the delete button had cleared it. The home page now clears the `fy-` keys once it has loaded with `?deleted=1`, where nothing is left to rewrite them. Verified: preset `fy-music`, `fy-mixer`, a diary draft and an unrelated key, load `/?deleted=1`: only the unrelated key remains; a normal visit clears nothing.
+- The privacy page now has its **"Deleting your account"** paragraph (what goes, that approved picks stay, browser data is cleared, backups can linger briefly), as promised in Session 57.
+
+**Still needs a human click:** "Try the demo" on a real guest (creating the guest account is an account creation, which I must not do myself). Anonymous sign-ins are on and no guest account exists yet; after one click I verify the seeded rows by SQL.
+
+---
+
 <!-- New entries append below with date + session number -->

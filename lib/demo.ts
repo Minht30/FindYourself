@@ -1,5 +1,5 @@
 // The guest demo: the rules, with no network. The actions in app/demo/actions.ts
-// and app/(app)/demo-actions.ts do the work; these decide what a failure means
+// and app/demo-actions.ts do the work; these decide what a failure means
 // and whether an upgrade form is acceptable.
 
 export type DemoReason =
@@ -7,7 +7,8 @@ export type DemoReason =
   | "demo_full" // the cap on guest accounts was reached
   | "demo_unavailable"
   | "seed_failed"
-  | "rate_limited";
+  | "rate_limited"
+  | "signed_in"; // someone is signed in to a real account: ask before replacing the session
 
 export const DEMO_MESSAGES: Record<DemoReason, string> = {
   demo_disabled: "The demo is not available right now. You can still create an account.",
@@ -15,6 +16,7 @@ export const DEMO_MESSAGES: Record<DemoReason, string> = {
   demo_unavailable: "The demo could not start. Please try again in a moment.",
   seed_failed: "The demo could not be set up. Please try again in a moment.",
   rate_limited: "Too many demos were started just now. Please try again in a few minutes.",
+  signed_in: "You are signed in to your own account. The demo is a separate, temporary account, so starting it signs you out here first.",
 };
 
 // What the sign-in service said, in words. `message` is the service's own text

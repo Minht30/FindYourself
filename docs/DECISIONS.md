@@ -1776,4 +1776,14 @@ Tests: **732** unit tests (was 659 at the end of Phase 8); SQL test files for ca
 
 ---
 
+## 2026-10-06 — Session 63: "Try the demo" while signed in
+
+**Reported by Minh:** clicking "Try the demo" while signed in goes straight to his own account; in an incognito window "it is fixed". **Cause (the first part):** by design `startDemo` carried on to the app for anyone already signed in, which reads as the demo ignoring the click. **Fix:** a signed-in visitor on a **real** account now gets a short explanation ("You are signed in to your own account. The demo is a separate, temporary account, so starting it signs you out here first.") with two buttons: **Sign out and start the demo** and **Go to my account**. A visitor already in a demo carries on with it. `startDemo(replaceSession)`; new reason `signed_in`.
+
+**Verified (signed in as the throwaway account, localhost):** the click shows the explanation and both buttons, the session cookie is untouched, "Go to my account" opens /today, no guest account was created (0 in `auth.users`), zero console messages. Not clicked by me: "Sign out and start the demo" (it creates a guest account, which is an account creation I must not do). `typecheck` + `lint` + `test` (**733**) green.
+
+**Open question for Minh:** the database still shows **no guest account**, and the project's API log shows **no anonymous sign-up request since the setting was switched on** (the only recent sign-ups are my own refused test and the second throwaway account). So the incognito click did not create a guest (or the log is behind). Asked Minh what the incognito click showed (an error text, the app with a banner, or the landing page again).
+
+---
+
 <!-- New entries append below with date + session number -->

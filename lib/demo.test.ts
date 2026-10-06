@@ -28,6 +28,11 @@ describe("demoReasonFromAuthError", () => {
     expect(demoReasonFromAuthError(undefined)).toBe("demo_unavailable");
   });
 
+  it("asks before replacing a real account's session, and says what the demo is", () => {
+    expect(DEMO_MESSAGES.signed_in).toMatch(/your own account/i);
+    expect(DEMO_MESSAGES.signed_in).toMatch(/signs you out/i);
+  });
+
   it("has a gentle message for every reason that always offers a way forward", () => {
     for (const m of Object.values(DEMO_MESSAGES)) expect(m.length).toBeGreaterThan(20);
     expect(DEMO_MESSAGES.demo_disabled).toMatch(/create an account/i);

@@ -16,17 +16,24 @@ export type StartDemoResult = { ok: true } | { ok: false; reason: DemoReason };
 export type UpgradeResult = { ok: true; needsConfirmation: boolean } | { ok: false; reason: UpgradeReason };
 
 // "Try the demo": a temporary guest account with sample data, one per visitor.
+// If the visitor is already signed in to a REAL account the demo would replace
+// their session, so it asks first (`signed_in`); with `replaceSession` it signs
+// them out of this browser and starts the demo. A visitor already in a demo just
+// carries on with it.
 // The sample data is written by a database function that runs AS the visitor
 // (so row-level security applies to every row), placed relative to their own
-// day and time zone. If anyone is already signed in this just carries on to the
-// app. A guest account that cannot be seeded is signed out again at once (the
-// hourly purge removes the leftover).
-export async function startDemo(): Promise<StartDemoResult> {
+// day and time zone. A guest account that cannot be seeded is signed out again
+// at once (the hourly purge removes the leftover).
+export async function startDemo(replaceSession = false): Promise<StartDemoResult> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) return { ok: true };
+  if (user) {
+    if (isGuest(user)) return { ok: true };
+    if (replaceSession !== true) return { ok: false, reason: "signed_in" };
+    await supabase.auth.signOut();
+  }
 
   const { error: signInError } = await supabase.auth.signInAnonymously();
   if (signInError) return { ok: false, reason: demoReasonFromAuthError(signInError) };

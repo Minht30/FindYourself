@@ -126,7 +126,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 8 — Motivation layer (est. 1 session)
 
 - [x] Streak on `profiles` — recomputed by the database from the person's rows after every diary / task-completion change (triggers + a pure `streak_run` function), in the user's own zone (kept in sync from the browser); the client cannot write it; read-time "alive today / welcome back" in `lib/streak.ts`; chip on /today
-- [ ] `quotes` seeded (~120)
+- [x] `quotes` seeded (120) — original lines, no authors; read-only table; the quote of the day is a pure function of the date (same date, same quote for everyone; no repeat within a 120-day lap); card on /today
 - [ ] Weekly wins card (Sunday >18:00)
 - [ ] Progress rings on dashboard
 

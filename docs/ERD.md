@@ -205,13 +205,15 @@ RLS: select for every `authenticated` user; insert / update / delete only when `
 `review_suggestion(p_id, p_action, p_note)` (SECURITY INVOKER, so RLS still applies inside it): `not_admin` unless the caller is an admin; `bad_action` (not approve / reject); `bad_note` (> 500); locks the suggestion row; `not_found`; `already_reviewed` unless it is pending. **Approve** inserts the pick (title, artist and link copied, the trimmed note, the next sort order) and sets the suggestion to `approved` with `reviewed_by`, **in one transaction**; **reject** sets `rejected`. Returns the pick's id or null.
 
 ### `quotes` (global read-only)
-| column | type |
-|---|---|
-| id | int PK |
-| text | text |
-| author | text |
+*(Built in Phase 8, Session 47.)*
 
-Seeded with ~120 quotes so a full year has variety with light repetition.
+| column | type | notes |
+|---|---|---|
+| id | int PK | 1..120 |
+| text | text | 1-200 chars after trim (check), unique |
+| author | text nullable | 1-80 if present; **null for every seeded row** (written for the app; no real-person attributions) |
+
+Seeded with 120 original lines. RLS: select for `authenticated` only; **no insert / update / delete policy** and the write privileges are revoked, so only a migration changes it; nothing for `anon`. Which quote shows on a day is a pure function of the date (`lib/quotes.ts`: day number x a stride coprime with the list length, so any `n` consecutive days show every quote once); nothing is stored per user or per day.
 
 ### `ambient_layers` (global read-only)
 *(Revised in Phase 6, Session 33: layers are synthesized with Web Audio, so a row is metadata; a single layer can become a file later.)*

@@ -1439,4 +1439,23 @@ Six boxes, six commits (Sessions 40-45): the music bucket + `music_tracks` + upl
 
 ---
 
+## 2026-10-06 — Session 47: The daily quote (Phase 8, Box 2)
+
+**What landed:**
+- Migration `20261006050844_phase8_quotes`. `quotes` (`id`, `text` 1-200 and unique, `author` nullable): **120 original lines written for the app** (about focus, rest, small steps, rain, tea), **no author on any row** (decision B: no real-person attributions; none are public-domain-checked, so none are used). Readable by every signed-in user, nothing writable through the API, nothing for `anon`.
+- `lib/quotes.ts` (pure, 17 tests): `quoteForDate(iso, quotes)`. The day number (whole days since 1970) is multiplied by a stride coprime with the list length (`strideFor`: the smallest number at or above 38 % of it that is coprime; 47 for 120) modulo the length. So **the same date gives the same quote to everyone**, neighbouring days are far apart, and **any `n` consecutive days show every quote exactly once** (a quote repeats only after a 120-day lap). Rows are sorted by id first, so the order they arrive in does not matter. Malformed dates and empty lists give `null`; rows are validated (`toQuote`), the text is shown as text. Adding quotes later reshuffles the calendar, which is fine.
+- A Quote card on /today (above the Streak card); no attribution line unless a row has an author.
+
+**Verified:**
+- **SQL (`supabase/tests/phase8_quotes.sql`):** 120 rows, 120 distinct, ids 1-120, longest 91 characters, 0 with an author, none padded. As `authenticated` (real JWT claims): read 120; insert, update and delete each `42501`; `anon` read `42501`.
+- **Unit:** pinned golden value (2026-10-06 -> the 5th quote), same date x5, independent of input order, 800 consecutive days never repeat the previous day's quote, a full run of `n` days shows each quote once from four different starts, repeats exactly 120 and 240 days later, every list length 1-200 including dates before 1970, `null` cases, `toQuote` rejects malformed rows.
+- **Live (signed in, localhost):** /today x3 in each of three zones, same quote on all three loads and zero console errors or warnings: Toronto and Ho Chi Minh (both Oct 6) show quote 5 ("You don't have to finish today; you only have to begin."), Pago Pago (still Oct 5) shows quote 78 — exactly what the maths predicts, so **two people on the same date see the same line**.
+- `typecheck` + `lint` + `test` (**620**, +17) green.
+
+**Not covered:** the quote reading well in the real design (Stage 2); whether 120 lines feel varied across a year (Minh to judge after a few weeks: about three laps per year).
+
+**Next — Box 3:** the weekly wins card.
+
+---
+
 <!-- New entries append below with date + session number -->

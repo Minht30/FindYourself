@@ -9,6 +9,8 @@ import { TASK_COLUMNS, type TaskDTO } from "@/lib/tasks";
 import { getUserTimeZone } from "@/lib/today";
 import { STREAK_COLUMNS, streakView, toStoredStreak } from "@/lib/streak";
 import StreakChip from "@/components/motivation/StreakChip";
+import QuoteCard from "@/components/motivation/QuoteCard";
+import { QUOTE_COLUMNS, quoteForDate, toQuote } from "@/lib/quotes";
 import {
   addDays,
   formatWeekRange,
@@ -41,7 +43,7 @@ export default async function TodayPage({ searchParams }: Props) {
   const dayStart = zonedDayStartUTC(today, timeZone).toISOString();
   const dayEnd = zonedDayStartUTC(shiftISODate(today, 1), timeZone).toISOString();
 
-  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }, { data: profile }] = await Promise.all([
+  const [{ data: categories }, { data: blocks }, { data: openTasks }, { data: doneTasks }, { data: profile }, { data: quoteRows }] = await Promise.all([
     supabase.from("categories").select("id, name, color").order("sort_order"),
     supabase
       .from("time_blocks")
@@ -65,7 +67,13 @@ export default async function TodayPage({ searchParams }: Props) {
       .returns<TaskDTO[]>(),
     // Written only by the database (see lib/streak.ts); read here to show it.
     supabase.from("profiles").select(STREAK_COLUMNS).eq("id", user.id).maybeSingle(),
+    // Global, read-only; which one shows today is a pure function of the date.
+    supabase.from("quotes").select(QUOTE_COLUMNS).order("id"),
   ]);
+  const quote = quoteForDate(
+    today,
+    (quoteRows ?? []).map(toQuote).filter((q): q is NonNullable<typeof q> => q !== null),
+  );
   const streak = streakView(toStoredStreak(profile), today);
   const tasks = openTasks ?? [];
   // Drawer defaults to open; the cookie remembers a user who closed it.
@@ -118,6 +126,7 @@ export default async function TodayPage({ searchParams }: Props) {
       </div>
 
       <div className="mt-4 flex flex-col gap-3">
+        <QuoteCard quote={quote} />
         <StreakChip view={streak} />
       </div>
 

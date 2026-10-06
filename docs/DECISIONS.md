@@ -1824,4 +1824,23 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 
 ---
 
+## 2026-10-06 — Session 67: Stage 2 starts: the Figma file is built and wired to the code
+
+**Minh said go** on the design stage ("start this night, connect and wire to Figma now to prepare for me"), choosing to design before his hands-on test. Same session: the privacy page got a contact line (his email and the GitHub issues link) and a note that the app was built with Claude as a coding assistant.
+
+**Figma file:** "FindYourself — Design Stage 2", `https://www.figma.com/design/cfavJs3bXchFO6b9kSVhxw`, in Minh's team (Full seat, student plan, drafts). Created and filled through the Figma connector with his go-ahead.
+
+**What is real (built from the code, not guessed):**
+- **Tokens as variables, mirrored 1:1 from `app/globals.css`.** Color (22) and Pixel (20) in two modes (Sunny Cafe, Netcafe Night), Type (font families per theme), Scale (spacing, radii). Scopes set on all, WEB code syntax `var(--...)` on all. A frame can be switched between the two themes by setting its variable mode, so any screen designed here can be shown in both.
+- **Contrast table computed from the variable values:** 18 text and graphic pairs, all pass, in agreement with the code's own `lib/contrast.test.ts`.
+- **Pixel kit:** the cat, cups and digits as 26 components, built from the same string grids and the same run-merging as `PixelSprite`, with fills bound to the Pixel variables, so the same component is ginger in Sunny and neon-rimmed in Night. Whole-number scale only.
+
+**What is scaffold only (waiting for Minh):** Moodboard drop zones, Scenes (layer slots and composed 960 x 540 stages, no art), Screens (baseline and redesign slots), Decoration zones (wireframes with the reserved areas, starter prompts), Review (tracker of the 11 open design items).
+
+**Limits found:** the Plugin API cannot import images, so live-app screenshots do not go into the file by script; baselines have to be pasted by Minh or rebuilt from code per screen. Space Grotesk has no SemiBold in Figma. Effect styles and the Focus Mode overrides are not modelled yet.
+
+**Next:** Minh's references on the Moodboard, then the scenes (Monstadt / Liyue) with him; screens redesign beside baselines; each decision gets a Review row, then a commit, then this log.
+
+---
+
 <!-- New entries append below with date + session number -->

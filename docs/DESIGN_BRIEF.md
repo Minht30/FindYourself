@@ -1,6 +1,6 @@
 # Design brief — Stage 2 (Figma design pass)
 
-**Status:** prepared, **not started**. Minh's plan (2026-10-05): finish the core functions, test them by hand, *then* come back for a deep design pass with Figma. Nothing is created in Figma until Minh says so (see "Kickoff").
+**Status:** **started 2026-10-06** (Minh said go). The Figma file exists: https://www.figma.com/design/cfavJs3bXchFO6b9kSVhxw ("FindYourself — Design Stage 2", Minh's team, drafts). Tokens, Pixel kit and the page scaffolds are built; see "Where the Figma file stands" below. Original plan (2026-10-05): finish the core functions, test them by hand, *then* a deep design pass.
 
 This file is the hand-over: everything a design session needs so we can start on day one without re-deriving context. Source of truth for tokens stays `docs/DESIGN_SYSTEM.md` and `app/globals.css`; this brief lists *what is open* and *how we work*.
 
@@ -65,14 +65,30 @@ One file, "FindYourself — Design Stage 2", pages:
 - **Pixel art route (Minh picks per asset):** (a) *code grids*, which I draw and Minh reviews in Figma and the browser; (b) *pixel editor* (Aseprite / Piskel / Pixelorama), where Minh draws and exports PNG sprite sheets that I import and wire.
 - Loop: Minh comments in Figma, I implement, push, screenshot back into the frame, Minh approves or redirects. Decisions go in `docs/DECISIONS.md`.
 
+## 5b. Where the Figma file stands (2026-10-06)
+
+File key `cfavJs3bXchFO6b9kSVhxw`. Seven pages as in section 4.
+
+| Page | State |
+|---|---|
+| Moodboard | Scaffolded: six dashed drop zones (Monstadt, Liyue, palette and light, pixel references, decoration and motion, anything else) with the scene briefs. Waiting for Minh's references. |
+| Tokens | Built. Variable collections **Color** (22) and **Pixel** (20, incl. `pix/track-lit` aliased to accent) and **Type** (4 font families), each in two modes, Sunny Cafe and Netcafe Night; **Scale** (10 spacing, 5 radii). Names map 1:1 to `app/globals.css` (`bg/base` = `--bg-base`), every variable has scopes and `var(--...)` code syntax. Two specimen frames bound to the variables, plus a contrast table computed from the real values (18 pairs, all pass AA, matching `lib/contrast.test.ts`). |
+| Pixel kit | Built. 26 components of 6 px cells from the code's string grids (cat run 1-4, idle 1-3, cheer 1-2, sleep 1-2, head open / closed, cup empty / full, digits 0-9 and colon), fills bound to the Pixel variables, shown in both themes with the clock and the square timer track. |
+| Scenes | Scaffolded: Monstadt and Liyue, each with five layer slots (sky, far, mid, near, small animated bits) and a composed 960 x 540 stage, in the right theme mode. No art yet. |
+| Screens | Scaffolded: six screens (Timetable, Diary, Tasks drawer, Focus, Focus Mode, Chill) x Sunny / Night baseline slots plus a redesign slot. **Baselines are empty**: the Plugin API cannot import images. Either paste screenshots or ask me to rebuild a screen from code. |
+| Decoration zones | Scaffolded: wireframes of Diary, Focus, Chill and Timetable with the reserved zones hatched, plus six starter idea cards (prompts only). |
+| Review | Scaffolded: tracker of the 11 open items (section 2 plus the input-border contrast), status Open, commit column empty. |
+
+Known gaps: Space Grotesk has no SemiBold style in Figma (code uses 500 / 600 / 700, Figma has Regular / Medium / Bold); effect styles (shadow-card, glow) are not modelled; the Focus Mode token overrides (`[data-focus-surface]`) are not modelled; `--heat-max` is not modelled.
+
 ## 6. Ready-to-go checklist (do before Stage 2 starts)
 
-- [ ] Core phases built and Minh's manual test pass done; bugs triaged.
-- [ ] Minh confirms Figma or pixel-editor route, and whether I create the file in his team or he shares one.
+- [ ] Core phases built and Minh's manual test pass done; bugs triaged. *(Minh chose to start design first, 2026-10-06.)*
+- [x] Figma route; the file is in Minh's team (created 2026-10-06). Pixel-editor route still open per asset.
 - [ ] Minh drops references (links or images; scenes, palette, mood) into the Moodboard page or a Drive folder.
 - [ ] Decide the Phase 6 placeholder art is acceptable until then.
-- [ ] Freeze the token names (`--pix-*`, `--bg-*`, `--ink-*`, `--accent*`) so Figma variables map 1:1.
+- [x] Token names frozen and mapped 1:1 in the Figma variables (2026-10-06).
 
 ## 7. Kickoff
 
-When Minh says go, I will *first* tell him, then create the Figma file in his team (his OK needed: it is a new shared artifact), set up the Tokens and Pixel kit pages from the code, and open the Moodboard for his references. I will not create or write to Figma before that.
+Done 2026-10-06 (Minh said go): the file was created in his team, Tokens and Pixel kit were built from the code, and the Moodboard was opened for his references. Keep Figma in step with the code: when a token changes in `app/globals.css`, change the variable too (and the other way round).

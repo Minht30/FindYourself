@@ -155,7 +155,13 @@ Limits (changed 2026-10-05 from 20 tracks / mp3 + m4a + ogg): max **10** rows pe
 RLS: select / insert / update / delete own. Column privileges: a user may update **only `title` and `artist`**; nothing for `anon`. The bucket `music` is private (`file_size_limit` 10 MB, `allowed_mime_types` `audio/mpeg`); storage policies allow a user to read / delete under `{their id}/` and to insert only a generated `{their id}/{uuid}.mp3` while they hold fewer than 10 objects and under 50 MB (a backstop that works through `private.music_room_left()`, a SECURITY DEFINER helper in a schema the API does not expose). There is no update policy on the objects: nothing is overwritten. Deleting an account removes the rows by cascade but **not** the stored objects: the Phase 9 delete-account flow must remove `{user_id}/` from the bucket.
 
 ### `playlists` / `playlist_tracks`
-Standard M..N. Cascade on user delete.
+*(Built in Phase 7, Session 41.)*
+
+`playlists`: `id` uuid PK, `user_id` (default `auth.uid()`, cascade), `name` (1-60 chars, check), `created_at`. At most **20 per user**: a BEFORE INSERT trigger under a per-user advisory lock raises `playlist_limit`. RLS own-row for all four commands; a user may update only `name` (column privileges); nothing for `anon`.
+
+`playlist_tracks`: PK `(playlist_id, track_id)` (a track appears once per playlist; both FKs cascade, so deleting a track or a playlist removes the link), `position` int 0..100000 with `unique (playlist_id, position) deferrable initially deferred` (a reorder rewrites every row in one statement). RLS: every command only on links of the caller's own playlists, and **insert also requires the track to be the caller's own** (the FK alone would take anyone's id). Only `position` may be updated. Index on `track_id` (the cascade scan).
+
+Two SECURITY INVOKER functions, so RLS still applies to them and they are exposed to `authenticated` only: `add_playlist_track(playlist, track)` (locks the playlist row, appends at max + 1) and `reorder_playlist(playlist, track_ids[])` (the array must be exactly the playlist's tracks, each once, else `bad_order`; all positions or none change).
 
 ### `track_suggestions` (public-write for authenticated users, admin-read)
 | column | type | notes |

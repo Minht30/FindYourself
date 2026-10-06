@@ -51,7 +51,9 @@ export default function MusicLibrary() {
   // including as a client that skips its own checks. Compiled out of production.
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
-    (window as unknown as { __fyMusicTools?: unknown }).__fyMusicTools = {
+    const w = window as unknown as { __fyMusicTools?: Record<string, unknown> };
+    w.__fyMusicTools = {
+      ...w.__fyMusicTools,
       upload: (file: File, opts?: UploadOptions): Promise<Outcome> => uploadTrack(file, usageRef.current, realDeps, opts),
     };
   }, []);

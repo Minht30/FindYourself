@@ -1258,4 +1258,26 @@ No application code changed this session.
 
 ---
 
+## 2026-10-06 — Session 41: Playlists (Phase 7, Box 2)
+
+**What landed:**
+- Migration `20261006005156_phase7_playlists`. `playlists` (name 1-60, at most 20 per user via a locking trigger, `playlist_limit`) and `playlist_tracks` (PK `(playlist_id, track_id)`, `position` unique per playlist but **deferred**, so a reorder can rewrite every row in one statement). RLS: own playlists only on every command; a link needs the **playlist and the track both to be the caller's own** (the FK alone would take anyone's id); a user can update only `name` / `position`. Adding and reordering are two **SECURITY INVOKER** functions (`add_playlist_track`, `reorder_playlist`), so RLS still applies, the next position cannot be claimed twice, and a reorder either rewrites every position or none; `reorder_playlist` insists the array is exactly the playlist's own tracks, each once (`bad_order`). ERD updated.
+- `lib/music/playlist.ts` (14 new tests): name validation, `moveItem` / `moveUp` / `moveDown`, `isPermutation`, and a **seeded `shuffle`** (always a permutation, stable per seed, optional `first` pinned to the front so shuffling while a track plays does not skip it, uniform over positions across 2000 seeds). Box 3's queue uses it.
+- Actions (`app/(app)/chill/playlist-actions.ts`): create / rename / delete / add / remove / reorder, each checking the session and its input, with named reasons (`bad_name`, `playlist_limit`, `already_in_playlist`, `not_found`, `bad_order`, `bad_id`, `unauthenticated`); database refusals map by exception message or SQLSTATE (23505 duplicate, 42501 / 23503 someone else's or missing track).
+- UI (plain): a Playlists section on /chill: create form with a counter, per playlist inline rename, two-step delete, an ordered track list with **up / down / remove buttons** (keyboard and screen reader friendly, ends disabled) and an "Add a track" select that lists only tracks not already in it. The layout now also reads playlists (embedded `playlist_tracks`, ordered by position), so the list survives reloads without a hydration mismatch.
+
+**Verified (signed in, localhost, real actions; SQL as `authenticated` with real JWT claims in an aborting block):**
+- **SQL:** create ok; empty and 61-char names `23514`; creating one as another user `42501`; add gives positions 0, 1; the same track twice `23505`; **another user's track `42501`**; an unknown playlist `not_found`; reorder works; **missing, duplicate, foreign and extra ids each `bad_order` and the order is unchanged**; a direct two-row position swap in one statement is accepted (deferred unique); changing `track_id`, `playlist_id` or the owner `42501`; another user sees 0 playlists and 0 links, calling add / reorder on mine gives `not_found`, a direct link insert `42501`, and their rename / update / delete touch 0 rows; **the 21st playlist `playlist_limit`**; deleting a track removes its link, deleting a playlist removes its links; `anon` is refused on both tables and on the functions. Advisors: security only the old toggle; performance only unused indexes on `time_blocks` (not ours).
+- **UI:** an empty name sends one request and is `bad_name`; a real create shows "FYTEST mix (0 tracks)" and clears the error; three adds appear in order and the select then offers only the track not yet in it; moving a track up twice gives the new order, the top "up" button is disabled, and **the order survives a reload**; 20 playlists via the form, the 21st is `playlist_limit` with the count still 20; two-step delete of 19 playlists; **deleting a library track removes it from the playlist**; remove-from-playlist leaves the library untouched.
+- **Forged calls** (the actions called directly with inputs the UI never sends): duplicate add `already_in_playlist`; another user's track, an unknown track, an unknown playlist, removing a non-member, renaming or deleting an unknown playlist each `not_found`; non-uuid ids `bad_id`; reorders with a missing, duplicated, foreign, other-user's, non-uuid or non-array list each `bad_order` with the order unchanged; empty and 61-char rename `bad_name`.
+- **Signed out mid-session:** create and add each send their request, resolve with no result and show `unauthenticated`; the database is unchanged.
+- **Hydration:** /chill x2, /focus, /chill again: the same playlist text and zero console errors or warnings (only the dev server's own CSS-preload notes).
+- **The 15-minute orphan sweep from Box 1, finally exercised:** the 9.5 MB object left behind by the hung finalize (storage 4 objects, 3 rows) was gone after the next normal upload (4 rows, 4 objects, 0 orphans), and that upload itself, which was younger than 15 minutes, was not touched.
+
+`typecheck` + `lint` + `test` (**391**, +14) + `build` green; `/chill` 13.4 kB (First Load 113 kB).
+
+**Next — Box 3:** player engine + mini-player.
+
+---
+
 <!-- New entries append below with date + session number -->

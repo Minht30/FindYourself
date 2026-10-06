@@ -8,6 +8,8 @@ export const MAX_TOTAL_BYTES = 50 * 1024 * 1024; // 50 MB per user in total
 export const MAX_DURATION_SECONDS = 7200;
 export const MAX_TITLE = 120;
 export const MAX_ARTIST = 120;
+export const MAX_PLAYLISTS = 20;
+export const MAX_PLAYLIST_NAME = 60;
 export const MP3_MIME = "audio/mpeg";
 
 // Every refusal in the music library names its reason, so a test (or a person)
@@ -27,6 +29,10 @@ export type MusicReason =
   | "not_uploaded" // finalize found no object in storage
   | "size_mismatch" // the stored object is not the size the client claimed
   | "upload_failed"
+  | "bad_name" // a playlist name needs 1 to 60 characters
+  | "playlist_limit" // already 20 playlists
+  | "already_in_playlist"
+  | "bad_order" // a reorder that is not exactly the playlist's own tracks
   | "db_error";
 
 export const REASON_TEXT: Record<MusicReason, string> = {
@@ -44,5 +50,9 @@ export const REASON_TEXT: Record<MusicReason, string> = {
   not_uploaded: "The upload did not arrive, please try again.",
   size_mismatch: "The uploaded file is not the size it claimed to be, so it was removed.",
   upload_failed: "The upload failed, please try again.",
+  bad_name: "A playlist name needs 1 to 60 characters.",
+  playlist_limit: "You have 20 playlists, the most there can be. Delete one to make another.",
+  already_in_playlist: "That track is already in this playlist.",
+  bad_order: "That order does not match the playlist, so nothing was changed.",
   db_error: "Something went wrong saving that, please try again.",
 };

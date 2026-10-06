@@ -27,6 +27,22 @@ export const toTrack = (r: TrackRow): Track => ({
   createdAt: r.created_at,
 });
 
+export type PlaylistRow = {
+  id: string;
+  name: string;
+  playlist_tracks: { track_id: string; position: number }[] | null;
+};
+
+// A playlist with its tracks in order. Tracks that are not in the library any
+// more (a read that raced a delete) are dropped.
+export function toPlaylist(r: PlaylistRow, known?: ReadonlySet<string>) {
+  const ids = [...(r.playlist_tracks ?? [])]
+    .sort((a, b) => a.position - b.position)
+    .map((p) => p.track_id)
+    .filter((id) => !known || known.has(id));
+  return { id: r.id, name: r.name, trackIds: ids };
+}
+
 // "3:07", "62:05"
 export function formatDuration(seconds: number): string {
   const s = Math.max(0, Math.round(Number.isFinite(seconds) ? seconds : 0));

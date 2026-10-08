@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chill · Nod-Krai night (draft 1)</title>
+<!-- DRAFT 1 of the Nod-Krai night Chill scene for FindYourself Stage 2. A feel-it prototype, not app code.
+     Art: public/assets/world/NodKrai_Night (wallpaper, aurora, clouds, frost flower, moth spirit).
+     Sound: synthesized snowy wind, a stand-in. Open through a local server (python -m http.server from the repo root) or double-click if your browser allows local images. -->
+<style>
+  :root {
+    --ink: #EAF2FF; --ink2: #C2D2F2; --muted: #A8BAE0;
+    --panel: rgba(10,20,80,.9); --line: rgba(234,242,255,.22);
+    --accent: #F4D03F; --accent-soft: #FFE9A0;
+    font-family: Inter, system-ui, sans-serif;
+  }
+  html, body { margin: 0; height: 100%; background: #050a2e; overflow: hidden; overflow: clip; color: var(--ink); }
+  .scene { position: fixed; inset: 0; overflow: hidden; overflow: clip; background: #07103a; }
+  .layer { position: absolute; inset: 0; will-change: transform; }
+  /* the stage is the painting's own coordinate space (1673 x 940), scaled and cropped like background-size: cover,
+     so everything attached to the painting (moon, beacon, shore lights, aurora) stays on the same painted spot on every screen shape */
+  .stage { position: absolute; left: 0; top: 0; width: 1673px; height: 940px; transform-origin: 0 0; will-change: transform; }
+  .stage .wall { position: absolute; inset: 0; background: url("../../public/assets/world/NodKrai_Night/nodkrai-night.webp") 0 0 / 100% 100% no-repeat; }
+  .stage .abs { position: absolute; pointer-events: none; }
+  .vignette { background: radial-gradient(ellipse at 50% 48%, rgba(0,0,0,0) 52%, rgba(2,6,32,.5) 100%); pointer-events: none; }
+
+  /* aurora: the cut-out ribbon drifts slowly and breathes, screen-blended onto the painted sky */
+  .aurora { background: url("../../public/assets/world/NodKrai_Night/nodkrai-aurora.webp") center / 100% 100% no-repeat; mix-blend-mode: screen; animation: auroraDrift 38s ease-in-out infinite alternate, auroraBreathe 9s ease-in-out infinite alternate; }
+  .aurora.b { transform-origin: 50% 50%; animation-duration: 52s, 12s; animation-delay: -14s, -4s; }
+  @keyframes auroraDrift { from { translate: -46px 0; scale: 1; } to { translate: 46px -10px; scale: 1.05; } }
+  @keyframes auroraBreathe { from { opacity: .14; } to { opacity: .4; } }
+  .aurora.b { filter: blur(2px); }
+
+  /* moon: breathing halo, and a thin orbit ring with two beads (echoing the spirit's halo) */
+  .moonhalo { width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; background: radial-gradient(circle, rgba(255,240,200,.55), rgba(255,226,170,.18) 38%, rgba(255,226,170,0) 68%); mix-blend-mode: screen; animation: moonBreathe 7s ease-in-out infinite alternate; }
+  @keyframes moonBreathe { from { opacity: .45; transform: scale(.94); } to { opacity: .95; transform: scale(1.07); } }
+  .moonring { width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 1px solid rgba(255,236,190,.28); animation: spin 70s linear infinite; }
+  .moonring::before, .moonring::after { content: ""; position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #FFE9A0; box-shadow: 0 0 10px 2px rgba(255,233,160,.7); }
+  .moonring::before { left: 50%; top: -4px; margin-left: -3px; }
+  .moonring::after { right: 4px; bottom: 24px; width: 5px; height: 5px; opacity: .8; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* stars, shooting star, shore lights, beacon, lamp, water */
+  .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity: .15; transform: scale(.7); } to { opacity: .95; transform: scale(1.15); } }
+  .win { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: radial-gradient(circle, rgba(255,226,140,.95), rgba(255,200,90,.35) 45%, rgba(255,200,90,0) 70%); mix-blend-mode: screen; animation: flicker linear infinite; }
+  @keyframes flicker { 0%,100% { opacity: .85; } 8% { opacity: .5; } 14% { opacity: 1; } 40% { opacity: .75; } 52% { opacity: 1; } 71% { opacity: .55; } 83% { opacity: .95; } }
+  .beacon { width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; background: radial-gradient(circle, rgba(255,246,220,.95), rgba(255,236,190,.35) 28%, rgba(255,236,190,0) 62%); mix-blend-mode: screen; animation: beaconPulse 3.2s ease-in-out infinite; }
+  .beacon::before, .beacon::after { content: ""; position: absolute; left: 50%; top: 50%; background: rgba(255,248,225,.8); border-radius: 2px; }
+  .beacon::before { width: 54px; height: 2px; margin: -1px 0 0 -27px; }
+  .beacon::after { width: 2px; height: 54px; margin: -27px 0 0 -1px; }
+  @keyframes beaconPulse { 0%,100% { opacity: .55; transform: scale(.85) rotate(0deg); } 50% { opacity: 1; transform: scale(1.1) rotate(8deg); } }
+  .lamp { width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: radial-gradient(circle, rgba(255,236,190,.8), rgba(255,226,160,0) 66%); mix-blend-mode: screen; animation: flicker 5s linear infinite; }
+  .glint { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(200,225,255,0), rgba(220,238,255,.8), rgba(200,225,255,0)); mix-blend-mode: screen; animation: shimmer ease-in-out infinite; }
+  .glint.warm { background: linear-gradient(90deg, rgba(255,235,190,0), rgba(255,240,205,.85), rgba(255,235,190,0)); }
+  @keyframes shimmer { 0%,100% { opacity: 0; transform: translateX(-8px); } 50% { opacity: .75; transform: translateX(8px); } }
+
+  /* clouds: the light clouds, darkened and screen-blended so they read as faint moonlit bands */
+  .cloud { position: absolute; background: center / contain no-repeat; filter: brightness(.42) saturate(1.2); mix-blend-mode: screen; animation: cloudDrift linear infinite; }
+  @keyframes cloudDrift { 0% { transform: translateX(-34vw); opacity: 0; } 25% { opacity: var(--co, .7); } 85% { opacity: var(--co, .7); } 100% { transform: translateX(130vw); opacity: 0; } }
+
+  /* frost flowers: glow pulses, the whole plant sways with the wind (JS) */
+  .ff { position: absolute; bottom: -3vh; width: var(--w); height: var(--h); transform-origin: 50% 100%; z-index: 4; will-change: transform; }
+  .ff .pic { position: absolute; inset: 0; background: url("../../public/assets/world/NodKrai_Night/nodkrai-frost-flower.webp") center bottom / contain no-repeat; filter: drop-shadow(0 4px 10px rgba(5,10,60,.55)); }
+  .ff::before { content: ""; position: absolute; left: 30%; top: 38%; width: 46%; height: 36%; border-radius: 50%; background: radial-gradient(circle, rgba(190,210,255,.65), rgba(190,210,255,0) 70%); mix-blend-mode: screen; animation: glowPulse 4.6s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+  @keyframes glowPulse { from { opacity: .25; transform: scale(.85); } to { opacity: .9; transform: scale(1.15); } }
+
+  /* the moth spirit: the symbol of the night theme. It drifts across the bay, bobs, and "flutters" (a slight narrowing of the wings) */
+  .moth { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; z-index: 6; pointer-events: none; animation: mothFly 80s ease-in-out infinite alternate; }
+  .moth .glow { position: absolute; inset: -30px; border-radius: 50%; background: radial-gradient(circle, rgba(200,215,255,.45), rgba(200,215,255,0) 68%); mix-blend-mode: screen; animation: moonBreathe 5s ease-in-out infinite alternate; }
+  .moth img { position: relative; width: 100%; height: 100%; display: block; animation: mothBob 5.6s ease-in-out infinite alternate, mothFlutter 1.7s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(5,10,60,.45)); }
+  @keyframes mothFly { 0% { transform: translate(10vw, 56vh); } 25% { transform: translate(34vw, 38vh); } 55% { transform: translate(60vw, 50vh); } 80% { transform: translate(78vw, 32vh); } 100% { transform: translate(88vw, 44vh); } }
+  @keyframes mothBob { from { translate: 0 -10px; rotate: -3deg; } to { translate: 0 12px; rotate: 3deg; } }
+  @keyframes mothFlutter { 0%,100% { scale: 1 1; } 50% { scale: .94 1.02; } }
+  .dust { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #FFE9A0; box-shadow: 0 0 8px 2px rgba(255,233,160,.6); pointer-events: none; z-index: 5; }
+
+  canvas#snow { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 7; }
+
+  /* UI: kept small on purpose, night glass */
+  .ui { transition: opacity .6s; }
+  .ui-idle .ui { opacity: 0; }
+  .title { position: absolute; z-index: 9; left: 22px; top: 20px; padding: 8px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(2,6,40,.4); font: 500 24px/1 Lora, Georgia, serif; }
+  .chillmode { position: absolute; z-index: 9; right: 22px; top: 20px; display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink); font: 500 14px Inter, sans-serif; cursor: pointer; }
+  .bar { position: absolute; z-index: 9; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(2,6,40,.5); backdrop-filter: blur(6px); }
+  .btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; display: grid; place-items: center; font-size: 14px; }
+  .btn.main { background: var(--accent); border-color: var(--accent); color: #0A1450; box-shadow: 0 0 16px rgba(244,208,63,.45); }
+  .meta b { display: block; font: 500 14px Inter, sans-serif; } .meta small { color: var(--muted); font-size: 12px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(234,242,255,.28); width: 120px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 1.5px solid #0A1450; cursor: pointer; }
+  .pill { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); font: 500 13px Inter, sans-serif; cursor: pointer; }
+  .pill[aria-expanded=true] { background: var(--accent); color: #0A1450; border-color: var(--accent); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+  .settings { position: absolute; z-index: 9; left: 50%; bottom: 92px; transform: translateX(-50%); width: min(380px, calc(100vw - 32px)); padding: 16px 18px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(2,6,40,.5); display: none; }
+  .settings.open { display: block; }
+  .settings h2 { margin: 0 0 12px; font: 500 18px Lora, Georgia, serif; }
+  .srow { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--ink2); }
+  .srow input { width: 100%; }
+  .settings p { margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
+  .bars i { width: 3px; background: var(--accent); border-radius: 1px; animation: eq 1s ease-in-out infinite alternate; }
+  .bars i:nth-child(2) { animation-delay: -.3s; } .bars i:nth-child(3) { animation-delay: -.6s; } .bars i:nth-child(4) { animation-delay: -.15s; }
+  @keyframes eq { from { height: 3px; } to { height: 14px; } }
+  .paused .bars i { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora, .moonhalo, .moonring, .star, .win, .beacon, .lamp, .glint, .cloud, .ff::before, .moth, .moth .glow, .moth img, .bars i { animation: none !important; }
+    .glint, .dust { display: none; } .aurora { opacity: .45; } .moth { transform: translate(60vw, 40vh); }
+  }
+  @media (max-width: 760px) { .bar { flex-wrap: wrap; border-radius: 22px; justify-content: center; width: calc(100vw - 24px); } }
+</style>
+</head>
+<body>
+<div class="scene" id="scene">
+  <div class="layer" data-depth="8">
+    <div class="stage" id="stage">
+      <div class="wall"></div>
+      <div id="stars"></div>
+      <div class="abs aurora" style="left:90px;top:-70px;width:1320px;height:688px"></div>
+      <div class="abs aurora b" style="left:560px;top:-10px;width:900px;height:469px;transform:scaleX(-1)"></div>
+      <div class="abs moonhalo" style="left:1325px;top:92px"></div>
+      <div class="abs moonring" style="left:1325px;top:92px"></div>
+      <div class="abs beacon" style="left:1197px;top:334px"></div>
+      <div class="abs lamp" style="left:1384px;top:744px"></div>
+      <div id="shore"></div>
+      <div id="water"></div>
+    </div>
+  </div>
+  <div class="layer" id="clouds" data-depth="10"></div>
+  <div class="layer" id="moth" data-depth="16"><div class="moth" id="mothEl"><div class="glow"></div><img src="../../public/assets/world/NodKrai_Night/nodkrai-moth-spirit.svg" alt="" width="120" height="120"></div></div>
+  <div class="layer" id="plants"></div>
+  <canvas id="snow" aria-hidden="true"></canvas>
+  <div class="layer vignette"></div>
+
+  <div class="ui"><div class="title">Chill</div>
+    <button class="chillmode" id="cm" aria-label="Chill mode">⤢ Chill mode</button></div>
+
+  <div class="settings" id="settings" role="dialog" aria-label="Sound settings">
+    <h2>Sound settings</h2>
+    <label class="srow">Wind volume <input id="vol" type="range" min="0" max="100" value="55"></label>
+    <label class="srow">Gust strength <input id="gs" type="range" min="0" max="100" value="60"></label>
+    <label class="srow">Snow <input id="snowAmt" type="range" min="0" max="100" value="70"></label>
+    <p>The wind here is synthesized, a stand-in for the feel. Real recordings (snowy wind, a faint ice creak) come later as a mix called "Snowy night". Rain, fireplace, keyboard, café chatter and piano stay in the app's mixer.</p>
+  </div>
+  <div class="bar ui" id="bar">
+    <button class="btn main" id="play" aria-label="Play wind">▶</button>
+    <div class="meta"><b>Snowy night</b><small id="state">paused</small></div>
+    <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <input id="vol2" type="range" min="0" max="100" value="55" aria-label="Volume">
+    <button class="pill" id="sbtn" aria-expanded="false">⚙ Sound settings</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s) => document.querySelector(s);
+  const scene = $('#scene');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let G = .6;            // gust strength 0..1
+  let wind = 1, windTarget = 1, gusting = false; // wind value, eased in the loop below
+  const ART = '../../public/assets/world/NodKrai_Night/';
+
+  // fit the stage like background-size: cover, pinned a little right of centre so the tower and moon stay in view
+  const stage = $('#stage');
+  const fit = () => { const W = innerWidth, H = innerHeight, s = Math.max(W / 1673, H / 940) * 1.02, w = 1673 * s, h = 940 * s;
+    const ox = (W - w) * (W / H < .9 ? .9 : .62), oy = (H - h) * .5; stage.style.transform = `translate(${ox.toFixed(1)}px,${oy.toFixed(1)}px) scale(${s.toFixed(4)})`; };
+  addEventListener('resize', fit); fit();
+
+  // stars (in the painting's space, upper sky only)
+  { let h = ''; for (let i = 0; i < 70; i++) { const s = rnd(1, 2.6); h += `<i class="star" style="left:${rnd(0, 1673).toFixed(0)}px;top:${rnd(0, 430).toFixed(0)}px;width:${s.toFixed(1)}px;height:${s.toFixed(1)}px;animation-duration:${rnd(1.8, 5).toFixed(1)}s;animation-delay:${(-rnd(0, 5)).toFixed(1)}s"></i>`; } $('#stars').innerHTML = h; }
+  // shore lights: lit windows along the far shore of the bay
+  { let h = ''; for (let i = 0; i < 24; i++) h += `<i class="win" style="left:${rnd(760, 1500).toFixed(0)}px;top:${rnd(640, 668).toFixed(0)}px;animation-duration:${rnd(3, 8).toFixed(1)}s;animation-delay:${(-rnd(0, 8)).toFixed(1)}s"></i>`; $('#shore').innerHTML = h; }
+  // water shimmer
+  { let h = ''; for (let i = 0; i < 16; i++) { const warm = i % 4 === 0; h += `<i class="glint${warm ? ' warm' : ''}" style="left:${(warm ? rnd(1200, 1260) : rnd(700, 1480)).toFixed(0)}px;top:${rnd(690, 840).toFixed(0)}px;width:${rnd(40, 120).toFixed(0)}px;animation-duration:${rnd(3, 6.5).toFixed(1)}s;animation-delay:${(-rnd(0, 6)).toFixed(1)}s"></i>`; } $('#water').innerHTML = h; }
+
+  // clouds
+  // [top vh, file, width px, width / height of the picture, seconds per crossing, opacity]
+  [[3, 'nodkrai-cloud-2.webp', 760, 6.8, 140, .6], [11, 'nodkrai-cloud-4.webp', 520, 4.37, 110, .5], [1, 'nodkrai-cloud-3.webp', 460, 2.09, 170, .45]].forEach(([top, f, w, ratio, dur, co]) => {
+    const c = document.createElement('div'); c.className = 'cloud'; c.style.cssText = `top:${top}vh;width:${w}px;height:${(w / ratio).toFixed(0)}px;background-image:url(${ART}${f});animation-duration:${dur}s;animation-delay:${-rnd(0, dur)}s;--co:${co}`; $('#clouds').appendChild(c); });
+
+  // frost flowers (width / height in the picture's own proportions, 976 x 1124)
+  const plants = [];
+  [[3, 36, 1], [89, 30, -1], [19, 17, 1], [78, 15, -1]].forEach(([x, hvh, dir], i) => {
+    const el = document.createElement('div'); el.className = 'ff'; const hh = hvh; el.style.cssText = `left:${x}vw;--h:${hh}vh;--w:${(hh * .868).toFixed(1)}vh;--d:${(-i * 1.1).toFixed(1)}s;${dir < 0 ? 'margin-left:-6vh' : ''}`;
+    el.innerHTML = `<div class="pic" style="${dir < 0 ? 'transform:scaleX(-1)' : ''}"></div>`; $('#plants').appendChild(el); plants.push({ el, ph: rnd(0, 6.28), a: rnd(1.6, 2.6), dir }); });
+
+  // moth dust trail
+  const mothEl = $('#mothEl');
+  if (!reduce) setInterval(() => { if (document.hidden) return; const r = mothEl.getBoundingClientRect(); if (!r.width) return;
+    const d = document.createElement('i'); d.className = 'dust'; const sz = rnd(2.5, 5); d.style.cssText = `left:${(r.left + r.width / 2 + rnd(-14, 14)).toFixed(0)}px;top:${(r.top + r.height * .8 + rnd(-6, 8)).toFixed(0)}px;width:${sz}px;height:${sz}px`; scene.appendChild(d);
+    d.animate([{ opacity: .9, transform: 'translate(0,0)' }, { opacity: 0, transform: `translate(${rnd(-14, 14)}px,${rnd(24, 50)}px)` }], { duration: rnd(1800, 2800), easing: 'ease-out' }).onfinish = () => d.remove(); }, 260);
+
+  // shooting star (in the painting's space)
+  const shoot = () => { if (document.hidden || reduce) return; const s = document.createElement('i'); s.className = 'abs'; const x = rnd(200, 1100), y = rnd(30, 200);
+    s.style.cssText = `left:${x}px;top:${y}px;width:120px;height:2px;border-radius:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);transform-origin:100% 50%`; $('#stage').appendChild(s);
+    s.animate([{ transform: 'translate(0,0) rotate(24deg)', opacity: 0 }, { opacity: 1, offset: .15 }, { transform: 'translate(300px,134px) rotate(24deg)', opacity: 0 }], { duration: 1100, easing: 'ease-in' }).onfinish = () => s.remove(); };
+  if (!reduce) { setTimeout(shoot, 4000); (function loop() { setTimeout(() => { shoot(); loop(); }, rnd(14000, 26000)); })(); }
+
+  // snow: at most 40 flakes, drawn on one canvas, bent by the same wind value as the flowers; streaks sideways in a gust
+  const cv = $('#snow'), cx = cv.getContext('2d'); let SW = 0, SH = 0;
+  const sizeCv = () => { const dpr = Math.min(2, devicePixelRatio || 1); SW = innerWidth; SH = innerHeight; cv.width = SW * dpr; cv.height = SH * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  addEventListener('resize', sizeCv); sizeCv();
+  const flakes = Array.from({ length: 40 }, () => ({ x: rnd(0, 1), y: rnd(0, 1), r: rnd(1.4, 3.8), vy: rnd(26, 62), ph: rnd(0, 6.28), sw: rnd(8, 26), a: rnd(.6, .95) }));
+  let snowN = 28;
+
+  // wind, gusts
+  const gust = () => { if (document.hidden || reduce) return; gusting = true; windTarget = 2.4 + 3 * G; scene.classList.add('gust'); if (audio.on) audio.gust();
+    setTimeout(() => { windTarget = 1; scene.classList.remove('gust'); gusting = false; }, 5400); };
+  if (!reduce) { setTimeout(gust, 3000); (function loop() { setTimeout(() => { gust(); loop(); }, rnd(9000, 15000)); })(); }
+
+  let last = performance.now();
+  (function tick(t) { const dt = Math.min(.05, (t - last) / 1000); last = t; wind += (windTarget - wind) * Math.min(1, dt * 1.1);
+    // flowers sway
+    if (!reduce) plants.forEach((p) => { const a = Math.sin(t / 1000 * .9 + p.ph) * p.a * (.6 + wind * .5) + p.dir * -1 * (wind - 1) * 1.6; p.el.style.transform = `rotate(${a.toFixed(2)}deg)`; });
+    // snow
+    cx.clearRect(0, 0, SW, SH);
+    if (!reduce) { cx.lineCap = 'round'; for (let i = 0; i < snowN; i++) { const f = flakes[i]; f.ph += dt * .8;
+      const vx = wind * 22 + Math.sin(f.ph) * f.sw * .6, vy = f.vy * (1 + (wind - 1) * .15);
+      f.x += vx * dt / SW; f.y += vy * dt / SH; if (f.y > 1.02) { f.y = -.02; f.x = rnd(-.1, 1); } if (f.x > 1.05) f.x = -.05; if (f.x < -.1) f.x = 1.02;
+      const px = f.x * SW, py = f.y * SH; cx.strokeStyle = cx.fillStyle = `rgba(236,244,255,${f.a})`;
+      if (gusting && wind > 1.6) { cx.lineWidth = f.r; cx.beginPath(); cx.moveTo(px, py); cx.lineTo(px - vx * .05, py - vy * .02); cx.stroke(); } else { cx.beginPath(); cx.arc(px, py, f.r, 0, 6.2832); cx.fill(); } } }
+    requestAnimationFrame(tick); })(last);
+
+  // pointer parallax
+  if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('pointermove', (e) => { const nx = e.clientX / innerWidth - .5, ny = e.clientY / innerHeight - .5;
+    document.querySelectorAll('[data-depth]').forEach((el) => { const d = +el.dataset.depth; el.style.transform = `translate(${(-nx * d).toFixed(1)}px,${(-ny * d * .6).toFixed(1)}px)`; }); });
+
+  // synthesized snowy wind (reference for the feel only): a colder, thinner wind than the meadow, plus a rare faint ice creak
+  const audio = { on: false, ctx: null,
+    init() { const c = this.ctx = new (window.AudioContext || window.webkitAudioContext)(); const n = c.sampleRate * 3, buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0); let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; b0 = .99765 * b0 + w * .099046; b1 = .963 * b1 + w * .2965164; b2 = .57 * b2 + w * 1.0526913; d[i] = (b0 + b1 + b2 + w * .1848) * .11; }
+      const mk = () => { const s = c.createBufferSource(); s.buffer = buf; s.loop = true; s.start(); return s; };
+      this.master = c.createGain(); this.master.gain.value = .55; this.master.connect(c.destination);
+      const lp = this.lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 760; lp.Q.value = 1.1; const wg = this.wg = c.createGain(); wg.gain.value = .5; mk().connect(lp); lp.connect(wg); wg.connect(this.master);
+      const lfo = c.createOscillator(); lfo.frequency.value = .09; const ld = c.createGain(); ld.gain.value = .22; lfo.connect(ld); ld.connect(wg.gain); const lf2 = c.createGain(); lf2.gain.value = 260; lfo.connect(lf2); lf2.connect(lp.frequency); lfo.start();
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3200; const rg = this.rg = c.createGain(); rg.gain.value = .05; mk().connect(hp); hp.connect(rg); rg.connect(this.master);
+      const l3 = c.createOscillator(); l3.frequency.value = .16; const l3g = c.createGain(); l3g.gain.value = .04; l3.connect(l3g); l3g.connect(rg.gain); l3.start();
+      this.creakTimer = setInterval(() => { if (this.on) this.creak(); }, 16000); },
+    gust() { const c = this.ctx, t = c.currentTime, k = .7 + 1.1 * G; this.wg.gain.cancelScheduledValues(t); this.wg.gain.setTargetAtTime(.5 + .6 * k, t, .7); this.wg.gain.setTargetAtTime(.5, t + 3.4, 1.2); this.lp.frequency.setTargetAtTime(760 + 460 * k, t, .7); this.lp.frequency.setTargetAtTime(760, t + 3.4, 1.2); this.rg.gain.setTargetAtTime(.05 + .1 * k, t, .5); this.rg.gain.setTargetAtTime(.05, t + 3.4, 1); },
+    creak() { const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(900 + rnd(0, 300), t); o.frequency.exponentialRampToValueAtTime(520 + rnd(0, 120), t + 1.6); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.012, t + .3); g.gain.linearRampToValueAtTime(0, t + 1.6); o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 1.7); } };
+  const play = $('#play'), state = $('#state'), bar = $('#bar');
+  bar.classList.add('paused');
+  play.addEventListener('click', async () => { if (!audio.ctx) audio.init(); if (audio.on) { await audio.ctx.suspend(); audio.on = false; play.textContent = '▶'; state.textContent = 'paused'; bar.classList.add('paused'); }
+    else { await audio.ctx.resume(); audio.on = true; play.textContent = '❚❚'; state.textContent = 'wind over the bay'; bar.classList.remove('paused'); } });
+  const setVol = (v) => { $('#vol').value = v; $('#vol2').value = v; if (audio.master) audio.master.gain.value = v / 100; };
+  $('#vol').addEventListener('input', (e) => setVol(e.target.value)); $('#vol2').addEventListener('input', (e) => setVol(e.target.value));
+  $('#gs').addEventListener('input', (e) => { G = e.target.value / 100; });
+  $('#snowAmt').addEventListener('input', (e) => { snowN = Math.round(e.target.value / 100 * 40); });
+  snowN = Math.round(.7 * 40);
+  $('#sbtn').addEventListener('click', () => { const o = $('#settings').classList.toggle('open'); $('#sbtn').setAttribute('aria-expanded', o); });
+
+  // Chill mode: full screen, and the controls fade away when nothing moves
+  $('#cm').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); });
+  let idle; const wake = () => { document.body.classList.remove('ui-idle'); clearTimeout(idle); idle = setTimeout(() => { if (!$('#settings').classList.contains('open')) document.body.classList.add('ui-idle'); }, 4500); };
+  ['pointermove', 'keydown', 'pointerdown'].forEach((ev) => addEventListener(ev, wake)); wake();
+})();
+</script>
+</body>
+</html>

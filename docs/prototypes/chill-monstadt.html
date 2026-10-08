@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chill · Monstadt, looking outside (draft 2)</title>
+<!-- DRAFT 2 for FindYourself Stage 2: an open view (no window frame), fan flowers whose heads spin with the wind,
+     a faster, gustier wind. A feel-it prototype, not app code.
+     Art: public/assets/world (stand-in wallpaper, clouds, fan flower). Sound: synthesized wind, a reference only. -->
+<style>
+  @property --wind { syntax: "<number>"; inherits: true; initial-value: 1.6; }
+  :root {
+    --wind: 1.6; --gustwind: 3.8;
+    --ink: #1E384F; --ink2: #3A5368; --muted: #42586B;
+    --parchment: rgba(247,242,229,.9); --line: rgba(122,98,56,.28);
+    --accent: #F7CF78; --accent-soft: #F9E3AB; --accent-strong: #8C5A00;
+    font-family: Inter, system-ui, sans-serif;
+  }
+  .scene.gust { --wind: var(--gustwind); }
+  html, body { margin: 0; height: 100%; background: #20150d; overflow: hidden; overflow: clip; color: var(--ink); }
+  .scene { position: fixed; inset: 0; overflow: hidden; overflow: clip; transition: --wind 1.4s ease-in-out; background: #4a90d9; }
+  .layer { position: absolute; inset: 0; will-change: transform; }
+  /* the stage is the painting's own coordinate space (1623 x 640), scaled and cropped like background-size: cover, so anything attached to the painting stays on the same painted spot on every screen shape */
+  .stage { position: absolute; left: 0; top: 0; width: 1623px; height: 640px; transform-origin: 0 0; will-change: transform; }
+  .stage .wall { position: absolute; inset: 0; background: url("../../public/assets/world/Monstadt_Day/monstadt-day.png") 0 0 / 100% 100% no-repeat; }
+  .vignette { background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(20,14,6,.28) 100%); pointer-events: none; }
+  /* clouds: faster than draft 1 */
+  .cloud { position: absolute; background: url("../../public/assets/world/Monstadt_Day/cloud-cutout.png") center / contain no-repeat; animation: cloudDrift linear infinite; }
+  @keyframes cloudDrift { 0% { transform: translateX(-30vw); opacity: 0; } 30% { opacity: var(--co, .85); } 90% { opacity: var(--co, .85); } 100% { transform: translateX(130vw); opacity: 0; } }
+  /* fan flowers: a tapered two-part stem that bends in the wind (the upper part whips more), leaves that flutter, a head that spins like a pinwheel */
+  .plant { position: absolute; bottom: -12px; width: 0; height: var(--h); z-index: 4; }
+  .seg { position: absolute; left: 0; width: 0; transform-origin: 50% 100%; }
+  .seg1 { bottom: 0; height: 56%; animation: bend1 4.8s ease-in-out infinite; }
+  .seg2 { bottom: 100%; height: 78%; animation: bend2 4.8s ease-in-out infinite; animation-delay: -.55s; }
+  .seg svg.st { position: absolute; left: -7px; bottom: 0; width: 14px; height: 100%; overflow: visible; }
+  .leaf { position: absolute; width: 64px; height: 22px; animation: flutter 2.6s ease-in-out infinite alternate; }
+  .leaf.right { left: 2px; transform-origin: 0 60%; }
+  .leaf.left { right: 2px; transform-origin: 100% 60%; }
+  .plant .head { position: absolute; left: 0; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); background: url("../../public/assets/world/Monstadt_Day/flower-fan-head.png") center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(20,30,20,.35)); will-change: transform; }
+  @keyframes bend1 { 0%,100% { transform: rotate(clamp(-7deg, calc(var(--a) * var(--wind) * -.3), 7deg)); } 50% { transform: rotate(clamp(-7deg, calc(var(--a) * var(--wind) * .55), 8deg)); } }
+  @keyframes bend2 { 0%,100% { transform: rotate(clamp(-14deg, calc(var(--a) * var(--wind) * -.6), 14deg)); } 50% { transform: rotate(clamp(-14deg, calc(var(--a) * var(--wind) * 1.0), 17deg)); } }
+  @keyframes flutter { from { transform: rotate(calc(var(--r) - 4deg * var(--wind))); } to { transform: rotate(calc(var(--r) + 6deg * var(--wind))); } }
+  /* seeds (dandelion spirits): quicker */
+  .seed { position: absolute; left: 0; top: 0; animation: seedDrift linear infinite; }
+  .seed svg { display: block; animation: bob ease-in-out infinite alternate; }
+  @keyframes seedDrift { from { transform: translate(-8vw, var(--y0)); } to { transform: translate(112vw, calc(var(--y0) - 32vh)); } }
+  @keyframes bob { from { transform: translateY(-12px) rotate(-14deg); } to { transform: translateY(14px) rotate(16deg); } }
+  .fly { position: absolute; left: 0; top: 0; pointer-events: none; }
+  .bird svg { animation: flap .36s ease-in-out infinite alternate; transform-origin: 50% 70%; }
+  @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.35); } }
+  /* light */
+  .haze { background: radial-gradient(ellipse 70% 60% at 82% 6%, rgba(255,240,190,.5), rgba(255,240,190,0) 60%); animation: breathe 8s ease-in-out infinite alternate; mix-blend-mode: screen; }
+  @keyframes breathe { from { opacity: .35; } to { opacity: .8; } }
+  .rays { background: repeating-linear-gradient(112deg, rgba(255,246,210,0) 0 90px, rgba(255,246,210,.07) 90px 130px, rgba(255,246,210,0) 130px 230px); mix-blend-mode: screen; animation: raysSway 14s ease-in-out infinite alternate; }
+  @keyframes raysSway { from { transform: translateX(-3%); opacity: .6; } to { transform: translateX(3%); opacity: 1; } }
+  /* UI: kept small on purpose */
+  .ui { transition: opacity .6s; }
+  .ui-idle .ui { opacity: 0; }
+  .title { position: absolute; z-index: 9; left: 22px; top: 20px; padding: 8px 16px; border-radius: 14px; background: var(--parchment); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(30,40,60,.18); font: 500 24px/1 Lora, Georgia, serif; }
+  .chillmode { position: absolute; z-index: 9; right: 22px; top: 20px; display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border-radius: 999px; background: var(--parchment); border: 1px solid var(--line); color: var(--ink); font: 500 14px Inter, sans-serif; cursor: pointer; }
+  .bar { position: absolute; z-index: 9; left: 50%; bottom: 22px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; border-radius: 999px; background: var(--parchment); border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(20,14,6,.3); backdrop-filter: blur(6px); }
+  .btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; display: grid; place-items: center; font-size: 14px; }
+  .btn.main { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 16px rgba(247,207,120,.45); }
+  .meta b { display: block; font: 500 14px Inter, sans-serif; } .meta small { color: var(--muted); font-size: 12px; }
+  input[type=range] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(122,98,56,.3); width: 120px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--accent-strong); cursor: pointer; }
+  .pill { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); font: 500 13px Inter, sans-serif; cursor: pointer; }
+  .pill[aria-expanded=true] { background: var(--accent-soft); border-color: var(--accent); }
+  .settings { position: absolute; z-index: 9; left: 50%; bottom: 92px; transform: translateX(-50%); width: min(380px, calc(100vw - 32px)); padding: 16px 18px; border-radius: 18px; background: var(--parchment); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(20,14,6,.3); display: none; }
+  .settings.open { display: block; }
+  .settings h2 { margin: 0 0 12px; font: 500 18px Lora, Georgia, serif; }
+  .srow { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--ink2); }
+  .srow input { width: 100%; }
+  .settings p { margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
+  .bars i { width: 3px; background: var(--accent-strong); border-radius: 1px; animation: eq 1s ease-in-out infinite alternate; }
+  .bars i:nth-child(2) { animation-delay: -.3s; } .bars i:nth-child(3) { animation-delay: -.6s; } .bars i:nth-child(4) { animation-delay: -.15s; }
+  @keyframes eq { from { height: 3px; } to { height: 14px; } }
+  .paused .bars i { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) { .cloud, .seed, .seed svg, .haze, .rays, .seg, .leaf, .bars i { animation: none !important; } .seed, .fly { display: none; } }
+  @media (max-width: 760px) { .bar { flex-wrap: wrap; border-radius: 22px; justify-content: center; width: calc(100vw - 24px); } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="ph" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F2FDFD" stop-opacity=".55"/><stop offset=".5" stop-color="#C9F1F2" stop-opacity=".32"/><stop offset="1" stop-color="#9BE6D7" stop-opacity="0"/></radialGradient>
+    <radialGradient id="pb" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#FAFFFF"/><stop offset=".6" stop-color="#E2F8F8"/><stop offset="1" stop-color="#BDEBEC"/></radialGradient>
+    <symbol id="puff" viewBox="0 0 48 48"><circle cx="24" cy="24" r="23" fill="url(#ph)"/><g id="fil"></g><circle cx="24" cy="24" r="8.6" fill="url(#pb)" stroke="#9FDDE0" stroke-opacity=".7" stroke-width=".8"/></symbol>
+  </defs>
+</svg>
+
+<div class="scene" id="scene">
+  <div class="layer" data-depth="8"><div class="stage" id="stage"><div class="wall"></div></div></div>
+  <div class="layer" id="clouds" data-depth="10"></div>
+  <div class="layer haze"></div>
+  <div class="layer rays"></div>
+  <div class="layer" id="seeds" data-depth="22"></div>
+  
+  <div class="layer" id="fly" style="pointer-events:none"></div>
+  <div class="layer" id="plants"></div>
+  <div class="layer vignette"></div>
+
+  <div class="ui"><div class="title">Chill</div>
+    <button class="chillmode" id="cm" aria-label="Chill mode">⤢ Chill mode</button></div>
+
+  <div class="settings" id="settings" role="dialog" aria-label="Sound settings">
+    <h2>Sound settings</h2>
+    <label class="srow">Wind volume <input id="vol" type="range" min="0" max="100" value="55"></label>
+    <label class="srow">Gust strength <input id="gs" type="range" min="0" max="100" value="60"></label>
+    <p>The wind here is synthesized, a stand-in for the feel. Monstadt recordings come later as a mix called "Windy meadow". Rain, fireplace, keyboard, café chatter and piano stay in the app's mixer.</p>
+  </div>
+  <div class="bar ui" id="bar">
+    <button class="btn main" id="play" aria-label="Play wind">▶</button>
+    <div class="meta"><b>Windy meadow</b><small id="state">paused</small></div>
+    <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <input id="vol2" type="range" min="0" max="100" value="55" aria-label="Volume">
+    <button class="pill" id="sbtn" aria-expanded="false">⚙ Sound settings</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (s) => document.querySelector(s);
+  const scene = $('#scene');
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  let G = .6; // gust strength 0..1
+
+  // filaments for the seed symbol
+  let f = '';
+  for (let i = 0; i < 24; i++) { const a = i * 15 * Math.PI / 180, r2 = i % 2 ? 16.5 : 20, x1 = 24 + 8 * Math.cos(a), y1 = 24 + 8 * Math.sin(a), x2 = 24 + r2 * Math.cos(a), y2 = 24 + r2 * Math.sin(a);
+    f += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#8FD6D8" stroke-opacity=".35" stroke-width="1.9" stroke-linecap="round"/><line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#F1FCFC" stroke-opacity=".9" stroke-width=".9" stroke-linecap="round"/><circle cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" r="1.15" fill="#F1FCFC" fill-opacity=".9"/>`; }
+  $('#fil').innerHTML = f;
+
+  // fit the stage like background-size: cover with the picture pinned to the right and 40 percent down
+  const stage = $('#stage');
+  const fit = () => { const W = innerWidth, H = innerHeight, s = Math.max(W / 1623, H / 640) * 1.015, w = 1623 * s, h = 640 * s;
+    const ox = (W - w) + Math.min(12, (w - W) / 2), oy = (H - h) * .4; stage.style.transform = `translate(${ox.toFixed(1)}px,${oy.toFixed(1)}px) scale(${s.toFixed(4)})`; };
+  addEventListener('resize', fit); fit();
+
+  // clouds (faster)
+  [[2, 330, 70], [8, 250, 95], [1, 400, 120], [12, 220, 60]].forEach(([top, w, dur], i) => {
+    const c = document.createElement('div'); c.className = 'cloud';
+    c.style.cssText = `top:${top}vh;width:${w}px;height:${w * .68}px;animation-duration:${dur}s;animation-delay:${-rnd(0, dur)}s;--co:${.9 - i * .05}`; $('#clouds').appendChild(c); });
+
+  // dandelion seeds (quicker)
+  for (let i = 0; i < 11; i++) { const s = document.createElement('div'); s.className = 'seed'; const size = rnd(18, 42);
+    s.style.cssText = `--y0:${rnd(30, 85)}vh;animation-duration:${rnd(14, 28)}s;animation-delay:${-rnd(0, 28)}s;opacity:${rnd(.45, .85)}`;
+    s.innerHTML = `<svg width="${size}" height="${size}" style="animation-duration:${rnd(2.2, 4)}s;animation-delay:${-rnd(0, 4)}s"><use href="#puff"/></svg>`; $('#seeds').appendChild(s); }
+
+  // fan flowers: stem leans with the wind, head spins like a pinwheel
+  const heads = [];
+  const stem = '<svg class="st" viewBox="0 0 14 100" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" x2="1"><stop offset="0" stop-color="#4F7A3A"/><stop offset=".5" stop-color="#8DB35B"/><stop offset="1" stop-color="#58823F"/></linearGradient></defs><path d="M2 100 C3.5 70 5.2 30 5.6 0 L8.4 0 C8.8 30 10.5 70 12 100 Z" fill="url(#sg)" stroke="rgba(40,70,30,.35)" stroke-width=".6" vector-effect="non-scaling-stroke"/></svg>';
+  const plantLeaf = (side, pos, r, id) => `<div class="leaf ${side}" style="bottom:${pos}%;--r:${r}deg;animation-delay:${-rnd(0, 2.6)}s"><svg viewBox="0 0 64 22" width="64" height="22" style="${side === 'left' ? 'transform:scaleX(-1)' : ''}"><defs><linearGradient id="lg${id}" x1="0" x2="1"><stop offset="0" stop-color="#4F7A3A"/><stop offset="1" stop-color="#A5CC6A"/></linearGradient></defs><path d="M0 11 C12 1 40 0 64 11 C40 21 12 21 0 11Z" fill="url(#lg${id})" stroke="rgba(40,70,30,.3)" stroke-width=".6"/><path d="M2 11 C20 9 44 9.5 60 11" stroke="rgba(255,255,255,.35)" stroke-width=".8" fill="none"/></svg></div>`;
+  [[7, 40, 150, 7, 1.0], [91, 34, 124, 6, -1.0], [19, 24, 84, 5, 1.2], [82, 20, 70, 5, -1.2], [97, 28, 96, 6, 1.1]].forEach(([x, h, s, a, dir], i) => {
+    const p = document.createElement('div'); p.className = 'plant'; p.style.cssText = `left:${x}vw;--h:${h}vh;--s:${s}px;--a:${a}deg`;
+    const sd = i % 2 ? ['left', 'right'] : ['right', 'left'];
+    p.innerHTML = `<div class="seg seg1">${stem}${plantLeaf(sd[0], 34, sd[0] === 'right' ? -32 : 32, i + 'a')}<div class="seg seg2">${stem}${plantLeaf(sd[1], 40, sd[1] === 'right' ? -26 : 26, i + 'b')}<div class="head"></div></div></div>`; $('#plants').appendChild(p);
+    heads.push({ el: p.querySelector('.head'), ang: rnd(0, 360), dir, k: rnd(.85, 1.2) }); });
+
+  // birds
+  const bird = () => { if (document.hidden || reduce) return; const b = document.createElement('div'); b.className = 'fly bird'; const sz = rnd(26, 40);
+    b.innerHTML = `<svg width="${sz}" height="${sz * .42}" viewBox="0 0 24 10" fill="none" stroke="#1E384F" stroke-width="1.5" stroke-linecap="round"><path d="M1 8 Q6 0 12 6 Q18 0 23 8"/></svg>`; $('#fly').appendChild(b);
+    const y = rnd(8, 40), dur = rnd(10, 18) * 1000; const a = b.animate([{ transform: `translate(-6vw,${y}vh)` }, { transform: `translate(110vw,${y - rnd(4, 14)}vh)` }], { duration: dur, easing: 'linear' }); a.onfinish = () => b.remove(); };
+  setTimeout(bird, 1000); setInterval(bird, 6000);
+
+  // gusts: faster and stronger than draft 1
+  let gusting = false;
+  const leaf = () => { const l = document.createElement('div'); l.className = 'fly'; const sz = rnd(12, 26), col = ['#8DBB6F', '#A9C95F', '#D1B65A', '#7CAE5E'][Math.floor(rnd(0, 4))];
+    l.innerHTML = `<svg width="${sz}" height="${sz * .6}" viewBox="0 0 16 10"><path d="M0 5 C4 -2 12 -2 16 5 C12 12 4 12 0 5Z" fill="${col}"/><path d="M1 5 L15 5" stroke="rgba(0,0,0,.25)" stroke-width=".6"/></svg>`; $('#fly').appendChild(l);
+    const y = rnd(15, 85), dur = rnd(2000, 3800); const a = l.animate([{ transform: `translate(-6vw,${y}vh) rotate(0deg)`, opacity: 0 }, { opacity: 1, offset: .08 }, { transform: `translate(112vw,${y - rnd(8, 34)}vh) rotate(${rnd(700, 1200)}deg)`, opacity: 1 }], { duration: dur, easing: 'cubic-bezier(.3,.1,.7,.9)' }); a.onfinish = () => l.remove(); };
+  const gust = () => { if (document.hidden || reduce) return; gusting = true; scene.style.setProperty('--gustwind', (2.4 + 3 * G).toFixed(2)); scene.classList.add('gust');
+    const n = Math.round(8 + 14 * G); for (let i = 0; i < n; i++) setTimeout(leaf, i * (4200 / n)); if (audio.on) audio.gust();
+    setTimeout(() => { scene.classList.remove('gust'); gusting = false; }, 5400); };
+  if (!reduce) { setTimeout(gust, 2500); (function loop() { setTimeout(() => { gust(); loop(); }, rnd(8000, 14000)); })(); }
+
+  // JS-driven spin: the fan-flower heads ease between a base speed and a gust speed, so a gust never makes them jump
+  let last = performance.now(); const hs = heads.map(() => 70);
+  (function tick(t) { const dt = Math.min(.05, (t - last) / 1000); last = t; const ease = Math.min(1, dt * 1.3);
+    heads.forEach((h, i) => { hs[i] += ((reduce ? 0 : (gusting ? (260 + 360 * G) * h.k : 70 * h.k)) - hs[i]) * ease; h.ang = (h.ang + h.dir * hs[i] * dt) % 360; h.el.style.transform = `rotate(${h.ang}deg)`; });
+    requestAnimationFrame(tick); })(last);
+
+  // pointer parallax
+  if (!reduce && matchMedia('(pointer:fine)').matches) addEventListener('pointermove', (e) => { const nx = e.clientX / innerWidth - .5, ny = e.clientY / innerHeight - .5;
+    document.querySelectorAll('[data-depth]').forEach((el) => { const d = +el.dataset.depth; el.style.transform = `translate(${(-nx * d).toFixed(1)}px,${(-ny * d * .6).toFixed(1)}px)`; }); });
+
+  // synthesized wind (reference for the feel only)
+  const audio = { on: false, ctx: null,
+    init() { const c = this.ctx = new (window.AudioContext || window.webkitAudioContext)(); const n = c.sampleRate * 3, buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0); let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; b0 = .99765 * b0 + w * .099046; b1 = .963 * b1 + w * .2965164; b2 = .57 * b2 + w * 1.0526913; d[i] = (b0 + b1 + b2 + w * .1848) * .11; }
+      const mk = () => { const s = c.createBufferSource(); s.buffer = buf; s.loop = true; s.start(); return s; };
+      this.master = c.createGain(); this.master.gain.value = .55; this.master.connect(c.destination);
+      const lp = this.lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 560; lp.Q.value = .8; const wg = this.wg = c.createGain(); wg.gain.value = .55; mk().connect(lp); lp.connect(wg); wg.connect(this.master);
+      const lfo = c.createOscillator(); lfo.frequency.value = .12; const ld = c.createGain(); ld.gain.value = .24; lfo.connect(ld); ld.connect(wg.gain); const lf2 = c.createGain(); lf2.gain.value = 200; lfo.connect(lf2); lf2.connect(lp.frequency); lfo.start();
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2600; const rg = this.rg = c.createGain(); rg.gain.value = .04; mk().connect(hp); hp.connect(rg); rg.connect(this.master);
+      const l3 = c.createOscillator(); l3.frequency.value = .2; const l3g = c.createGain(); l3g.gain.value = .035; l3.connect(l3g); l3g.connect(rg.gain); l3.start(); },
+    gust() { const c = this.ctx, t = c.currentTime, k = .7 + 1.1 * G; this.wg.gain.cancelScheduledValues(t); this.wg.gain.setTargetAtTime(.55 + .6 * k, t, .7); this.wg.gain.setTargetAtTime(.55, t + 3.4, 1.2); this.lp.frequency.setTargetAtTime(560 + 420 * k, t, .7); this.lp.frequency.setTargetAtTime(560, t + 3.4, 1.2); this.rg.gain.setTargetAtTime(.04 + .09 * k, t, .5); this.rg.gain.setTargetAtTime(.04, t + 3.4, 1); } };
+  const play = $('#play'), state = $('#state'), bar = $('#bar');
+  bar.classList.add('paused');
+  play.addEventListener('click', async () => { if (!audio.ctx) audio.init(); if (audio.on) { await audio.ctx.suspend(); audio.on = false; play.textContent = '▶'; state.textContent = 'paused'; bar.classList.add('paused'); }
+    else { await audio.ctx.resume(); audio.on = true; play.textContent = '❚❚'; state.textContent = 'wind in the valley'; bar.classList.remove('paused'); } });
+  const setVol = (v) => { $('#vol').value = v; $('#vol2').value = v; if (audio.master) audio.master.gain.value = v / 100; };
+  $('#vol').addEventListener('input', (e) => setVol(e.target.value)); $('#vol2').addEventListener('input', (e) => setVol(e.target.value));
+  $('#gs').addEventListener('input', (e) => { G = e.target.value / 100; });
+  $('#sbtn').addEventListener('click', () => { const o = $('#settings').classList.toggle('open'); $('#sbtn').setAttribute('aria-expanded', o); });
+
+  // Chill mode: full screen, and the controls fade away when nothing moves
+  $('#cm').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen?.(); });
+  let idle; const wake = () => { document.body.classList.remove('ui-idle'); clearTimeout(idle); idle = setTimeout(() => { if (!$('#settings').classList.contains('open')) document.body.classList.add('ui-idle'); }, 4500); };
+  ['pointermove', 'keydown', 'pointerdown'].forEach((ev) => addEventListener(ev, wake)); wake();
+})();
+</script>
+</body>
+</html>

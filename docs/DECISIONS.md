@@ -1843,4 +1843,43 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 
 ---
 
+## 2026-10-06 — Session 68: Four themes (Stage 2 direction)
+
+**Decision (Minh):** the two themes become four. **Day:** Monstadt, Liyue. **Night:** Nod-Krai, Natlan. The person picks a mode first, then a region within it (no Liyue night). The mode follows the clock by default and can be switched by hand and switched back. Yellow stays the through-line.
+
+**Consequences:** Figma Color and Pixel collections go from two modes to four (screens are built once and shown in each by switching the variable mode); each palette is contrast-checked for AA; the Scenes page needs four scenes instead of two (Monstadt, Liyue, Nod-Krai, Natlan); Figma work starts with the Timetable screen, one screen at a time, scenes after the references arrive. Code changes (four theme blocks in `app/globals.css`, a mode + region picker, clock-based default) wait until the design settles. Brief section 3 updated.
+
+**Process:** Minh leads the design; Claude builds in Figma directly (verified it can create, edit and delete nodes on the Scenes page; cannot import images).
+
+**Monstadt Timetable, first pass (2026-10-07).** Minh's references: the in-game Monstadt view and a pixelised version of it (windmills, half-timbered houses, trees, sunset gold, slate-blue roofs, red roofs). Direction: top bar bright and sunny with pixel trees and clouds; sidebar plain white; the **mini calendar** carries a see-through pixel windmill with flowers (simpler than the references); week grid, motivation widgets and tasks drawer stay plain; colours must match the scene. Built in Figma (`Screens`, `Timetable · Monstadt day`); see DESIGN_BRIEF section 5b. Findings: bound colour variables ignore paint opacity in the Plugin API (so tints use overlay rectangles and a new `accent/line` variable); at 1440 px the right column (340) leaves the week grid only 752 px (97 px per day), worth a layout decision.
+
+---
+
+## 2026-10-07 — Session 69: Art direction changes from pixel scenes to painted wallpapers
+
+**Decision (Minh):** the scenes will be painted/illustrated wallpapers (storybook watercolour style, European hill town, windmills, spired castle, wildflowers), not hand-built pixel art. Reason: pixel art of that richness needs a pixel artist's tools, and heavy pixel layers cost page load; painted WebP wallpapers are lighter and far easier to make look rich, and make four themes cheap (one wallpaper plus a palette each). Minh supplies the assets, in this layout: `assets/world/` (mondstadt-day, -evening, -night, clouds, distant-hills, windmill, trees as `.webp`), `assets/ui/` (parchment.png, panel.png, buttons.png, decorations/), `assets/icons/` (leaf, windmill, book, moon as `.svg`). Art must be original (not the game's art; no baked-in UI text). The pixel kit (cat, cups, digits, timer track) stays for now; whether it survives next to painted art is open. The two hand-built Figma frames from Session 68 remain as layout references.
+
+**Resolved (Minh):** the file list does not mean three times of day per region. Only the **Monstadt day** wallpaper is needed for now; the four-region plan from Session 68 stands, and the other regions come later. `public/assets/{world,ui/decorations,icons}` created for the files.
+
+---
+
+**Approved (Minh, 2026-10-07): the Diary design is final for now** ("keep it like this"): Figma frame `Diary · Monstadt painted (stand-in)` (node `35:7157`), as built with the painted wallpaper shifted to show the castle, bridge and banner on the right, the see-through sidebar, the cloud top bar, and the diary and year-in-pages panels at 92 % parchment. Do not change it without being asked. The wallpaper is still the stand-in (1623 x 640) and gets swapped for the proper 16:9 file when it exists; the windmill with turning sails is not placed on this page.
+
+---
+
 <!-- New entries append below with date + session number -->
+
+## 2026-10-08 — Session 70: Nod-Krai night references and assets
+
+**Decision (Minh):** the Nod-Krai night wallpaper keeps its **crescent moon**, with a moon animation added in code; the cliff tower is the landmark (no windmill at night); the frost flower is a lily that **sways** (no spin); the wallpaper is upscaled to 2560x1440 (soft, not new detail); aurora, flower and clouds are cut out of their baked checkerboards. Files in `public/assets/world/NodKrai_Night/`, details and the retuned palette (worst-case contrast 5.8:1, panels `#0A1450` at 90 %) in `docs/NODKRAI_NIGHT_BRIEF.md`.
+
+---
+## 2026-10-08 — Session 70 (b): design closed for the first code pass
+
+**Decisions (Minh):** (1) **Pixel art is retired** from the shipped UI (cat, cups, pixel digits, pixel timer track); the sprite file stays in git history. (2) **Night runs from 18:00 to 06:00** in the person's own time zone by default, with a manual override and a way back to Auto. (3) **The first code pass ships Monstadt and Nod-Krai;** Liyue and Natlan show as "coming soon" in the picker and fall back to the other region of their mode. (4) **Only the landing page is designed in Figma** (day and night frames, done); Settings (with the mode and region picker), Login, Sign up, the Tasks drawer and the rest are built in code from the existing layouts with the theme tokens. (5) Images (higher-resolution wallpapers, Natlan and Liyue references) and sound come later.
+
+**Design work closed today:** Nod-Krai Night built for Timetable, Focus Mode, Diary and the Focus page, the Chill night live draft, the moth-spirit symbol, the landing page (Figma nodes `81:2` and `81:144`), a new `border/input` colour (3:1 or better on every surface, all five modes; fixes the old 1.4:1 field borders), and the Review tracker brought up to date (rows 16 to 18 added). Specs for restriction darkening, empty states, reduced motion and the Settings picker are written in `docs/THEME_HANDOFF.md`, which also holds the palette tables, the data model (`theme_mode`, `day_region`, `night_region` on `profiles`, two cookies), the touch-point list and the order of work for the code.
+
+**Open, not blocking the first four code steps:** higher-resolution wallpapers, Liyue and Natlan art, sound recordings, the frost flower at icon size, wing parts for the moth, and the public-naming and image-credit question (game place names, game-inspired creature drawn from scratch).
+
+---

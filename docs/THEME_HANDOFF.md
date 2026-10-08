@@ -1,0 +1,132 @@
+# Theme hand-off: from the Figma design to the real code
+
+Written 2026-10-08 (Session 70) so the next session can start coding without re-deriving anything. Figma file: `cfavJs3bXchFO6b9kSVhxw`. Companion notes: `docs/NODKRAI_NIGHT_BRIEF.md` (the night theme, art and drafts), `docs/DESIGN_BRIEF.md` section 5b (Monstadt), `docs/DECISIONS.md` (Session 70).
+
+## 1. What is decided
+
+| Question | Decision (Minh, 2026-10-08) |
+|---|---|
+| Themes | Two modes, two regions each. **Day:** Monstadt (Liyue later). **Night:** Nod-Krai (Natlan later). No Liyue night. |
+| First code pass | **Monstadt and Nod-Krai work.** Liyue and Natlan appear in the picker as "coming soon" (disabled) and fall back to the other region of that mode. |
+| Day or night by default | **Follows the clock: night from 18:00 to 06:00 in the person's own time zone** (the zone the app already resolves). A person can override by hand and switch back to Auto. |
+| Pixel art | **Retired** from the shipped UI (cat, cups, pixel digits, pixel timer track). The sprite file stays in git history. |
+| Screens designed in Figma | Timetable, Diary, Focus page, Focus Mode, Chill (live draft) in both themes, plus the **landing page** (day and night). **Everything else is built straight from the existing layout using the theme tokens:** Settings (with the picker), Login, Sign up, Tasks drawer, Privacy, error and empty states. |
+| Symbol of the night theme | The moon-moth spirit (`public/assets/world/NodKrai_Night/nodkrai-moth-spirit.svg`), the runner on the Pomodoro ring. The day theme keeps the faceless dandelion-seed spirit (vector in the Figma Focus frames; to be built as SVG in code). |
+
+## 2. Palette: Figma variable to CSS variable
+
+CSS names already match the Figma names with `/` turned into `-` (the app's existing `--bg-base`, `--ink-primary`, `--accent`, `--cat-deep`, ...). Hex values, ready to paste. Both themes use the same fonts: display and body **Lora**, UI **Inter**, mono **JetBrains Mono** (Space Grotesk is no longer used once Netcafe goes).
+
+| CSS variable | Monstadt (day) | Nod-Krai Night |
+|---|---|---|
+| `--bg-base` | `#F9F4E8` | `#0A1450` |
+| `--bg-elevated` | `#FCF9F0` | `#101C5E` |
+| `--bg-overlay` | `#F7F2E5` | `#0D1856` |
+| `--bg-window` | `#F9E3AB` | `#1A2A72` |
+| `--bg-alt` | `#F2F1E7` | `#081043` |
+| `--ink-primary` | `#1E384F` | `#EAF2FF` |
+| `--ink-secondary` | `#3A5368` | `#C2D2F2` |
+| `--ink-muted` | `#42586B` | `#A8BAE0` |
+| `--accent` | `#F7CF78` | `#F4D03F` |
+| `--accent-soft` | `#F9E3AB` | `#FFE9A0` |
+| `--accent-strong` | `#8C5A00` | `#F4D03F` |
+| `--cat-deep` / `--cat-meeting` / `--cat-learn` / `--cat-rest` / `--cat-personal` | `#CCDFBD` / `#FDE6B2` / `#E1D1ED` / `#C3DDF2` / `#FED6DB` | `#8CC0FF` / `#F4D58A` / `#C3B2F5` / `#8FE0D8` / `#F5AFC6` |
+| `--cat-ink` | `#1E384F` | `#0A1450` |
+| `--success` / `--warning` / `--danger` | `#3A6E2C` / `#855209` / `#A8402C` | `#7FE0B0` / `#F4D03F` / `#FF9E8C` |
+| `--border` | `rgba(122,98,56,.22)` | `rgba(234,242,255,.14)` |
+| `--border-strong` | `rgba(122,98,56,.38)` | `rgba(234,242,255,.26)` |
+| **new** `--accent-line` | `rgba(247,207,120,.6)` | `rgba(244,208,63,.6)` |
+| **new** `--cat-dot-deep` / `-meeting` / `-learn` / `-rest` / `-personal` | `#9BC293` / `#F7CF78` / `#C1B2EA` / `#7BBDEE` / `#F5ACBB` | same as the `--cat-*` values above |
+| **new** `--border-input` (opaque, form fields) | `#857052` | `#7088CC` |
+
+Notes: `--border-input` replaces the 1.4:1 field borders (WCAG 1.4.11 needs 3:1); it is held at 3:1 or better on every surface of its theme (lowest 3.74 and 3.76). Keep `--border` and `--border-strong` for cards and dividers. `--heat-max` for the diary year map: day `--accent-strong`; night uses the night ramp in section 8. `--glow` and `--shadow-card`: keep the existing shapes, tinted with each theme's accent. The contrast test (`lib/contrast.test.ts`) parses only 6-digit hex tokens, so the `rgba` lines are ignored by it.
+
+**Glass:** panels are see-through over the wallpaper. Sidebar and week grid **90 %**, header and cards **92 %** (Monstadt used 80 to 88 %; the night is more opaque because the wallpaper is brighter behind the panels). Implement as `color-mix(in srgb, var(--bg-elevated) 90%, transparent)` (or two alpha tokens), not as `opacity` on the element, so the text stays solid.
+
+**Worst-case contrast** (measured, panel over the brightest wallpaper pixels): Nod-Krai text pairs at 85 % opacity 5.8:1, at 90 % 6.7:1; every text colour on every night surface 6.5:1 or better. Monstadt: see `docs/DESIGN_BRIEF.md` (muted ink about 4.7:1 worst case at 82 %).
+
+## 3. Theme model (data, cookie, clock)
+
+- **Names in code:** `theme` is one of `monstadt` | `nodkrai-night` (later `liyue`, `natlan`). `mode` is `day` | `night`; `region` belongs to a mode.
+- **What a person chooses** (stored on `profiles`, so it follows them to every device; the existing `theme` text column is unused and defaults to `'night_cafe'`, so add clear new columns instead of reusing it):
+  - `theme_mode` text, check in (`auto`, `day`, `night`), default `auto`
+  - `day_region` text, check in (`monstadt`), default `monstadt` (add `liyue` when it exists)
+  - `night_region` text, check in (`nodkrai`), default `nodkrai` (add `natlan` later)
+  - grant `update` on those three columns to `authenticated`; keep the guest sandbox working (the demo seeds a profile).
+  - A SQL test per rule in `supabase/tests/` proving each refusal **by its reason** (bad mode, bad region), as the time zone work did.
+- **Resolving the theme:** `auto` follows the clock (night when the local hour is 18 or later, or before 6, in the zone from the `fy-tz` cookie); `day` and `night` are fixed. Then pick that mode's region. Pure function in `lib/theme.ts` (`resolveTheme({ mode, dayRegion, nightRegion, now, zone })`) with unit tests at the boundaries (17:59, 18:00, 05:59, 06:00, DST days, an unknown zone falls back to UTC).
+- **No flash:** mirror the choice in cookies, as the time zone does: `fy-theme-pref` (the three values, so the server can resolve) and `fy-theme` (the resolved theme, for plain server render). The root layout sets `data-theme` on `<html>` from the cookie on the server, and the existing inline script (already restores the saved theme before paint) re-resolves `auto` by clock on the client. Re-check every minute and on `visibilitychange`; on a change, crossfade (below).
+- **Privacy page:** a test (`privacyFacts.test.ts`) fails when the page's list of cookies and device storage drifts from the code. Adding `fy-theme-pref` and `fy-theme` means updating `lib/privacyFacts.ts` and the page in the same step. The old `localStorage` key `fy-theme` is removed (migrate once: read it, map `netcafe-night` to `night`, `sunny-cafe` to `day`, then delete).
+- **Crossfade:** 1.2 s on the wallpaper layer only (two stacked layers; fade the top one). Panels switch colour with their variables at the same moment (a 300 ms colour transition is enough). Off under `prefers-reduced-motion` (instant swap).
+- **Top bar:** the theme chip (it reads "Sun Monstadt" or "Moon Nod-Krai" in the frames) shows the current region and, when clicked, toggles day or night (sets `theme_mode` to the opposite of what is showing; Settings can set it back to Auto). The full picker lives in Settings.
+
+## 4. Settings picker (not drawn in Figma; build from this)
+
+Add an **Appearance** section to `app/(app)/settings/page.tsx`, in the style of the existing Settings cards, above the time zone card.
+
+1. **Mode:** a three-option segmented control: `Day`, `Night`, `Auto (follows your clock)`. Selected option uses `--accent` fill with `--cat-ink` text. Helper line: "Night runs from 18:00 to 06:00 in your time zone." with a link to the time zone card.
+2. **Region cards** (two columns on desktop, stacked on phones): the two day regions on one row, the two night regions on the next. Each card: a 16:9 thumbnail (the wallpaper crop used on the landing page, `public/assets/world/.../*-thumb.webp`), the name in Lora, a small chip `Day` or `Night`, and one line of description. **Monstadt** and **Nod-Krai** are selectable. **Liyue** and **Natlan** are rendered disabled with a dashed outline and "Coming soon" (`aria-disabled="true"`; decide whether they stay focusable with a "Coming soon" description or are skipped by the arrow keys, and check the choice with a screen reader). Selecting a card saves the region for its mode; the live theme changes only if that mode is currently showing.
+3. **Feedback:** a polite live region ("Switched to Nod-Krai, night.") and the existing "Saved" pattern. Failure names its reason ("That region is not available yet."), never a bare error.
+4. **States to cover:** saving (disabled with "Saving…"), failed (reason), guest account (works, since it is only a profile column), reduced motion (no crossfade).
+5. **Keyboard:** the segmented control is a radio group (arrow keys); region cards are radio buttons in a group per mode.
+
+## 5. Landing page (the one new screen, Figma: `Landing · Monstadt day` 81:2, `Landing · Nod-Krai night` 81:144)
+
+Replace `app/page.tsx` (keep `DeletedNotice`, `TryDemoButton` behaviour and the three real routes: `/today`, `/login`, `/privacy`). Sections, in order, all copy final (checked against the README, no claim the app cannot back up):
+
+1. **Hero** (full width, 900 px tall on desktop; the scene fills it, a glass card sits left): badge "A calm place for your day"; headline "Plan your day." and, in the accent-strong italic, "Find yourself."; sub "A single, calm place for your timetable, your diary, your focus sessions, and the sound of rain on the window."; buttons **Enter →** (primary), **Sign in**, **Try the demo** (the existing `TryDemoButton`, keep its error and signed-in states); small print "The demo is a temporary account with sample data. No sign-up needed."; a glass nav bar on top (logo, Privacy, Sign in, Try the demo); a small pill at the bottom "See a day in FindYourself". Night: the moth spirit floats at the card's top-right corner (gentle bob; static under reduced motion).
+2. **Features:** "Everything for your day, in one calm place"; three cards with a real screenshot each (Timetable "Draw your week", Diary "Write it down", Focus "Stay with one thing") and a row of three small items (Tasks with Focus first, Chill, A streak without the guilt).
+3. **Themes:** "A scene that follows your day": the Day / Night / Auto switch (illustration only), two big cards (Monstadt Day, Nod-Krai Night) and two dashed "coming soon" cards (Liyue, Natlan).
+4. **Careful where it counts:** Private by default; Accessible; Calm on purpose.
+5. **Closing call:** "Ready when you are." with Enter and Try the demo. 6. **Footer:** "FindYourself, made by Minh", Privacy, Source on GitHub (`https://github.com/Minht30/FindYourself`).
+
+Which theme the landing shows follows the same resolution as the app (cookie, then clock), so a visitor at night sees the Nod-Krai landing. The Figma previews are screenshots of the Figma frames (stand-ins); replace them with real screenshots of the built app (WebP, about 720 px wide) once the themes are in. Semantics: one `h1`, section `h2`s, buttons are links or buttons as the real controls are, images have alt text, the scene is decorative (`aria-hidden`).
+
+## 6. Rules for new work (answers the open Review items 7 and 9)
+
+**Restriction darkening (PRD 6.6).** When a "Focus first" restriction is active the app darkens slightly **by veiling the scene, never the panels**: a fixed `.scene-veil` layer over the wallpaper only (night `rgba(5,10,40,.30)`, day `rgba(30,40,60,.20)`) plus `filter: saturate(.85)` on the wallpaper element, faded in over 600 ms. Panels and text are untouched, so every contrast ratio above still holds. It must never be the only signal: the restriction chip and its countdown stay. Reduced motion: no fade (instant).
+
+**Empty states.** Every list or panel gets one: a headline that names the space, one short line, one verb button (existing app copy rules: sentence case, no "successfully", no "please"). Use the same glass card as the filled state. New elements in this work needing one: none beyond the existing pages; the picker has no empty state.
+
+**Reduced motion.** Every new animation (aurora, moon, stars, snow, spirit, flowers, clouds, shore lights, crossfade, restriction fade) is a CSS animation or a requestAnimationFrame loop guarded by `prefers-reduced-motion`; under it, the first frame shows and nothing moves (the existing `lib/reducedMotion.test.ts` pattern checks stylesheets for a reduced-motion guard; extend it to the new keyframes). Transform and opacity only.
+
+**Pixel retirement.** Remove `components/focus/pixel/*` (PixelClock, PixelSprite, TimerRing, digits, sprites and their tests) and the `--pix-*` tokens after the new ring and clock are in; replace the cat runner with the spirit (night: moth; day: dandelion seed), the cups with flower session icons (day: `flower-bloom/bud`; night: frost flower, 40 px, dimmed for coming sessions), the pixel digits with mono digits.
+
+## 7. Where the code changes (touch points found today)
+
+`app/globals.css` (theme blocks: remove `sunny-cafe` and `netcafe-night`, add `monstadt` and `nodkrai-night`, plus the new tokens and `--pix-*` removal) · `tailwind.config.ts` (`darkMode` selector `[data-theme='netcafe-night']` becomes `[data-theme='nodkrai-night']`; add classes for `cat-dot-*`, `accent-line`, `border-input`) · `app/layout.tsx` (default `data-theme`, the inline restore script, fonts: drop Space Grotesk) · `components/layout/TopBar.tsx` (theme chip) · `components/scene/hooks.ts` (`ThemeName`, `useTheme`) · `components/scene/scenes.tsx`, `Scene.tsx`, `ChillStage.tsx`, `Immersive.tsx` (swap the placeholder art for the stage-based wallpaper scenes; the live drafts in `docs/prototypes` are the reference) · `components/focus/*` and `components/focus/pixel/*` (spirit ring, flowers, retire pixel) · `app/(app)/settings/page.tsx` plus a new `components/settings/AppearanceCard.tsx` and server action (mirror the time zone card and `lib/timezone.ts`) · `lib/theme.ts` and `lib/theme.test.ts` (new) · `lib/contrast.test.ts` (new `THEMES`, new checks for `border-input`, `cat-ink` on cat fills) · `lib/privacyFacts.ts` and `app/privacy/page.tsx` (cookies) · `supabase/migrations/` (new migration, plus `supabase/tests/` files) · `docs/DESIGN_SYSTEM.md` (the two themes) · `app/page.tsx` (landing).
+
+## 8. Diary year map ramp (night)
+
+Day keeps its blues. Night levels 1 to 4: `#4466B0`, `#6C93D8`, `#8CC0FF`, `#FFE9A0` (dim to moon yellow). Level 1 is about 3:1 against the panel so it stays distinct from an empty cell.
+
+## 9. Assets: what ships, what stays out of `public/`
+
+Everything in `public/` is served to visitors, so ship only finals, as WebP (SVG for the spirits). **Done on 2026-10-08 (branch `design/stage2-themes`):** `public/assets/world` went from about 29 MB to 5.7 MB; the raw originals, reference sheets, duplicates and Figma stand-ins (about 23 MB) were moved, not deleted, to `design-sources/world/` (git-ignored, so they stay on Minh's machine and out of history). The lists below record what was kept and what moved. Still to do later: convert the Monstadt PNG finals to WebP and add a `-thumb.webp` per region for the Settings picker and landing page.
+
+- **Nod-Krai, ship:** `nodkrai-night.webp` (2560 x 1440, about 540 KB) and `nodkrai-night-1280.webp` (phones), `nodkrai-aurora.webp`, `nodkrai-cloud-2/3/4.webp`, `nodkrai-frost-flower.webp`, `nodkrai-moth-spirit.svg`, and two crops to convert to WebP (`nodkrai-topbar.png`, `nodkrai-medallion.png`).
+- **Nod-Krai, move out of `public/`** (to a `design-sources/` folder, or keep outside git): `Nodkrai theme.png`, `Nodkrai_aurora.png`, `Nodkrai flower.png`, `Cloud.png`, `Combination.png`, `nodkrai-cloud-sheet.*`, `nodkrai-cloud-1/5/6/7/8.*`, every duplicate `.png` of a shipped `.webp`, `nodkrai-moth-spirit.png` (Figma stand-in).
+- **Monstadt:** ship the files the day theme actually uses (the wallpaper, `topbar-clouds`, `medallion-windmill`, `flower-bloom/bud`, clouds and tree cut-outs as WebP); move out the originals, the concept sheet (`175fbe6c-…png`), `Mon_flower.jpeg`, `parchment.png` and `panel.png` if unused. Decide the exact list from what the code imports after the scene work.
+- **Needed before a final ship:** a higher-resolution Nod-Krai wallpaper (the current one is a 1673 px upscale; soft on large screens) and the proper 16:9 Monstadt wallpaper (a 1623 x 640 stand-in today).
+- Load only the active theme's wallpaper (`<link rel="preload">` for it); the other loads on demand when the person switches. Aurora, clouds and flowers load only on the scenes that use them (Chill, Focus Mode, landing hero).
+
+## 10. Motion that ships (proposal, to confirm with Minh when we reach it)
+
+Dense pages (Timetable, Diary, Focus page, Settings): the wallpaper is **still**; only small interface motion (120 to 260 ms). **Chill and Focus Mode** get the full scene (night: aurora drift, moon glow and orbit ring, stars and shooting star, snow up to 40 flakes, shore lights, beacon, water shimmer, swaying frost flowers, drifting moth spirit, gusts; day: clouds, seeds, birds, fan flowers, gusts). **Landing hero:** a light version (slow cloud or aurora drift, the spirit's bob). All off under reduced motion. Reference implementations: `docs/prototypes/chill-monstadt.html` and `chill-nodkrai-night.html`.
+
+## 11. Order of work for the code (small steps, tests first where they exist)
+
+1. `lib/theme.ts` and its tests; new migration, SQL tests; update the contrast test to the new tokens (it will fail until step 2, which is the point).
+2. `globals.css` theme blocks and new tokens; Tailwind additions; remove the old themes and fonts. Contrast test green.
+3. Layout: server-rendered `data-theme` from cookies, the inline clock script, the cookie writes, the privacy facts.
+4. Settings: the Appearance card and server action; the top bar chip.
+5. Wallpaper stage and the crossfade; the day and night scenes behind the existing pages (still, no motion yet).
+6. Focus: the ring, the spirit (night moth, day dandelion), flower icons, mono digits; delete the pixel kit.
+7. Motion: Chill and Focus Mode scenes from the drafts, each behind the reduced-motion guard and the tests.
+8. Landing page. 9. Assets cleanup (section 9), Lighthouse on every page at the three screen shapes, update the docs, README screenshots.
+
+**Acceptance for every step:** `npm run typecheck && npm run lint && npm test` green; new behaviour has a test that asserts the reason when it is a refusal; contrast held by the test; checked in the browser at 1440 x 900, 2560 x 900 and 430 x 860, once with reduced motion on, and hydration checked after two or three loads (counter-based ids only diverge after the first request).
+
+## 12. Still open (nothing here blocks step 1 to 4)
+
+Higher-resolution wallpapers (both themes) · Liyue and Natlan references · sound recordings ("Windy meadow", "Snowy night") · a second look at the frost flower at icon size (40 px, or a simpler bloom) · the moth spirit's wings as separate parts for a real flutter · public names and image credits (the theme names are game place names and the moth spirit is inspired by a game creature, drawn from scratch; decide whether to keep the names, rename them, and list the image sources on the Privacy or a Credits page) · the Chill page below the scene (mixer, music, playlists, community picks) keeps the existing layout with the theme tokens.

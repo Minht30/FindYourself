@@ -372,9 +372,10 @@ body:has([data-restriction-active]) .wp-layer {
   100% { opacity: 0; transform: rotate(calc(var(--i) * 45deg)) translateY(calc(var(--spirit, 62px) * -0.85)) scale(0.4); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .spirit .spirit-body,
-  .spirit .spirit-turn,
-  .spirit .spirit-spark {
+  /* [data-state] raises the specificity to that of the state rules above, which would otherwise win */
+  .spirit[data-state] .spirit-body,
+  .spirit[data-state] .spirit-turn,
+  .spirit[data-state] .spirit-spark {
     animation: none;
   }
   .spirit-spark {
@@ -606,6 +607,32 @@ body:has([data-restriction-active]) .wp-layer {
 .ps-leaf-right { left: 2px; transform-origin: 0 60%; }
 .ps-leaf-left { right: 2px; transform-origin: 100% 60%; }
 .ps-head { position: absolute; left: 0; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); background: url("/assets/world/Monstadt_Day/flower-fan-head.webp") center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(20, 30, 20, 0.35)); will-change: transform; }
+
+/* ── Landing hero ────────────────────────────────────────────────────────────
+   app/page.tsx. The painting is the hero's own static background, so the server's HTML
+   already shows the right one for the visitor's theme; the light scene (PaintedScene
+   variant="hero") fades in over it, and a fade at the bottom melts it into the page. */
+.hero-bg {
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+:root[data-theme="monstadt"] .hero-bg {
+  background-image: url("/assets/world/Monstadt_Day/monstadt-day.webp");
+  background-position: 100% 40%;
+}
+:root[data-theme="nodkrai-night"] .hero-bg {
+  background-image: url("/assets/world/NodKrai_Night/nodkrai-night.webp");
+  background-position: 62% 50%;
+}
+@media (max-width: 767px) {
+  :root[data-theme="nodkrai-night"] .hero-bg {
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1280.webp");
+    background-position: 90% 50%;
+  }
+}
+.hero-fade {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 66%, var(--bg-base) 100%);
+}
 
 /* Focus Mode: the same scene, dimmed hard so the timer's small text keeps 4.5:1 (lib/glass.test.ts) */
 .fm-veil { position: absolute; inset: 0; pointer-events: none; background: var(--fm-veil); }

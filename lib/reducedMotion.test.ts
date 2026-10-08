@@ -36,7 +36,7 @@ describe("reduced motion", () => {
   });
 
   it("still has the specific rules for the spirit, the scene and Focus Mode", () => {
-    expect(all).toMatch(/\.spirit \.spirit-body,[^}]*animation:\s*none/);
+    expect(all).toMatch(/\.spirit\[data-state\] \.spirit-body,[^}]*animation:\s*none/);
     expect(all).toMatch(/\.ps-aurora,[^}]*animation:\s*none/);
     expect(all).toMatch(/\.fm-in\s*\{[^}]*animation:\s*none/);
   });
@@ -50,7 +50,8 @@ describe("reduced motion", () => {
       expect(users.length, name).toBeGreaterThan(0);
       for (const sel of users) expect(sel, `${name} used by "${sel}"`).toMatch(/^\.spirit/);
     }
-    for (const part of [".spirit .spirit-body", ".spirit .spirit-turn", ".spirit .spirit-spark"]) expect(all, part).toContain(part);
+    // the state rules are `.spirit[data-state="..."] .spirit-body` (three parts); a reduce rule of two parts would lose to them
+    for (const part of [".spirit[data-state] .spirit-body", ".spirit[data-state] .spirit-turn", ".spirit[data-state] .spirit-spark"]) expect(all, part).toContain(part);
   });
 
   it("resets every painted-scene animation: each class that starts a ps-* keyframes is named in the reduce block", () => {

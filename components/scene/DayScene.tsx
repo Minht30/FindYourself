@@ -7,6 +7,7 @@ import { CLOUD_RATIO, DAY_CLOUDS, DAY_PICTURE, DAY_PLANTS, dayLayout } from "@/l
 import { DAY_CALM, calmWind, dropsShown, easeSpeed, fanBend, leafFlutter, makeDrops, makeFlakes, spinTarget, stepAngle, stepWind } from "@/lib/scene/wind";
 import { drawPrecip } from "./drawPrecip";
 import { useFrameLoop, useGusts, useParallax, useStageFit } from "./sceneHooks";
+import type { SceneVariant } from "./PaintedScene";
 import { spawnBird, spawnLeaf } from "./transients";
 
 const GUST_STRENGTH = 0.6;
@@ -18,7 +19,9 @@ type PlantEls = { lower: HTMLDivElement | null; upper: HTMLDivElement | null; he
 // stems bend with the wind and whose heads spin like pinwheels; a gust speeds all of it
 // up and blows leaves across. `chill` is false in Focus Mode, where the timer's spirit
 // is the one that moves, so there are no seeds, birds or leaves.
-export default function DayScene({ root, chill, active, reduced }: { root: RefObject<HTMLDivElement | null>; chill: boolean; active: boolean; reduced: boolean }) {
+export default function DayScene({ root, variant, active, reduced }: { root: RefObject<HTMLDivElement | null>; variant: SceneVariant; active: boolean; reduced: boolean }) {
+  const chill = variant === "chill";
+  const hero = variant === "hero"; // the light version: CSS motion only, no foreground, no loops
   const id = useId();
   const layout = useMemo(() => dayLayout(), []);
   const stage = useRef<HTMLDivElement>(null);
@@ -34,7 +37,7 @@ export default function DayScene({ root, chill, active, reduced }: { root: RefOb
   const rain = useMixerStore((s) => s.settings.levels.rain);
   const rainRef = useRef(rain);
   rainRef.current = rain;
-  const moving = active && !reduced;
+  const moving = active && !reduced && !hero;
 
   useStageFit("monstadt", root, stage);
   useParallax(root, moving);
@@ -188,6 +191,7 @@ export default function DayScene({ root, chill, active, reduced }: { root: RefOb
 
       <div ref={flyers} className="ps-flyers" />
 
+      {hero ? null : (
       <div className="ps-layer">
         {DAY_PLANTS.map((p, i) => {
           const sides = i % 2 ? (["left", "right"] as const) : (["right", "left"] as const);
@@ -208,7 +212,9 @@ export default function DayScene({ root, chill, active, reduced }: { root: RefOb
         })}
       </div>
 
-      <canvas ref={canvas} className="ps-canvas" />
+      )}
+
+      {hero ? null : <canvas ref={canvas} className="ps-canvas" />}
       <div className="ps-vignette" />
     </>
   );

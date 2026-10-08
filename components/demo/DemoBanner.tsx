@@ -43,7 +43,7 @@ export default function DemoBanner() {
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
-            className="px-3 py-1 rounded-full bg-cat-ink text-bg-base font-semibold hover:opacity-90"
+            className="px-3 py-1 rounded-full bg-cat-ink text-accent-soft font-semibold hover:opacity-90"
           >
             {open ? "Not now" : "Create an account to keep it"}
           </button>
@@ -87,7 +87,7 @@ export default function DemoBanner() {
           <button
             type="submit"
             disabled={pending}
-            className="px-4 py-1.5 rounded-full bg-cat-ink text-bg-base font-semibold disabled:opacity-60"
+            className="px-4 py-1.5 rounded-full bg-cat-ink text-accent-soft font-semibold disabled:opacity-60"
           >
             {pending ? "Creating…" : "Create account"}
           </button>

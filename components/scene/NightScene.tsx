@@ -7,6 +7,7 @@ import { FROST_FLOWER_RATIO, NIGHT_CLOUDS, NIGHT_FIXTURES, NIGHT_PICTURE, NIGHT_
 import { MAX_FLAKES, NIGHT_CALM, calmWind, dropsShown, frostSway, makeDrops, makeFlakes, stepWind, between } from "@/lib/scene/wind";
 import { drawPrecip } from "./drawPrecip";
 import { useFrameLoop, useGusts, useParallax, useStageFit } from "./sceneHooks";
+import type { SceneVariant } from "./PaintedScene";
 import { spawnDust, spawnShootingStar } from "./transients";
 
 const SNOW_FLAKES = Math.round(0.7 * MAX_FLAKES); // the draft's default: 28 of at most 40
@@ -17,7 +18,9 @@ const GUST_STRENGTH = 0.6;
 // water, snow, swaying frost flowers and (on the Chill page) the moon-moth drifting
 // across the bay. `chill` is false in Focus Mode, where the timer's spirit is the one
 // that moves and the moth would compete with it.
-export default function NightScene({ root, chill, active, reduced }: { root: RefObject<HTMLDivElement | null>; chill: boolean; active: boolean; reduced: boolean }) {
+export default function NightScene({ root, variant, active, reduced }: { root: RefObject<HTMLDivElement | null>; variant: SceneVariant; active: boolean; reduced: boolean }) {
+  const chill = variant === "chill";
+  const hero = variant === "hero"; // the light version: CSS motion only, no foreground, no loops
   const layout = useMemo(() => nightLayout(), []);
   const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -30,7 +33,7 @@ export default function NightScene({ root, chill, active, reduced }: { root: Ref
   const rain = useMixerStore((s) => s.settings.levels.rain);
   const rainRef = useRef(rain);
   rainRef.current = rain;
-  const moving = active && !reduced;
+  const moving = active && !reduced && !hero;
 
   useStageFit("nodkrai-night", root, stage);
   useParallax(root, moving);
@@ -148,6 +151,7 @@ export default function NightScene({ root, chill, active, reduced }: { root: Ref
         </div>
       ) : null}
 
+      {hero ? null : (
       <div className="ps-layer">
         {NIGHT_PLANTS.map((p, i) => (
           <div
@@ -161,7 +165,9 @@ export default function NightScene({ root, chill, active, reduced }: { root: Ref
         ))}
       </div>
 
-      <canvas ref={canvas} className="ps-canvas" />
+      )}
+
+      {hero ? null : <canvas ref={canvas} className="ps-canvas" />}
       <div className="ps-vignette" />
     </>
   );

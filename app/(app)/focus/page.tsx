@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import LinkPicker, { type PickBlock, type PickTask } from "@/components/focus/LinkPicker";
 import TimerCard from "@/components/focus/TimerCard";
+import TimerSettings from "@/components/focus/TimerSettings";
 import WeekTile, { type RecentSession } from "@/components/focus/WeekTile";
 import { shiftISODate, todayInTimeZone, zonedDayStartUTC } from "@/lib/dates";
 import { summarizeWeek, weekBounds, type WeekSession } from "@/lib/focus/week";
@@ -68,15 +69,23 @@ export default async function FocusPage() {
   const week = summarizeWeek(weekRows ?? [], bounds, today);
 
   return (
-    <div className="flex flex-col items-center gap-6 pb-10">
-      <header className="plate w-full max-w-[460px]">
+    <div className="flex flex-col gap-3 pb-10">
+      <header className="plate w-full">
         <h1 className="font-display text-3xl">Focus</h1>
         <p className="text-ink-secondary text-[15px] mt-1">
           One thing at a time. The timer keeps going while you move around the app.
         </p>
       </header>
-      <TimerCard linkSlot={<LinkPicker tasks={tasks ?? []} blocks={blocks ?? []} timeZone={timeZone} />} />
-      <WeekTile week={week} recent={recent ?? []} timeZone={timeZone} />
+      {/* One column on a phone (timer, week, settings); timer and week side by side from
+          1024 px, settings under the timer; settings, timer and week as three columns on a
+          wide screen (the Figma layout). */}
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] min-[1400px]:grid-cols-[330px_440px_330px] min-[1400px]:justify-center">
+        <TimerCard linkSlot={<LinkPicker tasks={tasks ?? []} blocks={blocks ?? []} timeZone={timeZone} />} />
+        <WeekTile week={week} recent={recent ?? []} timeZone={timeZone} />
+        <div className="min-[1400px]:order-first">
+          <TimerSettings />
+        </div>
+      </div>
     </div>
   );
 }

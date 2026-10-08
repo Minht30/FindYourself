@@ -8,12 +8,10 @@ import { primeAudio } from "@/lib/audio/context";
 import { useSync } from "@/lib/focus/flush";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock, type Phase } from "@/lib/focus/timer";
+import ClockDigits from "./ClockDigits";
 import { openFocusMode } from "./focusModeControls";
-import PixelSprite from "./pixel/PixelSprite";
-import PixelClock from "./pixel/PixelClock";
-import TimerRing from "./pixel/TimerRing";
-import { CUP, CUP_PALETTE } from "./pixel/sprites";
-import TimerSettings from "./TimerSettings";
+import SessionFlowers from "./SessionFlowers";
+import TimerRing from "./TimerRing";
 import { useCheer } from "./useCheer";
 
 const PHASES: Phase[] = ["focus", "short", "long"];
@@ -161,7 +159,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
           className="flex justify-center text-ink-primary"
           style={{ visibility: hydrated ? "visible" : "hidden" }}
         >
-          <PixelClock text={formatClock(secondsLeft * 1000)} unit={secondsLeft >= 6000 ? "1.8cqw" : "2.2cqw"} />
+          <ClockDigits text={formatClock(secondsLeft * 1000)} big />
         </div>
         <div className="mt-2 font-ui text-[12px] text-ink-secondary h-4" aria-hidden>
           {timer.status === "paused" ? "paused" : running ? (isBreak ? "rest up" : "stay with it") : "ready when you are"}
@@ -258,11 +256,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
       {linkSlot}
 
       <div className="mt-6 flex flex-col items-center gap-2">
-        <div role="img" aria-label={`${cups} of ${settings.cyclesBeforeLong} focus sessions done this round`} className="flex gap-2">
-          {Array.from({ length: settings.cyclesBeforeLong }, (_, i) => (
-            <PixelSprite key={i} frames={[i < cups ? CUP.full : CUP.empty]} palette={CUP_PALETTE} px={3} className="pix-cat" />
-          ))}
-        </div>
+        <SessionFlowers done={cups} total={settings.cyclesBeforeLong} />
         <p className="font-ui text-[13px] text-ink-secondary">
           {timer.phase === "long"
             ? `${cups} down. Long break earned.`
@@ -288,8 +282,6 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
           </p>
         )}
       </div>
-
-      <TimerSettings />
     </section>
   );
 }

@@ -1,7 +1,6 @@
 import { Check, CircleDashed } from "lucide-react";
 import { formatDuration, type WeekSummary } from "@/lib/focus/week";
-import PixelSprite from "./pixel/PixelSprite";
-import { CAT_PALETTE, CAT_SLEEP } from "./pixel/sprites";
+import Spirit from "./Spirit";
 
 export type RecentSession = {
   id: string;
@@ -12,14 +11,14 @@ export type RecentSession = {
   label: string | null;
 };
 
-// One pixel block = 15 minutes; a column stops at 16 blocks (4 h) however much
-// more was focused (the label and the aria text still carry the real number).
+// One block = 15 minutes; a column stops at 16 blocks (4 h) however much more was
+// focused (the label and the aria text still carry the real number).
 const BLOCK_SECONDS = 15 * 60;
 const MAX_BLOCKS = 16;
-const BLOCK = 10;
+const BLOCK_W = 22;
+const BLOCK_H = 7;
 const GAP = 3;
-const COL_W = BLOCK;
-const COL_H = MAX_BLOCKS * (BLOCK + GAP) - GAP;
+const COL_H = MAX_BLOCKS * (BLOCK_H + GAP) - GAP;
 
 // This week's focus time (US-5.3) and the latest sessions. Server-rendered and
 // presentational on purpose: Phase 8's dashboard can lift the tile unchanged.
@@ -38,7 +37,7 @@ export default function WeekTile({
   return (
     <section
       aria-label="Focus this week"
-      className="w-full max-w-[460px] rounded-3xl border border-[var(--border)] bg-glass-card shadow-card px-4 sm:px-8 py-6"
+      className="w-full rounded-3xl border border-[var(--border)] bg-glass-panel shadow-card px-5 py-5"
     >
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
@@ -68,10 +67,9 @@ export default function WeekTile({
           return (
             <div key={d.iso} className="flex flex-col items-center gap-1.5" role="img" aria-label={text} title={text}>
               <svg
-                width={COL_W}
+                width={BLOCK_W}
                 height={COL_H}
-                viewBox={`0 0 ${COL_W} ${COL_H}`}
-                shapeRendering="crispEdges"
+                viewBox={`0 0 ${BLOCK_W} ${COL_H}`}
                 aria-hidden
                 className={d.isFuture ? "opacity-50" : ""}
               >
@@ -83,10 +81,12 @@ export default function WeekTile({
                     <rect
                       key={i}
                       x={0}
-                      y={i * (BLOCK + GAP)}
-                      width={BLOCK}
-                      height={BLOCK}
-                      style={{ fill: on ? (d.isToday ? "var(--accent-strong)" : "var(--accent)") : "var(--pix-track)" }}
+                      y={i * (BLOCK_H + GAP)}
+                      width={BLOCK_W}
+                      height={BLOCK_H}
+                      rx={2}
+                      // lit blocks are the data: accent-strong holds 3:1 on the glass (the day yellow does not)
+                      style={{ fill: on ? (d.isToday ? "var(--accent-strong)" : "color-mix(in srgb, var(--accent-strong) 70%, transparent)") : "var(--border-strong)" }}
                     />
                   );
                 })}
@@ -117,7 +117,7 @@ export default function WeekTile({
         <h3 className="text-[12px] font-ui font-semibold uppercase tracking-wider text-ink-muted">Recent sessions</h3>
         {empty ? (
           <div className="mt-4 flex flex-col items-center gap-3 text-center">
-            <PixelSprite frames={[CAT_SLEEP[0]]} palette={CAT_PALETTE} px={3} className="pix-cat" />
+            <Spirit state="sleep" size={56} inline />
             <p className="font-ui text-[14px] text-ink-secondary max-w-[18rem]">
               Nothing here yet. Your first session will light up the first block.
             </p>

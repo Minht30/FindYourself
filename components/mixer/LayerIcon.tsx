@@ -1,19 +1,9 @@
-import PixelSprite from "@/components/focus/pixel/PixelSprite";
 import type { LayerKey } from "@/lib/audio/layers";
-import { ICON_PALETTE, LAYER_ICONS } from "./pixel/icons";
+import { LAYER_ICONS } from "./layerIcons";
 
-// A layer's pixel icon: still when the layer is silent, animated when it is
-// audible (reduced motion keeps it still either way, via .pix-frame).
+// A layer's icon: lit in the accent while the layer is audible, quiet when it is silent.
+// `px` keeps the old scale (2 = the compact rows, 3 = the full sliders).
 export default function LayerIcon({ layer, active, px = 2 }: { layer: LayerKey; active: boolean; px?: number }) {
-  const frames = LAYER_ICONS[layer];
-  return (
-    <PixelSprite
-      key={active ? "on" : "off"}
-      frames={active ? frames : [frames[0]]}
-      palette={ICON_PALETTE}
-      px={px}
-      fps={2.5}
-      className={active ? "" : "opacity-70"}
-    />
-  );
+  const Icon = LAYER_ICONS[layer];
+  return <Icon size={px * 8} aria-hidden strokeWidth={1.75} className={active ? "text-accent-strong" : "text-ink-muted"} />;
 }

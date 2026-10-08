@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { useMusic } from "@/components/music/MusicProvider";
 import { resolveChoice, type FocusMusicChoice } from "@/lib/focus/music";
 import { useFocusMusicStore } from "@/lib/focus/musicStore";
@@ -9,14 +8,13 @@ import { notifyState, requestNotifications } from "@/lib/focus/notify";
 import { useFocusStore } from "@/lib/focus/store";
 import { LIMITS, type Settings } from "@/lib/focus/timer";
 
-// Cycle lengths, chime and notification preferences. They live in localStorage
-// for now (decision for Phase 5); a settings page can move them to the profile.
+// Cycle lengths, chime and notification preferences, as a card of their own (the left
+// column of the Focus page). They live in localStorage for now (decision for Phase 5);
+// a settings page can move them to the profile.
 export default function TimerSettings() {
   const settings = useFocusStore((s) => s.settings);
   const setSettings = useFocusStore((s) => s.setSettings);
-  const [open, setOpen] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const panelId = useId();
 
   async function onNotifications(on: boolean) {
     setNote(null);
@@ -34,85 +32,73 @@ export default function TimerSettings() {
   }
 
   return (
-    <div className="mt-6 pt-4 border-t border-[var(--border)]">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between font-ui text-[13px] font-medium text-ink-secondary hover:text-ink-primary transition"
-      >
-        Timer settings
-        <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      {open && (
-        <div id={panelId} className="mt-4 grid gap-4 font-ui text-[13px]">
-          <div className="grid grid-cols-3 gap-3">
-            <Minutes label="Focus" field="focusMin" value={settings.focusMin} onChange={setSettings} />
-            <Minutes label="Short break" field="shortMin" value={settings.shortMin} onChange={setSettings} />
-            <Minutes label="Long break" field="longMin" value={settings.longMin} onChange={setSettings} />
-          </div>
-
-          <label className="flex items-center justify-between gap-3">
-            <span className="text-ink-primary">Long break every</span>
-            <span className="flex items-center gap-2">
-              <NumberField
-                label="Sessions before a long break"
-                min={LIMITS.cycles.min}
-                max={LIMITS.cycles.max}
-                value={settings.cyclesBeforeLong}
-                onCommit={(n) => setSettings({ cyclesBeforeLong: n })}
-                className="w-16"
-              />
-              <span className="text-ink-secondary">sessions</span>
-            </span>
-          </label>
-
-          <FocusMusic />
-
-          <Toggle label="Soft chime when a session ends" checked={settings.chime} onChange={(chime) => setSettings({ chime })} />
-          {settings.chime && (
-            <label className="flex items-center justify-between gap-3 -mt-2">
-              <span className="text-ink-secondary">Volume</span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={settings.volume}
-                aria-label="Chime volume"
-                onChange={(e) => setSettings({ volume: Number(e.target.value) })}
-                className="w-40 accent-[var(--accent-strong)]"
-              />
-            </label>
-          )}
-          <Toggle
-            label="Notify me when the tab is in the background"
-            checked={settings.notifications && notifyState() === "granted"}
-            onChange={onNotifications}
-          />
-          {note && (
-            <p role="alert" className="text-[12px] text-[var(--danger)] -mt-2">
-              {note}
-            </p>
-          )}
-          <Toggle
-            label="Remind me to put my phone away before Focus Mode starts"
-            checked={settings.phoneReminder}
-            onChange={(phoneReminder) => setSettings({ phoneReminder })}
-          />
-          <Toggle
-            label="Start the next phase automatically"
-            checked={settings.autoStart}
-            onChange={(autoStart) => setSettings({ autoStart })}
-          />
-          <p className="text-[12px] text-ink-muted">
-            Changes apply to the next phase. A running timer keeps the length it started with.
-          </p>
+    <section aria-label="Timer settings" className="w-full rounded-3xl border border-[var(--border)] bg-glass-panel shadow-card px-5 py-5">
+      <h2 className="font-display text-xl">Timer settings</h2>
+      <div className="mt-4 grid gap-4 font-ui text-[13px]">
+        <div className="grid grid-cols-3 gap-3">
+          <Minutes label="Focus" field="focusMin" value={settings.focusMin} onChange={setSettings} />
+          <Minutes label="Short break" field="shortMin" value={settings.shortMin} onChange={setSettings} />
+          <Minutes label="Long break" field="longMin" value={settings.longMin} onChange={setSettings} />
         </div>
-      )}
-    </div>
+
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-ink-primary">Long break every</span>
+          <span className="flex items-center gap-2">
+            <NumberField
+              label="Sessions before a long break"
+              min={LIMITS.cycles.min}
+              max={LIMITS.cycles.max}
+              value={settings.cyclesBeforeLong}
+              onCommit={(n) => setSettings({ cyclesBeforeLong: n })}
+              className="w-16"
+            />
+            <span className="text-ink-secondary">sessions</span>
+          </span>
+        </label>
+
+        <FocusMusic />
+
+        <Toggle label="Soft chime when a session ends" checked={settings.chime} onChange={(chime) => setSettings({ chime })} />
+        {settings.chime && (
+          <label className="flex items-center justify-between gap-3 -mt-2">
+            <span className="text-ink-secondary">Volume</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={settings.volume}
+              aria-label="Chime volume"
+              onChange={(e) => setSettings({ volume: Number(e.target.value) })}
+              className="w-40 accent-[var(--accent-strong)]"
+            />
+          </label>
+        )}
+        <Toggle
+          label="Notify me when the tab is in the background"
+          checked={settings.notifications && notifyState() === "granted"}
+          onChange={onNotifications}
+        />
+        {note && (
+          <p role="alert" className="text-[12px] text-[var(--danger)] -mt-2">
+            {note}
+          </p>
+        )}
+        <Toggle
+          label="Remind me to put my phone away before Focus Mode starts"
+          checked={settings.phoneReminder}
+          onChange={(phoneReminder) => setSettings({ phoneReminder })}
+        />
+        <Toggle
+          label="Start the next phase automatically"
+          checked={settings.autoStart}
+          onChange={(autoStart) => setSettings({ autoStart })}
+        />
+        <p className="text-[12px] text-ink-muted">
+          Changes apply to the next phase. A running timer keeps the length it started with.
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -147,7 +133,7 @@ function FocusMusic() {
           data-testid="focus-music-select"
           value={encode(choice)}
           onChange={(e) => setChoice(decode(e.target.value))}
-          className="rounded-lg border border-[var(--border-strong)] bg-bg-base px-2 py-1.5 text-ink-primary"
+          className="rounded-lg border border-[var(--border-input)] bg-bg-base px-2 py-1.5 text-ink-primary"
         >
           <option value="none">Nothing</option>
           <option value="ambient">Ambient sound only</option>
@@ -267,7 +253,7 @@ function NumberField({
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => e.key === "Enter" && commit()}
-      className={`${className ?? ""} rounded-lg border border-[var(--border-strong)] bg-bg-base px-2 py-1.5 text-center text-ink-primary`}
+      className={`${className ?? ""} rounded-lg border border-[var(--border-input)] bg-bg-base px-2 py-1.5 text-center text-ink-primary`}
     />
   );
 }

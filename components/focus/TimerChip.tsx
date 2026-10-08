@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, formatClock } from "@/lib/focus/timer";
-import PixelClock from "./pixel/PixelClock";
-import PixelSprite from "./pixel/PixelSprite";
-import { CAT_PALETTE, HEAD_ONLY, HEAD_ONLY_CLOSED } from "./pixel/sprites";
+import ClockDigits from "./ClockDigits";
+import Spirit from "./Spirit";
 
-// The header's view of a live timer: a tiny cat head, the clock and a state
+// The header's view of a live timer: the little spirit, the clock and a state
 // dot. It only exists while a timer is running or paused, so an idle app has
 // no extra chrome. Click to open /focus.
 export default function TimerChip() {
@@ -27,11 +26,11 @@ export default function TimerChip() {
       title={label}
       className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border border-[var(--border-strong)] bg-bg-alt text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
     >
-      <PixelSprite frames={[isBreak ? HEAD_ONLY_CLOSED : HEAD_ONLY]} palette={CAT_PALETTE} px={2} className="pix-cat" />
-      <PixelClock text={clock} unit="2px" />
+      <Spirit state={status === "paused" ? "pause" : isBreak ? "sleep" : "run"} size={22} inline />
+      <ClockDigits text={clock} className="text-[13px]" />
       <span
         aria-hidden
-        className={`w-2 h-2 rounded-full ${status === "paused" ? "bg-ink-muted" : isBreak ? "bg-[var(--pix-break)]" : "bg-accent animate-pulse motion-reduce:animate-none"}`}
+        className={`w-2 h-2 rounded-full ${status === "paused" ? "bg-ink-muted" : isBreak ? "bg-[var(--success)]" : "bg-accent animate-pulse motion-reduce:animate-none"}`}
       />
     </Link>
   );

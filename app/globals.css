@@ -230,6 +230,158 @@ body:has([data-restriction-active]) .wp-layer {
   }
 }
 
+/* ── Pictures that belong to one theme ───────────────────────────────────────
+   Both versions are in the markup and the other theme's is hidden, so the HTML the
+   server sends is right with no wait for a script, and a theme change swaps them
+   at once. (Hidden images that are lazy-loaded are not fetched.) */
+:root:not([data-theme="nodkrai-night"]) .for-nodkrai-night,
+:root:not([data-theme="monstadt"]) .for-monstadt {
+  display: none !important;
+}
+
+/* ── The timer ring and its spirit ───────────────────────────────────────────
+   components/focus/TimerRing.tsx. The arc and the spirit glide between two ticks
+   with a 1 s linear transition (the clock moves once a second); on a reset they jump
+   (data-snap). The spirit is a faceless dandelion seed by day and the moon-moth at
+   night; it bobs, hovers, sleeps or sparkles by state. Transform and opacity only. */
+.timer-ring {
+  position: relative;
+  width: 100%;
+  max-width: var(--ring-max, 260px);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.ring-arc {
+  transition: stroke-dashoffset 1s linear;
+}
+.timer-ring[data-snap] .ring-arc,
+.timer-ring[data-snap] .ring-orbit,
+.timer-ring[data-snap] .ring-upright {
+  transition: none;
+}
+.ring-orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: transform 1s linear;
+}
+/* the top of the circle, where the arc starts: 12 / 260 down from the ring's top edge */
+.ring-seat {
+  position: absolute;
+  left: 50%;
+  top: 4.6%;
+  width: 0;
+  height: 0;
+}
+.ring-upright {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 1s linear;
+}
+
+.spirit {
+  position: relative;
+  display: inline-block;
+  width: var(--spirit, 62px);
+  height: var(--spirit, 62px);
+  margin: calc(var(--spirit, 62px) / -2) 0 0 calc(var(--spirit, 62px) / -2);
+}
+.ring-seat .spirit {
+  display: block;
+}
+.spirit-inline {
+  margin: 0;
+  vertical-align: middle;
+}
+.spirit-body {
+  position: absolute;
+  inset: 0;
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+.spirit-art {
+  position: absolute;
+  inset: 0;
+}
+.spirit-art img,
+.spirit-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* a soft shadow, only so the pale seed reads on the cream day panel */
+.spirit-art.for-monstadt {
+  filter: drop-shadow(0 3px 3px rgba(70, 105, 110, 0.28));
+}
+.spirit-turn {
+  transform-origin: 50% 50%;
+}
+
+.spirit[data-state="idle"] .spirit-body {
+  animation: spirit-bob 4.6s ease-in-out infinite;
+}
+.spirit[data-state="run"] .spirit-body {
+  animation: spirit-bob 2.8s ease-in-out infinite;
+}
+.spirit[data-state="run"] .spirit-turn {
+  animation: spirit-turn 22s linear infinite;
+}
+.spirit[data-state="pause"] .spirit-body {
+  animation: spirit-bob 6.5s ease-in-out infinite;
+  opacity: 0.85;
+}
+.spirit[data-state="sleep"] .spirit-body {
+  animation: spirit-breathe 7s ease-in-out infinite;
+  opacity: 0.7;
+  transform: scale(0.88);
+}
+.spirit[data-state="cheer"] .spirit-body {
+  animation: spirit-hop 0.9s ease-out 3;
+}
+.spirit-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  opacity: 0;
+  animation: spirit-spark 1.4s ease-out 2;
+  animation-delay: calc(var(--i) * 40ms);
+}
+@keyframes spirit-bob {
+  0%, 100% { transform: translateY(-3px); }
+  50% { transform: translateY(3px); }
+}
+@keyframes spirit-breathe {
+  0%, 100% { transform: scale(0.88); }
+  50% { transform: scale(0.8); }
+}
+@keyframes spirit-turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes spirit-hop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-9px) scale(1.06); }
+}
+@keyframes spirit-spark {
+  0% { opacity: 0.95; transform: rotate(calc(var(--i) * 45deg)) translateY(0) scale(1); }
+  100% { opacity: 0; transform: rotate(calc(var(--i) * 45deg)) translateY(calc(var(--spirit, 62px) * -0.85)) scale(0.4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spirit .spirit-body,
+  .spirit .spirit-turn,
+  .spirit .spirit-spark {
+    animation: none;
+  }
+  .spirit-spark {
+    display: none;
+  }
+}
+
 /* ── Diary editor (Tiptap) ──────────────────────────────────────────────────
    Tailwind preflight strips headings/lists, so the editor gets its own small
    prose scale. Everything reads from theme tokens, so both themes just work. */
@@ -272,93 +424,9 @@ body:has([data-restriction-active]) .wp-layer {
   pointer-events: none;
 }
 
-/* ── Pixel palette (Focus) ───────────────────────────────────────────────────
-   The cafe cat, the coffee-cup tally and the timer track. Sprites read these
-   tokens, so one set of grids serves both themes. */
-:root,
-:root[data-theme="monstadt"] {
-  --pix-outline: #3b2a1e;
-  --pix-fur: #e9a24f;
-  --pix-fur-shade: #c77f32;
-  --pix-fur-light: #fce8c6;
-  --pix-pink: #e88c8c;
-  --pix-eye: #2a2018;
-  --pix-white: #ffffff;
-  --pix-china: #fff6e5;
-  --pix-china-inside: #e7d3b0;
-  --pix-coffee: #6b4226;
-  --pix-foam: #f5dfc0;
-  --pix-track: rgba(42, 32, 24, 0.12);
-  --pix-track-lit: var(--accent);
-  --pix-break: #8fbf9a;
-}
-:root[data-theme="nodkrai-night"] {
-  --pix-outline: #07090f;
-  --pix-fur: #f2b84b;
-  --pix-fur-shade: #c98a24;
-  --pix-fur-light: #fff1c9;
-  --pix-pink: #ff9db0;
-  --pix-eye: #0b0f1a;
-  --pix-white: #ffffff;
-  --pix-china: #e8eeff;
-  --pix-china-inside: #9aa5c4;
-  --pix-coffee: #b9824b;
-  --pix-foam: #fff0c2;
-  --pix-track: rgba(232, 238, 255, 0.12);
-  --pix-track-lit: var(--accent);
-  --pix-break: #6ee7b7;
-}
-/* After dark the cat gets a soft canary rim, the yellow through-line. */
-:root[data-theme="nodkrai-night"] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
-
-/* Frame animation without JS: every frame is a <g>, hidden by default, and
-   shown for its own 1/N slice of the cycle. Negative space before the delay
-   stays hidden because the base state is hidden. */
-.pix-frame { visibility: hidden; animation-duration: var(--cycle); animation-iteration-count: infinite; animation-timing-function: step-end; }
-.pix-f2 { animation-name: pix-show-2; animation-delay: calc(var(--i) * var(--cycle) / 2); }
-.pix-f4 { animation-name: pix-show-4; animation-delay: calc(var(--i) * var(--cycle) / 4); }
-@keyframes pix-show-2 { 0% { visibility: visible; } 50% { visibility: hidden; } 100% { visibility: hidden; } }
-@keyframes pix-show-4 { 0% { visibility: visible; } 25% { visibility: hidden; } 100% { visibility: hidden; } }
-
-/* The cat's lap around the outside of the track. The rotate flips by a quarter
-   turn in a 0.01% window, so it snaps at each corner instead of spinning
-   (a spin would smear the pixels). */
-.pix-lap { animation-name: pix-lap; animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes pix-lap {
-  0%      { transform: translate(var(--x0), var(--y0)) rotate(0deg); }
-  24.99%  { transform: translate(var(--x1), var(--y0)) rotate(0deg); }
-  25%     { transform: translate(var(--x1), var(--y0)) rotate(90deg); }
-  49.99%  { transform: translate(var(--x1), var(--y1)) rotate(90deg); }
-  50%     { transform: translate(var(--x1), var(--y1)) rotate(180deg); }
-  74.99%  { transform: translate(var(--x0), var(--y1)) rotate(180deg); }
-  75%     { transform: translate(var(--x0), var(--y1)) rotate(270deg); }
-  100%    { transform: translate(var(--x0), var(--y0)) rotate(270deg); }
-}
-
-.pix-z { opacity: 0; animation: pix-z 3.15s ease-out infinite; }
-@keyframes pix-z {
-  0%   { opacity: 0; transform: translate(0, 0); }
-  20%  { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(10px, -22px); }
-}
-
-/* The newest lit cell breathes while a phase runs. */
-.pix-head { animation: pix-head 1.2s steps(2, end) infinite; }
-@keyframes pix-head { 0% { opacity: 1; } 50% { opacity: 0.45; } 100% { opacity: 1; } }
-
-/* Reduced motion: no laps, no breathing, no floating z's. The cat is simply
-   sitting on the start of the track and the lit cells still show progress. */
-@media (prefers-reduced-motion: reduce) {
-  .pix-frame { animation: none; }
-  .pix-frame:first-child { visibility: visible; }
-  .pix-lap { animation: none; transform: translate(var(--x0), var(--y0)); }
-  .pix-z { display: none; }
-  .pix-head { animation: none; }
-}
-
 /* ── Focus Mode ─────────────────────────────────────────────────────────────
    A dimmed room in both themes. The tokens are re-declared only inside the
-   overlay, so everything that reads them (text, buttons, the pixel track)
+   overlay, so everything that reads them (text, buttons, the timer ring)
    follows without any component knowing about it. */
 [data-focus-surface] {
   --fm-bg: #1a130e;
@@ -368,9 +436,9 @@ body:has([data-restriction-active]) .wp-layer {
   --bg-alt: rgba(255, 243, 220, 0.08);
   --border: rgba(255, 243, 220, 0.14);
   --border-strong: rgba(255, 243, 220, 0.3);
-  --pix-track: rgba(255, 243, 220, 0.16);
-  --pix-china: #fff6e5;
-  --pix-china-inside: #c9b48f;
+  /* the day room is dark too: the ring's arc and the break colour must read on it */
+  --accent-strong: var(--accent);
+  --success: #8fd9a0;
 }
 :root[data-theme="nodkrai-night"] [data-focus-surface] {
   --fm-bg: #050A2E;
@@ -380,10 +448,7 @@ body:has([data-restriction-active]) .wp-layer {
   --bg-alt: rgba(234, 242, 255, 0.07);
   --border: rgba(234, 242, 255, 0.14);
   --border-strong: rgba(234, 242, 255, 0.26);
-  --pix-track: rgba(234, 242, 255, 0.14);
 }
-/* The cat gets its canary rim in the dark room, whatever the theme. */
-[data-focus-surface] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
 
 /* 700 ms in (DESIGN_SYSTEM: Focus Mode enter), none under reduced motion. */
 .fm-in { animation: fm-in 700ms ease-out both; }
@@ -391,25 +456,7 @@ body:has([data-restriction-active]) .wp-layer {
 @media (prefers-reduced-motion: reduce) { .fm-in { animation: none; } }
 
 /* ── Mixer (Chill) ───────────────────────────────────────────────────────────
-   Icon colours for the layer sprites, and the slider. Placeholder-grade: the
-   real look is redrawn in Stage 2. */
-:root,
-:root[data-theme="monstadt"] {
-  --pix-cloud: #e6f0f7;
-  --pix-water: #4f9fd6;
-  --pix-flame: #ef7d3a;
-  --pix-flame-hot: #f8cf4a;
-  --pix-flame-deep: #c8452f;
-  --pix-key-dark: #3b2a1e;
-}
-:root[data-theme="nodkrai-night"] {
-  --pix-cloud: #c9d8ff;
-  --pix-water: #7cc4ff;
-  --pix-flame: #ff8a3d;
-  --pix-flame-hot: #ffe27a;
-  --pix-flame-deep: #ff5d4d;
-  --pix-key-dark: #2a3350;
-}
+   The slider. */
 
 /* A native range input (so keyboard, touch and screen readers all work) drawn
    as a pill track with a filled part. --fill is the level in percent. */
@@ -515,7 +562,7 @@ body:has([data-restriction-active]) .wp-layer {
   .sc-glow { transition: none; }
 }
 
-/* Reduced motion, the safety net. Specific pieces above (the pixel cat, the
+/* Reduced motion, the safety net. Specific pieces above (the spirit, the
    scene, Focus Mode's entrance) freeze themselves in their own way; this catches
    everything else, including Tailwind's animate-* and transition-* utilities and
    anything added later: no looping animation, changes are instant, no smooth

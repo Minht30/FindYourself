@@ -35,10 +35,22 @@ describe("reduced motion", () => {
     expect(all).toMatch(/scroll-behavior:\s*auto\s*!important/);
   });
 
-  it("still has the specific rules for the cat, the scene and Focus Mode", () => {
-    expect(all).toMatch(/\.pix-lap\s*\{[^}]*animation:\s*none/);
+  it("still has the specific rules for the spirit, the scene and Focus Mode", () => {
+    expect(all).toMatch(/\.spirit \.spirit-body,[^}]*animation:\s*none/);
     expect(all).toMatch(/\.sc-streak\s*\{[^}]*animation:\s*none/);
     expect(all).toMatch(/\.fm-in\s*\{[^}]*animation:\s*none/);
+  });
+
+  it("stops every spirit animation: each @keyframes spirit-* is used only by a .spirit rule that the reduce block resets", () => {
+    const names = [...css.matchAll(/@keyframes (spirit-[a-z]+)/g)].map((m) => m[1]);
+    expect(names.length).toBeGreaterThanOrEqual(5);
+    for (const name of names) {
+      // every rule that starts this animation has a selector that begins with .spirit
+      const users = [...css.matchAll(new RegExp(`([^{}]+)\\{[^}]*animation:[^;}]*\\b${name}\\b`, "g"))].map((m) => m[1].trim());
+      expect(users.length, name).toBeGreaterThan(0);
+      for (const sel of users) expect(sel, `${name} used by "${sel}"`).toMatch(/^\.spirit/);
+    }
+    for (const part of [".spirit .spirit-body", ".spirit .spirit-turn", ".spirit .spirit-spark"]) expect(all, part).toContain(part);
   });
 
   it("never forces motion on in the default (no-preference) rules by accident", () => {

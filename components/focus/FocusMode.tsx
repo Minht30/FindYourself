@@ -6,11 +6,10 @@ import { Pause, Play, RotateCcw, Smartphone, SkipForward, X } from "lucide-react
 import { primeAudio } from "@/lib/audio/context";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock } from "@/lib/focus/timer";
+import ClockDigits from "./ClockDigits";
 import { closeFocusMode } from "./focusModeControls";
-import PixelSprite from "./pixel/PixelSprite";
-import PixelClock from "./pixel/PixelClock";
-import TimerRing from "./pixel/TimerRing";
-import { CUP, CUP_PALETTE } from "./pixel/sprites";
+import SessionFlowers from "./SessionFlowers";
+import TimerRing from "./TimerRing";
 import { useCheer } from "./useCheer";
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -37,7 +36,8 @@ function Overlay() {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
-  const [scale, setScale] = useState<1 | 2>(1);
+  // The ring fills the room there is, between the page size and a comfortable maximum.
+  const [ringMax, setRingMax] = useState(300);
 
   const running = timer.status === "running";
   const isBreak = timer.phase !== "focus";
@@ -62,9 +62,8 @@ function Overlay() {
     };
   }, []);
 
-  // Whole-number pixel scale: a 2x ring only when there is room for 640 px plus the controls and the phone note.
   useEffect(() => {
-    const fit = () => setScale(Math.min(window.innerWidth - 32, window.innerHeight - 440) >= 640 ? 2 : 1);
+    const fit = () => setRingMax(Math.round(Math.min(440, Math.max(240, Math.min(window.innerWidth - 32, window.innerHeight - 380)))));
     fit();
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
@@ -170,18 +169,21 @@ function Overlay() {
           {PHASE_LABELS[timer.phase]}
         </p>
 
-        <TimerRing phase={timer.phase} status={timer.status} progress={progress} cheer={cheer} scale={scale}>
+        {/* the spirit rides half above the ring: room for it under the label */}
+        <div className="mt-6 w-full">
+          <TimerRing phase={timer.phase} status={timer.status} progress={progress} cheer={cheer} max={ringMax} spiritSize={68}>
           <div
             role="timer"
             aria-label={`${PHASE_LABELS[timer.phase]}, ${clock} remaining`}
             className="flex justify-center text-ink-primary"
           >
-            <PixelClock text={clock} unit={clock.length > 5 ? "1.8cqw" : "2.2cqw"} />
+            <ClockDigits text={clock} big />
           </div>
           <div className="mt-2 font-ui text-[13px] text-ink-secondary h-5" aria-hidden>
             {status}
           </div>
-        </TimerRing>
+  </TimerRing>
+        </div>
 
         <div className="min-h-[2rem] max-w-[min(36rem,90vw)] text-center">
           {timer.link && (
@@ -256,11 +258,7 @@ function Overlay() {
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <div role="img" aria-label={`${cups} of ${settings.cyclesBeforeLong} focus sessions done this round`} className="flex gap-2">
-            {Array.from({ length: settings.cyclesBeforeLong }, (_, i) => (
-              <PixelSprite key={i} frames={[i < cups ? CUP.full : CUP.empty]} palette={CUP_PALETTE} px={3} className="pix-cat" />
-            ))}
-          </div>
+          <SessionFlowers done={cups} total={settings.cyclesBeforeLong} size={36} />
           <p className="font-ui text-[12px] text-ink-muted">Esc to leave. The timer keeps running.</p>
         </div>
       </div>

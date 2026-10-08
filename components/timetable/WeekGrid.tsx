@@ -216,7 +216,9 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
             <div
               key={i}
               className={`px-3 py-2 flex flex-col items-center gap-0.5 border-l border-[var(--border)] ${
-                today ? "bg-accent-soft/40" : ""
+                // the accent, not accent-soft: at night accent-soft at 40 % blends to a grey-brown that
+                // the muted weekday label could not read on (2.9:1, found by Lighthouse)
+                today ? "bg-accent/20" : ""
               }`}
             >
               <span className="text-[11px] font-ui uppercase tracking-wider text-ink-muted">

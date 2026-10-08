@@ -127,8 +127,10 @@ body {
   transition: background 350ms ease, color 350ms ease;
 }
 
+/* accent-strong, not accent: the day yellow is 1.4:1 on the cream, and WCAG 2.1 asks 3:1 of a
+   focus indicator (1.4.11). accent-strong is 5.3:1 by day and the same bright yellow at night. */
 *:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-strong);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -190,7 +192,7 @@ body {
 }
 @media (max-width: 767px) {
   .wp-layer[data-wp="nodkrai-night"][data-seen] {
-    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1280.webp");
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp");
   }
 }
 :root[data-theme="monstadt"] .wp-layer[data-wp="monstadt"][data-seen],
@@ -506,7 +508,7 @@ body:has([data-restriction-active]) .wp-layer {
   background: var(--bg-elevated);
   border: 2px solid var(--accent-strong);
 }
-.fy-range:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 999px; }
+.fy-range:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 3px; border-radius: 999px; }
 .fy-range:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Painted scenes (Chill, Chill mode, Focus Mode) ──────────────────────────
@@ -529,6 +531,9 @@ body:has([data-restriction-active]) .wp-layer {
 .ps-wall { position: absolute; inset: 0; background-size: 100% 100%; background-repeat: no-repeat; }
 .ps-root[data-scene="monstadt"] .ps-wall { background-image: url("/assets/world/Monstadt_Day/monstadt-day.webp"); }
 .ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night.webp"); }
+@media (max-width: 767px) {
+  .ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp"); }
+}
 .ps-abs { position: absolute; pointer-events: none; }
 .ps-vignette { position: absolute; inset: 0; pointer-events: none; }
 .ps-root[data-scene="monstadt"] .ps-vignette { background: radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(20, 14, 6, 0.28) 100%); }
@@ -626,7 +631,7 @@ body:has([data-restriction-active]) .wp-layer {
 }
 @media (max-width: 767px) {
   :root[data-theme="nodkrai-night"] .hero-bg {
-    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1280.webp");
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp");
     background-position: 90% 50%;
   }
 }

@@ -8,7 +8,7 @@ import TimeZoneSync from "@/components/layout/TimeZoneSync";
 import ThemeSync from "@/components/layout/ThemeSync";
 import WallpaperStage from "@/components/scene/WallpaperStage";
 import { getServerTheme } from "@/lib/themeServer";
-import { PHONE_MAX_WIDTH, WALLPAPERS } from "@/lib/wallpapers";
+import PreloadWallpaper from "@/components/scene/PreloadWallpaper";
 import { DEFAULT_THEME_PREFS, parseThemePrefs } from "@/lib/theme";
 import { NavProvider } from "@/components/layout/NavContext";
 import { ZoneProvider } from "@/components/layout/ZoneContext";
@@ -49,7 +49,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const catalogue = mergeCatalogue(layers.data);
   // The painting for the theme the server is painting; the other one waits until it is shown.
   const theme = getServerTheme();
-  const wallpaper = WALLPAPERS[theme];
   // The appearance choice kept on the profile; the cookie copy is what the server reads.
   const themeParsed = parseThemePrefs({ mode: profile.data?.theme_mode, dayRegion: profile.data?.day_region, nightRegion: profile.data?.night_region });
   const savedTheme = themeParsed.ok ? themeParsed.prefs : DEFAULT_THEME_PREFS;
@@ -75,15 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {profile.data ? <ThemeSync saved={savedTheme} /> : null}
         {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} manual={profile.data.timezone_manual === true} /> : null}
         <WallpaperStage initial={theme} />
-        {/* rel=preload is allowed in the body; a phone gets the small file when there is one */}
-        {wallpaper.phoneSrc ? (
-          <>
-            <link rel="preload" as="image" href={wallpaper.phoneSrc} media={`(max-width: ${PHONE_MAX_WIDTH}px)`} />
-            <link rel="preload" as="image" href={wallpaper.src} media={`(min-width: ${PHONE_MAX_WIDTH + 1}px)`} />
-          </>
-        ) : (
-          <link rel="preload" as="image" href={wallpaper.src} />
-        )}
+        <PreloadWallpaper theme={theme} />
         <ZoneProvider zone={getUserTimeZone()}>
         <NavProvider>
         <div className="min-h-screen flex flex-col">

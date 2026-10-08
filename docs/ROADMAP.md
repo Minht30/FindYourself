@@ -137,7 +137,7 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 ## Phase 9 — Polish & launch (est. 2 sessions)
 
 - [x] Guest demo mode with seeded data - **live and verified on a real guest** (anonymous sign-ins on; seed checked row by row). Only the "create an account to keep it" email round trip is untested. A per-visitor sandbox: a temporary anonymous account seeded with this week's blocks, tasks, three diary days and sessions, fully writable, no uploads or suggestions, a banner offering "create an account to keep it", deleted after 24 hours by an hourly pg_cron purge, at most 300 at once
-- [ ] Landing page final copy + screenshots — *design stage (Stage 2): the landing page works today (Enter, Sign in, Try the demo, Privacy) but its final design and copy are part of the Figma pass*
+- [x] Landing page final copy + screenshots — built 2026-10-08 (Stage 2, step 8): a hero with the painted scene, six real screenshots from a demo account, the themes, the care claims (each checked against the privacy page and the code by a test), the closing call and the footer
 - [x] Privacy note (plain-language) — public `/privacy`, linked from the landing page, sign-in / sign-up and the sidebar; a guard test keeps its cookie / device-storage table in step with the code. *Needs Minh's read before launch (it speaks for him); the deletion paragraph is added with the delete-account box.*
 - [x] Empty states (every page) — audited every page as a brand-new user; the gaps are filled (empty task buckets, a "nothing scheduled this week" line above the timetable, a first-entry line on the diary heatmap); Focus, Chill and the rest already had one
 - [x] Error boundaries — `error.tsx` inside the app shell (the player, timer and sidebar keep running), `error.tsx` for pages outside it, `global-error.tsx` for a broken root layout, and a `not-found.tsx` 404; calm copy, a retry that re-fetches, a way out, and the error's reference number (never its message)
@@ -171,13 +171,14 @@ Phased, day-by-day executable. Each phase ends with a **demo-able state**. No ph
 
 Minh's plan (2026-10-05): **Stage 1** = all core functions (Phases 1-9 functionality). Then Minh tests everything by hand. **Stage 2** = a deep, collaborative design pass with Figma. Prepared in advance: see `docs/DESIGN_BRIEF.md` (open design items, scene briefs, proposed Figma structure, tools, ready-to-go checklist).
 
-- [ ] Kickoff: Minh says go; Figma file created in his team *only then*
-- [ ] Moodboard + tokens + pixel kit pages
-- [ ] Monstadt (day) and Liyue (night) scenes, original pixel art, layered for parallax
-- [ ] Netcafe palette re-tune, block richness, week-grid materiality
-- [ ] Decoration zones brainstorm, decorated mini-month, "darken when restricted"
-- [ ] Landing page final design and copy
-- [ ] Review loop: every approved item implemented, pushed, screenshotted back into Figma
+- [x] Kickoff: Figma file created with Minh (`cfavJs3bXchFO6b9kSVhxw`), design closed 2026-10-08
+- [x] Moodboard + tokens + (pixel kit, **retired**: the art direction became painted wallpapers on 2026-10-07)
+- [x] Monstadt (day) and **Nod-Krai (night)** scenes (not Liyue: Liyue and Natlan come later), layered for parallax and **alive** (wind, gusts, aurora, snow, seeds, flowers)
+- [x] Palette re-tune (two new themes), the glass week grid and cards
+- [x] "Darken when restricted" (the veil over the painting); decorated mini-month and the decoration-zones brainstorm were superseded by the painted stage
+- [x] Landing page final design and copy
+- [x] Review loop: coded on `design/stage2-themes` in nine tested steps, each checked in a browser (the record is `docs/THEME_HANDOFF.md`)
+- [ ] Open: sharper wallpapers (both; Monstadt is a stand-in), Liyue and Natlan, wind recordings and a sound settings panel, image credits and region naming, a screen-reader pass over the Appearance card, a hands-on test by Minh, merging `design/stage2-themes` into `main`
 
 Phase 9's design-polish items (decoration zones, landing page, block / palette polish) fold into this stage instead of being done twice.
 

@@ -7,6 +7,9 @@
 //
 //   node scripts/lighthouse.mjs --base http://localhost:3200 --state ./state.json
 //   node scripts/lighthouse.mjs --base http://localhost:3200 --desktop --only /,/privacy
+//   node scripts/lighthouse.mjs --base http://localhost:3200 --desktop --width 2560 --height 900 --theme day
+// --width and --height set the desktop screen (default 1350 x 940); --theme day|night sets
+// the appearance cookie for the public pages (signed-in pages follow the profile).
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import lighthouse from "lighthouse";
@@ -24,6 +27,15 @@ const value = (name, fallback) => {
 const base = value("base", "http://localhost:3200").replace(/\/$/, "");
 const statePath = value("state", null);
 const desktop = flag("desktop");
+const width = Number(value("width", 0));
+const height = Number(value("height", 0));
+const theme = value("theme", null);
+if (theme && !["day", "night"].includes(theme)) throw new Error("--theme must be day or night");
+const config = desktop
+  ? width && height
+    ? { ...desktopConfig, settings: { ...desktopConfig.settings, screenEmulation: { mobile: false, width, height, deviceScaleFactor: 1, disabled: false } } }
+    : desktopConfig
+  : undefined;
 const outDir = value("out", null);
 const PUBLIC = ["/", "/login", "/signup", "/privacy"];
 const SIGNED_IN = ["/today", "/diary", "/focus", "/chill", "/settings"];
@@ -51,6 +63,7 @@ try {
     const page = await browser.newPage();
     const withSession = cookies.length > 0 && SIGNED_IN.includes(p); // public pages are audited as a visitor would see them
     if (withSession) await page.setCookie(...cookies);
+    if (theme) await page.setCookie({ name: "fy-theme-pref", value: `${theme}:monstadt:nodkrai`, url: base });
     const flags = {
       port: chrome.port,
       output: "json",
@@ -58,7 +71,7 @@ try {
       onlyCategories: CATS,
       disableStorageReset: withSession, // keep the session cookie the audit needs
     };
-    const run = await lighthouse(url, flags, desktop ? desktopConfig : undefined, page);
+    const run = await lighthouse(url, flags, config, page);
     await page.close();
     const lhr = run.lhr;
     const scores = Object.fromEntries(CATS.map((c) => [c, Math.round((lhr.categories[c].score ?? 0) * 100)]));
@@ -88,7 +101,7 @@ try {
   await chrome.kill();
 }
 
-console.log(`Lighthouse ${desktop ? "desktop" : "mobile"} against ${base}`);
+console.log(`Lighthouse ${desktop ? `desktop ${width && height ? `${width}x${height}` : "1350x940"}` : "mobile"}${theme ? `, ${theme} theme` : ""} against ${base}`);
 let landedElsewhere = 0;
 for (const r of results) {
   const s = r.scores;

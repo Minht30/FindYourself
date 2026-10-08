@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/contrast";
-import { THEME_SELECTORS, tokens } from "@/lib/cssTokens";
+import { THEME_SELECTORS, css, tokens } from "@/lib/cssTokens";
 
 // Reads the real theme tokens from the stylesheet and holds them to WCAG 2.1 AA:
 // 4.5:1 for text, 3:1 for graphics. Fails the moment a token drifts below.
@@ -99,5 +99,22 @@ describe("night theme extras", () => {
     // Measured: 3.24 on bg-alt, 3.07 on bg-base, 2.80 on bg-elevated. The empty cell is
     // what step 1 must be told apart from; the cell also carries a text description.
     expect(contrastRatio(t["heat-1"], t["bg-alt"])).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("the focus ring", () => {
+  it("is drawn in accent-strong, the accent that holds contrast on every surface (the pale accent is 1.4:1 on the day cream)", () => {
+    expect(css).toMatch(/\*:focus-visible\s*\{\s*outline:\s*2px solid var\(--accent-strong\)/);
+    expect(css).toMatch(/\.fy-range:focus-visible\s*\{\s*outline:\s*2px solid var\(--accent-strong\)/);
+  });
+
+  it("accent-strong holds 3:1 (WCAG 1.4.11) on every surface of both themes", () => {
+    for (const [name, t] of Object.entries(THEMES)) {
+      for (const surface of SURFACES) expect(contrastRatio(t["accent-strong"], t[surface]), `${name}: accent-strong on ${surface}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it("the pale day accent would not have held (the check can fail)", () => {
+    expect(contrastRatio(THEMES.monstadt["accent"], THEMES.monstadt["bg-base"])).toBeLessThan(3);
   });
 });

@@ -22,10 +22,10 @@
   .layer { position: absolute; inset: 0; will-change: transform; }
   /* the stage is the painting's own coordinate space (1623 x 640), scaled and cropped like background-size: cover, so anything attached to the painting stays on the same painted spot on every screen shape */
   .stage { position: absolute; left: 0; top: 0; width: 1623px; height: 640px; transform-origin: 0 0; will-change: transform; }
-  .stage .wall { position: absolute; inset: 0; background: url("../../public/assets/world/Monstadt_Day/monstadt-day.png") 0 0 / 100% 100% no-repeat; }
+  .stage .wall { position: absolute; inset: 0; background: url("../../public/assets/world/Monstadt_Day/monstadt-day.webp") 0 0 / 100% 100% no-repeat; }
   .vignette { background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(20,14,6,.28) 100%); pointer-events: none; }
   /* clouds: faster than draft 1 */
-  .cloud { position: absolute; background: url("../../public/assets/world/Monstadt_Day/cloud-cutout.png") center / contain no-repeat; animation: cloudDrift linear infinite; }
+  .cloud { position: absolute; background: url("../../public/assets/world/Monstadt_Day/cloud-cutout.webp") center / contain no-repeat; animation: cloudDrift linear infinite; }
   @keyframes cloudDrift { 0% { transform: translateX(-30vw); opacity: 0; } 30% { opacity: var(--co, .85); } 90% { opacity: var(--co, .85); } 100% { transform: translateX(130vw); opacity: 0; } }
   /* fan flowers: a tapered two-part stem that bends in the wind (the upper part whips more), leaves that flutter, a head that spins like a pinwheel */
   .plant { position: absolute; bottom: -12px; width: 0; height: var(--h); z-index: 4; }
@@ -36,7 +36,7 @@
   .leaf { position: absolute; width: 64px; height: 22px; animation: flutter 2.6s ease-in-out infinite alternate; }
   .leaf.right { left: 2px; transform-origin: 0 60%; }
   .leaf.left { right: 2px; transform-origin: 100% 60%; }
-  .plant .head { position: absolute; left: 0; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); background: url("../../public/assets/world/Monstadt_Day/flower-fan-head.png") center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(20,30,20,.35)); will-change: transform; }
+  .plant .head { position: absolute; left: 0; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); background: url("../../public/assets/world/Monstadt_Day/flower-fan-head.webp") center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(20,30,20,.35)); will-change: transform; }
   @keyframes bend1 { 0%,100% { transform: rotate(clamp(-7deg, calc(var(--a) * var(--wind) * -.3), 7deg)); } 50% { transform: rotate(clamp(-7deg, calc(var(--a) * var(--wind) * .55), 8deg)); } }
   @keyframes bend2 { 0%,100% { transform: rotate(clamp(-14deg, calc(var(--a) * var(--wind) * -.6), 14deg)); } 50% { transform: rotate(clamp(-14deg, calc(var(--a) * var(--wind) * 1.0), 17deg)); } }
   @keyframes flutter { from { transform: rotate(calc(var(--r) - 4deg * var(--wind))); } to { transform: rotate(calc(var(--r) + 6deg * var(--wind))); } }

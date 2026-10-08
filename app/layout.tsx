@@ -22,6 +22,7 @@ const inter = Inter({
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  preload: false, // numbers and the FY badge only: it can arrive after first paint (font-display swap)
   weight: ["400", "500", "600"],
   variable: "--font-jetbrains-mono",
   display: "swap",

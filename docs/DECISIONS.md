@@ -1883,3 +1883,24 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 **Open, not blocking the first four code steps:** higher-resolution wallpapers, Liyue and Natlan art, sound recordings, the frost flower at icon size, wing parts for the moth, and the public-naming and image-credit question (game place names, game-inspired creature drawn from scratch).
 
 ---
+
+## 2026-10-08 — Session 71: Stage 2 coded, steps 2 to 9 (Minh away; plan, build and test run by Claude)
+
+**Brief (Minh):** "step 5 on the stand-in wallpaper", then "step 6 and 7, then 8 and 9, I have been away for a bit: plan, design, implement and test yourself." Branch `design/stage2-themes`, one commit per step, nothing pushed. The detailed record, with every check and number, is `docs/THEME_HANDOFF.md` section 0.
+
+**What landed.** (2) the two token blocks, new tokens, Tailwind additions. (3) the theme painted by the server from cookies, the head script (tested against the resolver across DST days), `saveThemePrefs`. (4) Settings -> Appearance, the Sun/Moon chip. (5) the wallpaper stage with a 1.2 s crossfade, floating glass panels, plates, the Focus-first veil. (6) the round timer, the spirit (dandelion seed / moon-moth), flower session icons, mono digits, the three-column Focus page; the pixel kit deleted. (7) living scenes for Chill, Chill mode and Focus Mode from the two drafts, with a tested wind engine. (8) the landing page with real screenshots. (9) assets cleaned (5.7 MB to 1.7 MB in `public/assets`, a test keeps it), Lighthouse on every page at three screen shapes in both themes, docs and README.
+
+**Decisions I made on the way (change any of them):**
+- **Day glass is 90 % / 92 %, not the 80 to 82 % in the Figma frames**: measured over the darkest parts of the Monstadt wallpaper the brown accent text was 3.8:1 at 82 %. A test now composites every text colour over each wallpaper's worst parts.
+- **Focus Mode keeps its dark room but shows the scene under a veil**: 82 % by day and 70 % at night, the strengths at which its small text holds 4.5:1 over the brightest part of the painting (the first guesses, 72 % and 50 %, failed the test at 2.9:1 and 2.6:1); the day room's muted ink was lightened.
+- **The arc, the week blocks and the focus ring use `--accent-strong`**, because the day accent yellow is 1.4:1 on the cream. This also fixed a page-wide focus ring that had never met 3:1.
+- **The mixer's rain slider draws rain** in the new scenes (the old window scene's rain is gone); the fire slider has no visual any more. Gust strength and snow are fixed (no Sound settings panel); there is no wind sound yet.
+- **The landing page and the other public pages have no wallpaper stage** except the hero (a light scene, CSS motion only); the app pages have the stage.
+
+**Bugs found by the new tests and by looking (all fixed, each with a test or a recorded check):** `tokens()` in the contrast test read the wrong block on a CRLF checkout (so the day theme was only checked by accident); the unauthenticated save made the top bar toggle throw instead of rolling back; Tailwind's own `.ring` class drew a blue box round the timer; the temporary 300 ms recolour rule overrode the painting's 1.2 s fade; the demo banner's button was navy on navy at night (it was in the old Netcafe theme too); reduced motion did not stop the spirit's bob (a CSS specificity loss that a string test had missed); the week header's "today" tint made its label 2.9:1 at night (found by Lighthouse); the phone downloaded the 2560 px painting on top of the small one.
+
+**Lighthouse (production build, simulated 4G on a phone):** accessibility, best practices and SEO are 100 on every page at every shape in both themes (details in the handoff). Performance is 96 to 100 everywhere except the **landing page on a phone, 79 to 81** (LCP about 5 s: the hero is a full-bleed painting; it went 73 to 81 with phone-sized images). Idea if it matters: a tiny blurred placeholder first, then the painting.
+
+**Not done / open:** sharper wallpapers (both; Monstadt is a 1623 x 640 stand-in); Liyue and Natlan; wind recordings; image credits and whether to keep the game place names; a screen-reader pass over the Appearance card; Minh's hands-on test; merging the branch into `main` (not done: needs Minh).
+
+---

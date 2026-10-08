@@ -45,3 +45,6 @@ yarn-error.log*
 
 # playwright MCP scratch output
 /.playwright-mcp
+
+# raw art originals and reference sheets (kept on the author machine, not in history)
+/design-sources/

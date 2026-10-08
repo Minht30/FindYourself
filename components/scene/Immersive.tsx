@@ -6,7 +6,7 @@ import { useNow } from "@/components/layout/ClockLabel";
 import { formatDayLabel, formatTimeLabel } from "@/lib/clock";
 import { levelText, percent } from "@/lib/audio/state";
 import { useMixerStore } from "@/lib/audio/store";
-import Scene from "./Scene";
+import PaintedScene from "./PaintedScene";
 
 const IDLE_MS = 3500;
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -148,7 +148,7 @@ export default function Immersive({ onClose }: { onClose: () => void }) {
       }}
       onKeyDown={wake}
     >
-      <Scene fill />
+      <PaintedScene variant="chill" className="absolute inset-0" />
 
       <div
         className={`absolute inset-0 pointer-events-none transition-opacity duration-500 ${

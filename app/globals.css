@@ -432,13 +432,15 @@ body:has([data-restriction-active]) .wp-layer {
   --fm-bg: #1a130e;
   --ink-primary: #fff3dc;
   --ink-secondary: #d3bd98;
-  --ink-muted: #a8946f;
+  --ink-muted: #c4b28b;
   --bg-alt: rgba(255, 243, 220, 0.08);
   --border: rgba(255, 243, 220, 0.14);
   --border-strong: rgba(255, 243, 220, 0.3);
   /* the day room is dark too: the ring's arc and the break colour must read on it */
   --accent-strong: var(--accent);
   --success: #8fd9a0;
+  /* the scene behind Focus Mode is dimmed by this */
+  --fm-veil: rgba(14, 9, 5, 0.82);
 }
 :root[data-theme="nodkrai-night"] [data-focus-surface] {
   --fm-bg: #050A2E;
@@ -448,6 +450,7 @@ body:has([data-restriction-active]) .wp-layer {
   --bg-alt: rgba(234, 242, 255, 0.07);
   --border: rgba(234, 242, 255, 0.14);
   --border-strong: rgba(234, 242, 255, 0.26);
+  --fm-veil: rgba(3, 6, 30, 0.7);
 }
 
 /* 700 ms in (DESIGN_SYSTEM: Focus Mode enter), none under reduced motion. */
@@ -505,61 +508,119 @@ body:has([data-restriction-active]) .wp-layer {
 .fy-range:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 999px; }
 .fy-range:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ── Scene (Chill) ───────────────────────────────────────────────────────────
-   The stage stacks layers; Scene.tsx sets --ox / --oy per layer (parallax) and
-   --rain / --glow on the stage from the mixer. Everything moves with CSS
-   transform / opacity only. Placeholder art: see components/scene/scenes.tsx. */
-.sc-stage { position: relative; overflow: hidden; isolation: isolate; width: 100%; background: var(--bg-window); }
-.sc-layer {
-  position: absolute;
-  inset: -3%; /* overscan, so a parallax shift never shows an edge */
-  transform: translate3d(var(--ox, 0px), var(--oy, 0px), 0);
-  transition: transform 260ms ease-out;
-  will-change: transform;
-  pointer-events: none;
+/* ── Painted scenes (Chill, Chill mode, Focus Mode) ──────────────────────────
+   components/scene/PaintedScene.tsx. Ported from the live drafts in docs/prototypes.
+   The stage is the painting's own coordinate space (fitted like background-size:
+   cover by the component), so the moon, beacon, shore lights and aurora stay on the
+   same painted spot on every screen shape. Everything moves with transform / opacity
+   only; the wind-driven parts (flowers, snow, rain, fan-flower heads) are drawn by the
+   component's loop, which never starts under reduced motion. */
+.ps-root {
+  overflow: hidden;
+  overflow: clip;
+  background: var(--bg-window);
+  opacity: 0;
+  transition: opacity 600ms ease;
 }
-.sc-layer svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ps-root[data-ready] { opacity: 1; }
+.ps-layer { position: absolute; inset: 0; will-change: transform; }
+.ps-stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.ps-wall { position: absolute; inset: 0; background-size: 100% 100%; background-repeat: no-repeat; }
+.ps-root[data-scene="monstadt"] .ps-wall { background-image: url("/assets/world/Monstadt_Day/monstadt-day.webp"); }
+.ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night.webp"); }
+.ps-abs { position: absolute; pointer-events: none; }
+.ps-vignette { position: absolute; inset: 0; pointer-events: none; }
+.ps-root[data-scene="monstadt"] .ps-vignette { background: radial-gradient(ellipse at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(20, 14, 6, 0.28) 100%); }
+.ps-root[data-scene="nodkrai-night"] .ps-vignette { background: radial-gradient(ellipse at 50% 48%, rgba(0, 0, 0, 0) 52%, rgba(2, 6, 32, 0.5) 100%); }
+.ps-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 7; }
+.ps-flyers { position: absolute; inset: 0; pointer-events: none; }
+.ps-fly { position: absolute; left: 0; top: 0; pointer-events: none; }
 
-/* Rain: streak i is visible once --rain * 48 passes i, so more rain thickens
-   the whole window; heavier rain also falls a little faster. */
-.sc-streak {
-  opacity: calc(clamp(0, calc(var(--rain, 0) * 48 - var(--i, 0)), 1) * 0.6);
-  animation: sc-fall calc(var(--d, 1.5) * 1s * (1.5 - var(--rain, 0) * 0.6)) linear infinite;
-  animation-delay: calc(var(--delay, 0) * 1s);
+/* clouds drift across at their own speeds; the night ones are the light clouds, darkened and screen-blended */
+.ps-cloud { position: absolute; background-position: center; background-size: contain; background-repeat: no-repeat; animation: ps-cloud-drift linear infinite; }
+.ps-root[data-scene="monstadt"] .ps-cloud { background-image: url("/assets/world/Monstadt_Day/cloud-cutout.webp"); }
+.ps-root[data-scene="nodkrai-night"] .ps-cloud { filter: brightness(0.42) saturate(1.2); mix-blend-mode: screen; }
+@keyframes ps-cloud-drift {
+  0% { transform: translateX(-32vw); opacity: 0; }
+  27% { opacity: var(--co, 0.8); }
+  87% { opacity: var(--co, 0.8); }
+  100% { transform: translateX(130vw); opacity: 0; }
 }
-@keyframes sc-fall { from { transform: translateY(0); } to { transform: translateY(var(--travel, 380px)); } }
 
-/* The room's warmth: --glow is the fire slider (a candle and a lamp are always on). */
-.sc-glow { opacity: var(--glow, 0.4); transition: opacity 400ms ease; }
-.sc-glow-flicker { animation: sc-glow-flicker 2.7s ease-in-out infinite; }
-@keyframes sc-glow-flicker { 0%, 100% { opacity: 1; } 35% { opacity: 0.86; } 60% { opacity: 0.95; } 80% { opacity: 0.82; } }
+/* night: aurora, moon, stars, lights, water */
+.ps-aurora { background: url("/assets/world/NodKrai_Night/nodkrai-aurora.webp") center / 100% 100% no-repeat; mix-blend-mode: screen; animation: ps-aurora-drift 38s ease-in-out infinite alternate, ps-aurora-breathe 9s ease-in-out infinite alternate; }
+.ps-aurora-b { transform-origin: 50% 50%; animation-duration: 52s, 12s; animation-delay: -14s, -4s; filter: blur(2px); }
+@keyframes ps-aurora-drift { from { translate: -46px 0; scale: 1; } to { translate: 46px -10px; scale: 1.05; } }
+@keyframes ps-aurora-breathe { from { opacity: 0.14; } to { opacity: 0.4; } }
+.ps-moonhalo { width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 240, 200, 0.55), rgba(255, 226, 170, 0.18) 38%, rgba(255, 226, 170, 0) 68%); mix-blend-mode: screen; animation: ps-moon-breathe 7s ease-in-out infinite alternate; }
+@keyframes ps-moon-breathe { from { opacity: 0.45; transform: scale(0.94); } to { opacity: 0.95; transform: scale(1.07); } }
+.ps-moonring { width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%; border: 1px solid rgba(255, 236, 190, 0.28); animation: ps-spin 70s linear infinite; }
+.ps-moonring::before, .ps-moonring::after { content: ""; position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #ffe9a0; box-shadow: 0 0 10px 2px rgba(255, 233, 160, 0.7); }
+.ps-moonring::before { left: 50%; top: -4px; margin-left: -3px; }
+.ps-moonring::after { right: 4px; bottom: 24px; width: 5px; height: 5px; opacity: 0.8; }
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+.ps-star { position: absolute; border-radius: 50%; background: #fff; animation: ps-twinkle ease-in-out infinite alternate; }
+@keyframes ps-twinkle { from { opacity: 0.15; transform: scale(0.7); } to { opacity: 0.95; transform: scale(1.15); } }
+.ps-win { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 226, 140, 0.95), rgba(255, 200, 90, 0.35) 45%, rgba(255, 200, 90, 0) 70%); mix-blend-mode: screen; animation: ps-flicker linear infinite; }
+@keyframes ps-flicker { 0%, 100% { opacity: 0.85; } 8% { opacity: 0.5; } 14% { opacity: 1; } 40% { opacity: 0.75; } 52% { opacity: 1; } 71% { opacity: 0.55; } 83% { opacity: 0.95; } }
+.ps-beacon { width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 246, 220, 0.95), rgba(255, 236, 190, 0.35) 28%, rgba(255, 236, 190, 0) 62%); mix-blend-mode: screen; animation: ps-beacon-pulse 3.2s ease-in-out infinite; }
+.ps-beacon::before, .ps-beacon::after { content: ""; position: absolute; left: 50%; top: 50%; background: rgba(255, 248, 225, 0.8); border-radius: 2px; }
+.ps-beacon::before { width: 54px; height: 2px; margin: -1px 0 0 -27px; }
+.ps-beacon::after { width: 2px; height: 54px; margin: -27px 0 0 -1px; }
+@keyframes ps-beacon-pulse { 0%, 100% { opacity: 0.55; transform: scale(0.85) rotate(0deg); } 50% { opacity: 1; transform: scale(1.1) rotate(8deg); } }
+.ps-lamp { width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 236, 190, 0.8), rgba(255, 226, 160, 0) 66%); mix-blend-mode: screen; animation: ps-flicker 5s linear infinite; }
+.ps-glint { position: absolute; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(200, 225, 255, 0), rgba(220, 238, 255, 0.8), rgba(200, 225, 255, 0)); mix-blend-mode: screen; animation: ps-shimmer ease-in-out infinite; }
+.ps-glint-warm { background: linear-gradient(90deg, rgba(255, 235, 190, 0), rgba(255, 240, 205, 0.85), rgba(255, 235, 190, 0)); }
+@keyframes ps-shimmer { 0%, 100% { opacity: 0; transform: translateX(-8px); } 50% { opacity: 0.75; transform: translateX(8px); } }
 
-.sc-flicker { transform-box: fill-box; transform-origin: 50% 100%; animation: sc-flame 1.6s ease-in-out infinite; }
-@keyframes sc-flame { 0%, 100% { transform: scale(1, 1); } 30% { transform: scale(0.88, 1.12); } 55% { transform: scale(1.06, 0.92); } 80% { transform: scale(0.94, 1.08); } }
+/* frost flowers: the glow pulses (CSS); the whole plant sways with the wind (the loop) */
+.ps-ff { position: absolute; bottom: -3vh; width: var(--w); height: var(--h); transform-origin: 50% 100%; z-index: 4; will-change: transform; }
+.ps-ff-pic { position: absolute; inset: 0; background: url("/assets/world/NodKrai_Night/nodkrai-frost-flower.webp") center bottom / contain no-repeat; filter: drop-shadow(0 4px 10px rgba(5, 10, 60, 0.55)); }
+.ps-ff::before { content: ""; position: absolute; left: 30%; top: 38%; width: 46%; height: 36%; border-radius: 50%; background: radial-gradient(circle, rgba(190, 210, 255, 0.65), rgba(190, 210, 255, 0) 70%); mix-blend-mode: screen; animation: ps-glow-pulse 4.6s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+@keyframes ps-glow-pulse { from { opacity: 0.25; transform: scale(0.85); } to { opacity: 0.9; transform: scale(1.15); } }
 
-.sc-steam { opacity: 0; animation: sc-steam 4.2s ease-in-out infinite; animation-delay: calc(var(--d, 0) * 1s); }
-@keyframes sc-steam { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 0.55; } 100% { opacity: 0; transform: translateY(-24px); } }
+/* the moon-moth spirit drifts across the bay, bobs, and flutters (a slight narrowing of the wings) */
+.ps-moth { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; z-index: 6; pointer-events: none; animation: ps-moth-fly 80s ease-in-out infinite alternate; }
+.ps-moth-glow { position: absolute; inset: -30px; border-radius: 50%; background: radial-gradient(circle, rgba(200, 215, 255, 0.45), rgba(200, 215, 255, 0) 68%); mix-blend-mode: screen; animation: ps-moon-breathe 5s ease-in-out infinite alternate; }
+.ps-moth-img { position: relative; width: 100%; height: 100%; background: url("/assets/world/NodKrai_Night/nodkrai-moth-spirit.svg") center / contain no-repeat; animation: ps-moth-bob 5.6s ease-in-out infinite alternate, ps-moth-flutter 1.7s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(5, 10, 60, 0.45)); }
+@keyframes ps-moth-fly { 0% { transform: translate(10vw, 56vh); } 25% { transform: translate(34vw, 38vh); } 55% { transform: translate(60vw, 50vh); } 80% { transform: translate(78vw, 32vh); } 100% { transform: translate(88vw, 44vh); } }
+@keyframes ps-moth-bob { from { translate: 0 -10px; rotate: -3deg; } to { translate: 0 12px; rotate: 3deg; } }
+@keyframes ps-moth-flutter { 0%, 100% { scale: 1 1; } 50% { scale: 0.94 1.02; } }
+.ps-dust { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffe9a0; box-shadow: 0 0 8px 2px rgba(255, 233, 160, 0.6); pointer-events: none; z-index: 5; }
 
-.sc-twinkle { animation: sc-twinkle 3.4s ease-in-out infinite; animation-delay: calc(var(--d, 0) * 1s); }
-@keyframes sc-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+/* day: warm haze and light rays, seeds, fan flowers */
+.ps-haze { background: radial-gradient(ellipse 70% 60% at 82% 6%, rgba(255, 240, 190, 0.5), rgba(255, 240, 190, 0) 60%); animation: ps-haze-breathe 8s ease-in-out infinite alternate; mix-blend-mode: screen; pointer-events: none; }
+@keyframes ps-haze-breathe { from { opacity: 0.35; } to { opacity: 0.8; } }
+.ps-rays { background: repeating-linear-gradient(112deg, rgba(255, 246, 210, 0) 0 90px, rgba(255, 246, 210, 0.07) 90px 130px, rgba(255, 246, 210, 0) 130px 230px); mix-blend-mode: screen; animation: ps-rays-sway 14s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes ps-rays-sway { from { transform: translateX(-3%); opacity: 0.6; } to { transform: translateX(3%); opacity: 1; } }
+.ps-seed { position: absolute; left: 0; top: 0; animation: ps-seed-drift linear infinite; }
+.ps-seed svg { display: block; animation: ps-seed-bob ease-in-out infinite alternate; }
+@keyframes ps-seed-drift { from { transform: translate(-8vw, var(--y0)); } to { transform: translate(112vw, calc(var(--y0) - 32vh)); } }
+@keyframes ps-seed-bob { from { transform: translateY(-12px) rotate(-14deg); } to { transform: translateY(14px) rotate(16deg); } }
+.ps-plant { position: absolute; bottom: -12px; width: 0; height: var(--h); z-index: 4; }
+.ps-seg { position: absolute; left: 0; width: 0; transform-origin: 50% 100%; }
+.ps-seg1 { bottom: 0; height: 56%; }
+.ps-seg2 { bottom: 100%; height: 78%; }
+.ps-seg svg.ps-stem { position: absolute; left: -7px; bottom: 0; width: 14px; height: 100%; overflow: visible; }
+.ps-leaf { position: absolute; width: 64px; height: 22px; }
+.ps-leaf-right { left: 2px; transform-origin: 0 60%; }
+.ps-leaf-left { right: 2px; transform-origin: 100% 60%; }
+.ps-head { position: absolute; left: 0; top: 0; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); background: url("/assets/world/Monstadt_Day/flower-fan-head.webp") center / contain no-repeat; filter: drop-shadow(0 3px 4px rgba(20, 30, 20, 0.35)); will-change: transform; }
 
-.sc-cloud { animation: sc-drift 46s ease-in-out infinite alternate; animation-delay: calc(var(--d, 0) * 1s); }
-@keyframes sc-drift { from { transform: translateX(-46px); } to { transform: translateX(46px); } }
+/* Focus Mode: the same scene, dimmed hard so the timer's small text keeps 4.5:1 (lib/glass.test.ts) */
+.fm-veil { position: absolute; inset: 0; pointer-events: none; background: var(--fm-veil); }
 
-.sc-blades { transform-box: fill-box; transform-origin: 50% 50%; animation: sc-spin 14s linear infinite; }
-@keyframes sc-spin { to { transform: rotate(360deg); } }
-
-.sc-mote { animation: sc-mote 11s ease-in-out infinite alternate; animation-delay: calc(var(--d, 0) * -1s); }
-@keyframes sc-mote { from { transform: translate(0, 0); opacity: 0.25; } to { transform: translate(18px, -26px); opacity: 0.8; } }
-
-/* Reduced motion: a still picture. Rain sits where it fell, the steam is a
-   faint wisp, nothing drifts, spins or flickers, and parallax is off. */
+/* Reduced motion: a still picture, the first frame. Nothing drifts, twinkles, flickers or
+   flies; the aurora rests at a middle brightness and the moth sits at a spot in the bay. */
 @media (prefers-reduced-motion: reduce) {
-  .sc-layer { transform: none; transition: none; }
-  .sc-streak { animation: none; transform: translateY(var(--rest, 0px)); }
-  .sc-glow-flicker, .sc-flicker, .sc-twinkle, .sc-cloud, .sc-blades, .sc-mote { animation: none; }
-  .sc-steam { animation: none; opacity: 0.4; }
-  .sc-glow { transition: none; }
+  .ps-aurora, .ps-moonhalo, .ps-moonring, .ps-star, .ps-win, .ps-beacon, .ps-lamp, .ps-glint, .ps-cloud, .ps-ff::before,
+  .ps-moth, .ps-moth-glow, .ps-moth-img, .ps-haze, .ps-rays, .ps-seed, .ps-seed svg {
+    animation: none;
+  }
+  .ps-glint, .ps-dust, .ps-seed, .ps-fly, .ps-canvas { display: none; }
+  .ps-aurora { opacity: 0.45; }
+  .ps-moth { transform: translate(60vw, 40vh); }
+  .ps-root { transition: none; }
 }
 
 /* Reduced motion, the safety net. Specific pieces above (the spirit, the

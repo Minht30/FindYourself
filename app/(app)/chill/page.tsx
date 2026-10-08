@@ -11,8 +11,8 @@ import { createClient } from "@/lib/supabase/server";
 export const metadata = { title: "Chill — FindYourself" };
 
 // Chill is for being, not doing: no tasks, no timers (the top bar hides both
-// here). A window onto a rainy cafe that follows the mixer, then the mixer, then
-// your music. The scene art is a placeholder until the Figma design stage.
+// here). The living painting of the theme (the page's backdrop, with a "Chill mode" button that
+// fills the screen with it), then the mixer, then your music.
 export default async function ChillPage() {
   const supabase = createClient();
   const {
@@ -59,11 +59,15 @@ export default async function ChillPage() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6">
-      <header className="plate">
-        <h1 className="font-display text-3xl">Chill</h1>
-        <p className="text-ink-secondary mt-1">Rain on the window, a quiet cafe. Leave it running.</p>
+      <header className="plate flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl">Chill</h1>
+          <p className="text-ink-secondary mt-1">A quiet place to be. Leave it running.</p>
+        </div>
+        <ChillStage />
       </header>
-      <ChillStage />
+      {/* the open scene: the painting behind the page shows through before the sections begin */}
+      <div aria-hidden className="h-[34vh] md:h-[44vh]" />
       <MixerPanel />
       {guest ? (
         <GuestMusicNote />

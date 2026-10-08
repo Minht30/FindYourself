@@ -37,7 +37,7 @@ describe("reduced motion", () => {
 
   it("still has the specific rules for the spirit, the scene and Focus Mode", () => {
     expect(all).toMatch(/\.spirit \.spirit-body,[^}]*animation:\s*none/);
-    expect(all).toMatch(/\.sc-streak\s*\{[^}]*animation:\s*none/);
+    expect(all).toMatch(/\.ps-aurora,[^}]*animation:\s*none/);
     expect(all).toMatch(/\.fm-in\s*\{[^}]*animation:\s*none/);
   });
 
@@ -51,6 +51,28 @@ describe("reduced motion", () => {
       for (const sel of users) expect(sel, `${name} used by "${sel}"`).toMatch(/^\.spirit/);
     }
     for (const part of [".spirit .spirit-body", ".spirit .spirit-turn", ".spirit .spirit-spark"]) expect(all, part).toContain(part);
+  });
+
+  it("resets every painted-scene animation: each class that starts a ps-* keyframes is named in the reduce block", () => {
+    const names = [...css.matchAll(/@keyframes (ps-[a-z-]+)/g)].map((m) => m[1]);
+    expect(names.length).toBeGreaterThanOrEqual(15);
+    const ownReduce = blocks.find((b) => b.includes(".ps-aurora")) ?? "";
+    for (const name of names) {
+      const users = [...css.matchAll(new RegExp(`([^{}]+)\\{[^}]*animation:[^;}]*\\b${name}\\b`, "g"))].map((m) => m[1].trim().replace(/^\/\*[\s\S]*?\*\/\s*/, ""));
+      expect(users.length, name).toBeGreaterThan(0);
+      for (const sel of users) {
+        // the selector the rule is about (the last of a list): the reduce block must name it too
+        const target = sel.split(",").map((x) => x.trim()).pop() ?? "";
+        expect(target, `${name} is started by "${sel}"`).toMatch(/^\.ps-/);
+        expect(ownReduce, `${name}: ${target} is reset under reduced motion`).toContain(target);
+      }
+    }
+  });
+
+  it("hides the one-off flyers, the moving canvas and the dust when motion is reduced, and rests the aurora and the moth", () => {
+    expect(all).toMatch(/\.ps-glint,[^}]*\.ps-fly,[^}]*\.ps-canvas\s*\{[^}]*display:\s*none/);
+    expect(all).toMatch(/\.ps-aurora\s*\{[^}]*opacity:\s*0\.45/);
+    expect(all).toMatch(/\.ps-moth\s*\{[^}]*transform:\s*translate\(60vw, 40vh\)/);
   });
 
   it("never forces motion on in the default (no-preference) rules by accident", () => {

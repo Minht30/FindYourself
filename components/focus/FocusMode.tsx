@@ -7,6 +7,7 @@ import { primeAudio } from "@/lib/audio/context";
 import { useClock, useFocusStore } from "@/lib/focus/store";
 import { PHASE_LABELS, cupsFilled, formatClock } from "@/lib/focus/timer";
 import ClockDigits from "./ClockDigits";
+import PaintedScene from "@/components/scene/PaintedScene";
 import { closeFocusMode } from "./focusModeControls";
 import SessionFlowers from "./SessionFlowers";
 import TimerRing from "./TimerRing";
@@ -148,6 +149,10 @@ function Overlay() {
       className="fm-in fixed inset-0 z-[200] flex flex-col items-center justify-center px-4 py-6 text-ink-primary overflow-y-auto"
       style={{ background: "var(--fm-bg)" }}
     >
+      {/* the same living painting as the Chill page, without its creatures, dimmed hard so the
+          timer's small text keeps its contrast (lib/glass.test.ts) */}
+      <PaintedScene variant="focus" className="fixed inset-0" />
+      <div aria-hidden className="fm-veil fixed inset-0" />
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0"

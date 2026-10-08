@@ -46,6 +46,11 @@ const config: Config = {
             personal: tone("--cat-dot-personal"),
           },
         },
+        // See-through panels over the wallpaper (alphas live in globals.css)
+        glass: {
+          panel: "var(--glass-panel)",
+          card: "var(--glass-card)",
+        },
         success: tone("--success"),
         warning: tone("--warning"),
         danger: tone("--danger"),

@@ -200,7 +200,7 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-bg-elevated shadow-card overflow-hidden select-none">
+    <div className="rounded-2xl border border-[var(--border)] bg-glass-panel shadow-card overflow-hidden select-none">
       {/* Header row */}
       <div
         className="grid border-b border-[var(--border)] bg-bg-alt"

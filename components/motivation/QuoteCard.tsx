@@ -8,7 +8,7 @@ export default function QuoteCard({ quote }: { quote: Quote | null }) {
     <figure
       aria-label="Quote of the day"
       data-quote-id={quote.id}
-      className="rounded-2xl border border-[var(--border)] bg-bg-elevated px-4 py-3 font-ui"
+      className="rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 font-ui"
     >
       <blockquote className="font-display text-[17px] leading-snug text-ink-primary">{quote.text}</blockquote>
       {quote.author ? <figcaption className="mt-1 text-[12px] text-ink-muted">{quote.author}</figcaption> : null}

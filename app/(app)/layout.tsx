@@ -6,6 +6,9 @@ import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
 import TimeZoneSync from "@/components/layout/TimeZoneSync";
 import ThemeSync from "@/components/layout/ThemeSync";
+import WallpaperStage from "@/components/scene/WallpaperStage";
+import { getServerTheme } from "@/lib/themeServer";
+import { PHONE_MAX_WIDTH, WALLPAPERS } from "@/lib/wallpapers";
 import { DEFAULT_THEME_PREFS, parseThemePrefs } from "@/lib/theme";
 import { NavProvider } from "@/components/layout/NavContext";
 import { ZoneProvider } from "@/components/layout/ZoneContext";
@@ -44,6 +47,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const known = new Set(tracks.map((t) => t.id));
   const playlists = (lists.data ?? []).map((p) => toPlaylist(p, known));
   const catalogue = mergeCatalogue(layers.data);
+  // The painting for the theme the server is painting; the other one waits until it is shown.
+  const theme = getServerTheme();
+  const wallpaper = WALLPAPERS[theme];
   // The appearance choice kept on the profile; the cookie copy is what the server reads.
   const themeParsed = parseThemePrefs({ mode: profile.data?.theme_mode, dayRegion: profile.data?.day_region, nightRegion: profile.data?.night_region });
   const savedTheme = themeParsed.ok ? themeParsed.prefs : DEFAULT_THEME_PREFS;
@@ -68,12 +74,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <FocusProvider>
         {profile.data ? <ThemeSync saved={savedTheme} /> : null}
         {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} manual={profile.data.timezone_manual === true} /> : null}
+        <WallpaperStage initial={theme} />
+        {/* rel=preload is allowed in the body; a phone gets the small file when there is one */}
+        {wallpaper.phoneSrc ? (
+          <>
+            <link rel="preload" as="image" href={wallpaper.phoneSrc} media={`(max-width: ${PHONE_MAX_WIDTH}px)`} />
+            <link rel="preload" as="image" href={wallpaper.src} media={`(min-width: ${PHONE_MAX_WIDTH + 1}px)`} />
+          </>
+        ) : (
+          <link rel="preload" as="image" href={wallpaper.src} />
+        )}
         <ZoneProvider zone={getUserTimeZone()}>
         <NavProvider>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
               the surrounding shell static-renderable in Next.js 14. */}
-          <Suspense fallback={<div className="min-h-[60px] bg-bg-elevated border-b border-[var(--border)]" />}>
+          <Suspense fallback={<div className="mx-3 mt-3 min-h-[60px] rounded-2xl bg-glass-card border border-[var(--border)]" />}>
             <TopBar
               focusSlot={
                 <Suspense fallback={null}>
@@ -83,9 +99,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             />
           </Suspense>
           {guest ? <DemoBanner /> : null}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-0">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3 p-3 min-h-0">
             <Sidebar categories={cats.data ?? []} />
-            <main className="overflow-auto p-6">{children}</main>
+            <main className="overflow-auto p-1 md:p-0 min-w-0">{children}</main>
           </div>
           {/* Sticks to the bottom of the window and takes its own space at the end
               of the page, so it never covers a page's own controls */}

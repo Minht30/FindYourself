@@ -21,7 +21,7 @@ export function CommunityPicks({ picks, isAdmin }: { picks: readonly CommunityPi
   }, []);
 
   return (
-    <section aria-label="Community picks" className="flex flex-col gap-3">
+    <section aria-label="Community picks" className="plate py-4 flex flex-col gap-3">
       <h2 className="font-display text-lg">Community picks</h2>
       {picks.length === 0 ? (
         <p className="text-sm text-ink-secondary">No picks yet. Suggestions that are approved show up here.</p>
@@ -49,7 +49,7 @@ function PickRow({ pick, isAdmin }: { pick: CommunityPick; isAdmin: boolean }) {
   }
 
   return (
-    <li data-testid="community-pick" className="rounded-lg bg-bg-elevated border border-[var(--border)] p-3 shadow-card flex flex-col gap-1.5">
+    <li data-testid="community-pick" className="rounded-lg bg-glass-card border border-[var(--border)] p-3 shadow-card flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
         <p className="font-ui font-medium text-sm flex-1 min-w-0 truncate">
           {pick.title}
@@ -82,7 +82,7 @@ function PickRow({ pick, isAdmin }: { pick: CommunityPick; isAdmin: boolean }) {
 // suggestions of other people for anyone else, and RLS would refuse them).
 export function AdminReview({ pending }: { pending: readonly PendingSuggestion[] }) {
   return (
-    <section aria-label="Review suggestions" data-testid="admin-review" className="flex flex-col gap-3">
+    <section aria-label="Review suggestions" data-testid="admin-review" className="plate py-4 flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="font-display text-lg">Review suggestions</h2>
         <p className="text-xs text-ink-secondary">Admin only · {pending.length} waiting</p>
@@ -114,7 +114,7 @@ function ReviewRow({ s }: { s: PendingSuggestion }) {
   }
 
   return (
-    <li data-testid="review-row" className="rounded-lg bg-bg-elevated border border-[var(--border)] p-3 shadow-card flex flex-col gap-2">
+    <li data-testid="review-row" className="rounded-lg bg-glass-card border border-[var(--border)] p-3 shadow-card flex flex-col gap-2">
       <p className="font-ui font-medium text-sm">
         {s.title}
         {s.artist && <span className="font-normal text-ink-secondary"> · {s.artist}</span>}

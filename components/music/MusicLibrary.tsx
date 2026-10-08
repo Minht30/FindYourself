@@ -89,7 +89,7 @@ export default function MusicLibrary() {
   }
 
   return (
-    <section aria-label="Music library" className="flex flex-col gap-4">
+    <section aria-label="Music library" className="plate py-4 flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-lg">Your music</h2>
         <p data-testid="music-usage" className="text-xs text-ink-secondary">
@@ -187,7 +187,7 @@ function TrackRow({ track }: { track: Track }) {
     <li
       data-testid="track-row"
       data-track-id={track.id}
-      className="rounded-lg bg-bg-elevated border border-[var(--border)] p-3 shadow-card flex flex-col gap-2"
+      className="rounded-lg bg-glass-card border border-[var(--border)] p-3 shadow-card flex flex-col gap-2"
     >
       {editing ? (
         <form onSubmit={save} className="flex flex-col sm:flex-row gap-2 sm:items-end">

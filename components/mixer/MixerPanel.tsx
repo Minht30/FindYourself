@@ -44,7 +44,7 @@ export default function MixerPanel() {
         </div>
       )}
 
-      <section aria-label="Ambient mixer" className="flex flex-col gap-4">
+      <section aria-label="Ambient mixer" className="plate py-4 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-lg">Mixer</h2>
           {playing && <PlayButton />}
@@ -55,7 +55,7 @@ export default function MixerPanel() {
             <LayerSlider key={l.key} layer={l} />
           ))}
         </div>
-        <div className="rounded-lg bg-bg-elevated border border-[var(--border)] p-4 shadow-card">
+        <div className="rounded-lg bg-glass-card border border-[var(--border)] p-4 shadow-card">
           <MasterVolume />
         </div>
         <SaveNote />

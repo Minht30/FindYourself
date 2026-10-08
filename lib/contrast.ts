@@ -14,3 +14,12 @@ export function contrastRatio(a: string, b: string): number {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 }
+
+// A colour laid over another at `alpha` (0..1), as a hex string: what a see-through
+// panel looks like once it is on top of a picture.
+export function blend(fg: string, bg: string, alpha: number): string {
+  const f = parseInt(fg.replace("#", ""), 16);
+  const b = parseInt(bg.replace("#", ""), 16);
+  const mix = (shift: number) => Math.round(alpha * ((f >> shift) & 255) + (1 - alpha) * ((b >> shift) & 255));
+  return "#" + [16, 8, 0].map((sh) => mix(sh).toString(16).padStart(2, "0")).join("").toUpperCase();
+}

@@ -1,28 +1,12 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/contrast";
+import { THEME_SELECTORS, tokens } from "@/lib/cssTokens";
 
 // Reads the real theme tokens from the stylesheet and holds them to WCAG 2.1 AA:
 // 4.5:1 for text, 3:1 for graphics. Fails the moment a token drifts below.
-// CRLF on Windows checkouts: normalise, so multi-line selectors below match everywhere.
-const css = readFileSync(path.resolve(__dirname, "../app/globals.css"), "utf8").replaceAll("\r\n", "\n");
-
-function tokens(selector: string): Record<string, string> {
-  const start = css.indexOf(selector);
-  // A selector that is not in the stylesheet must fail loudly: indexOf's -1 would
-  // otherwise land on the first block in the file and check the wrong theme.
-  if (start < 0) throw new Error(`selector not found in globals.css: ${selector}`);
-  const open = css.indexOf("{", start);
-  const close = css.indexOf("}", open);
-  const out: Record<string, string> = {};
-  for (const m of css.slice(open, close).matchAll(/--([a-z0-9-]+):\s*(#[0-9A-Fa-f]{6})\s*;/g)) out[m[1]] = m[2];
-  return out;
-}
-
 const THEMES = {
-  monstadt: tokens(':root,\n:root[data-theme="monstadt"]'),
-  "nodkrai-night": tokens(':root[data-theme="nodkrai-night"]'),
+  monstadt: tokens(THEME_SELECTORS.monstadt),
+  "nodkrai-night": tokens(THEME_SELECTORS["nodkrai-night"]),
 };
 const CATEGORIES = ["deep", "meeting", "learn", "rest", "personal"] as const;
 const SURFACES = ["bg-base", "bg-elevated", "bg-overlay", "bg-alt", "bg-window"] as const;

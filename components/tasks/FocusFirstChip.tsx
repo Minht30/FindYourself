@@ -22,6 +22,8 @@ export default function FocusFirstChip({ focus }: { focus: FocusFirst }) {
       href="/today"
       aria-label={`${label}. Open tasks`}
       title={label}
+      // the marker the page-wide veil keys on (globals.css, ".wp-veil")
+      data-restriction-active
       className="flex items-center gap-1.5 min-w-0 max-w-[340px] px-3 py-1.5 rounded-full border border-accent bg-accent-soft/50 text-cat-ink font-ui text-[13px] hover:bg-accent-soft transition"
     >
       <span aria-hidden>🔒</span>

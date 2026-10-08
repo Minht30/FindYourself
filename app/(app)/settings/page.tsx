@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-h`} className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-5 md:p-6">
+    <section id={id} aria-labelledby={`${id}-h`} className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 md:p-6">
       <h2 id={`${id}-h`} className="font-display text-xl mb-3">
         {title}
       </h2>
@@ -46,7 +46,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 pb-10 font-ui">
-      <header>
+      <header className="plate">
         <h1 className="font-display text-3xl">Settings</h1>
         <p className="text-ink-secondary text-[15px] mt-1">Your account, how it looks, your day and your categories.</p>
       </header>
@@ -91,7 +91,7 @@ export default async function SettingsPage() {
         <DeleteAccount />
       </Section>
 
-      <p className="text-[13px] text-ink-muted">
+      <p className="plate w-fit text-[13px] text-ink-muted">
         <Link href="/privacy" className="underline underline-offset-4 hover:no-underline">
           Privacy, in plain words
         </Link>

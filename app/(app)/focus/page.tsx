@@ -69,7 +69,7 @@ export default async function FocusPage() {
 
   return (
     <div className="flex flex-col items-center gap-6 pb-10">
-      <header className="w-full max-w-[460px]">
+      <header className="plate w-full max-w-[460px]">
         <h1 className="font-display text-3xl">Focus</h1>
         <p className="text-ink-secondary text-[15px] mt-1">
           One thing at a time. The timer keeps going while you move around the app.

@@ -9,7 +9,7 @@ export default function StreakChip({ view }: { view: StreakView }) {
       aria-label="Streak"
       data-streak-state={state}
       data-streak-current={view.current}
-      className="rounded-2xl border border-[var(--border)] bg-bg-elevated px-4 py-3 font-ui"
+      className="rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 font-ui"
     >
       <div className="flex items-baseline gap-2">
         <span aria-hidden="true">🔥</span>

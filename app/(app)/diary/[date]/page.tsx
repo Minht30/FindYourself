@@ -72,7 +72,7 @@ export default async function DiaryDayPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div className="flex items-baseline gap-4 flex-wrap">
+      <div className="plate flex items-baseline gap-4 flex-wrap">
         <h1 className="font-display text-3xl">Diary</h1>
         <span className="font-mono text-sm text-ink-muted">{formatLongDate(date)}</span>
         <nav aria-label="Day navigation" className="ml-auto flex items-center gap-2 font-ui text-sm">
@@ -101,7 +101,7 @@ export default async function DiaryDayPage({ params }: Props) {
         </nav>
       </div>
 
-      <section className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-6 md:p-8 min-h-[320px]">
+      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-6 md:p-8 min-h-[320px]">
         {error ? (
           <p role="alert" className="font-ui text-sm text-ink-secondary">
             Couldn&apos;t load this day&apos;s entry. Try refreshing.
@@ -128,7 +128,7 @@ export default async function DiaryDayPage({ params }: Props) {
         )}
       </section>
 
-      <section className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-5 md:p-6">
+      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 md:p-6">
         <EntryHeatmap today={today} selected={date} entries={heatmap} />
       </section>
     </div>

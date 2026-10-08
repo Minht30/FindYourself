@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Lora, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import ThemeClock from "@/components/layout/ThemeClock";
-import { THEME_COOKIE, THEME_PREF_COOKIE, serverTheme } from "@/lib/themeCookies";
 import { themeInitScript } from "@/lib/themeScript";
-import { TZ_COOKIE } from "@/lib/timezone";
-import { getNow } from "@/lib/today";
+import { getServerTheme } from "@/lib/themeServer";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -40,13 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // The theme is painted on the server from the person's cookies (their choice, and
   // their time zone for Auto), so there is no flash of the wrong one. On a very first
   // visit the zone is not known yet; the script in the head corrects it before paint.
-  const jar = cookies();
-  const theme = serverTheme({
-    pref: jar.get(THEME_PREF_COOKIE)?.value,
-    theme: jar.get(THEME_COOKIE)?.value,
-    zone: jar.get(TZ_COOKIE)?.value,
-    nowMs: getNow().getTime(),
-  });
+  const theme = getServerTheme();
   return (
     <html
       lang="en"

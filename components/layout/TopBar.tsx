@@ -50,7 +50,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
   return (
-    <header className="sticky top-0 z-50 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] bg-bg-elevated border-b border-[var(--border)] isolate">
+    <header className="sticky top-3 z-50 mx-3 mt-3 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] rounded-2xl bg-glass-card border border-[var(--border)] shadow-card isolate">
       {/* Phones: opens the sidebar as a drawer. From 768 px up the sidebar is always visible, so no button. */}
       <button
         type="button"

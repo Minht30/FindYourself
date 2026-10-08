@@ -54,7 +54,7 @@ export default function LayerSlider({
   }
 
   return (
-    <div className="rounded-lg bg-bg-elevated border border-[var(--border)] p-4 shadow-card">
+    <div className="rounded-lg bg-glass-card border border-[var(--border)] p-4 shadow-card">
       <div className="flex items-center gap-3 mb-2">
         <LayerIcon layer={layer.key} active={audible} px={3} />
         <label htmlFor={id} className="font-ui font-medium text-sm flex-1">

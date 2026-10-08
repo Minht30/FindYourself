@@ -51,7 +51,7 @@ export default function ProgressRings({ rings, goalMinutes }: { rings: Ring[]; g
   return (
     <section
       aria-label="Today's progress"
-      className="rounded-2xl border border-[var(--border)] bg-bg-elevated px-4 py-3 font-ui"
+      className="rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 font-ui"
     >
       <h2 className="text-[12px] font-semibold uppercase tracking-wider text-ink-muted">Today</h2>
       <div className="mt-2 grid grid-cols-3 items-start gap-x-2 gap-y-3">

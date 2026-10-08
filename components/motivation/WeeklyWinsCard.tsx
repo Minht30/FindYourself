@@ -14,7 +14,7 @@ export default function WeeklyWinsCard({ wins }: { wins: WeekWins }) {
     <section
       aria-label="Your week"
       data-testid="weekly-wins"
-      className="rounded-2xl border border-accent/60 bg-bg-elevated px-4 py-4 font-ui"
+      className="rounded-2xl border border-accent/60 bg-glass-card px-4 py-4 font-ui"
     >
       <div className="flex items-baseline gap-2 flex-wrap">
         <h2 className="font-display text-xl">Your week</h2>

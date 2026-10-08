@@ -38,7 +38,7 @@ export default function WeekTile({
   return (
     <section
       aria-label="Focus this week"
-      className="w-full max-w-[460px] rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 py-6"
+      className="w-full max-w-[460px] rounded-3xl border border-[var(--border)] bg-glass-card shadow-card px-4 sm:px-8 py-6"
     >
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">

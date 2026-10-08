@@ -133,6 +133,103 @@ body {
   border-radius: 4px;
 }
 
+/* ── Glass panels ────────────────────────────────────────────────────────────
+   Panels are see-through over the wallpaper: the sidebar and the week grid at 90 %,
+   the header and the cards at 92 %. color-mix() instead of `opacity`, so the text
+   stays solid. The alphas are held by lib/glass.test.ts, which composites every text
+   colour over the darkest and brightest parts of each wallpaper (Monstadt's brown
+   accent text needs 90 % or more to stay at 4.5:1, so day is not lighter than night). */
+:root {
+  --glass-panel: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  --glass-card: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+}
+
+/* A title or a line of loose text sitting on the painting gets a plate, so it never
+   reads straight off the art. */
+@layer components {
+  .plate {
+    @apply rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 shadow-card;
+  }
+}
+
+/* ── Wallpaper stage ─────────────────────────────────────────────────────────
+   One fixed layer behind the app (components/scene/WallpaperStage.tsx): a painting
+   per theme. The incoming painting fades in over the outgoing one (1.2 s) and the
+   outgoing one is removed after the fade, so there is no dip in between. A painting
+   is only requested once its theme has been shown (data-seen). */
+:root {
+  --veil: rgba(30, 40, 60, 0.2);
+}
+:root[data-theme="nodkrai-night"] {
+  --veil: rgba(5, 10, 40, 0.3);
+}
+
+.wp-stage {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg-base);
+}
+.wp-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0s linear 1.2s, filter 600ms ease;
+}
+.wp-layer[data-wp="monstadt"][data-seen] {
+  background-image: url("/assets/world/Monstadt_Day/monstadt-day.webp");
+  background-position: center 40%;
+}
+.wp-layer[data-wp="nodkrai-night"][data-seen] {
+  background-image: url("/assets/world/NodKrai_Night/nodkrai-night.webp");
+}
+@media (max-width: 767px) {
+  .wp-layer[data-wp="nodkrai-night"][data-seen] {
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1280.webp");
+  }
+}
+:root[data-theme="monstadt"] .wp-layer[data-wp="monstadt"][data-seen],
+:root[data-theme="nodkrai-night"] .wp-layer[data-wp="nodkrai-night"][data-seen] {
+  opacity: 1;
+  z-index: 1;
+  transition: opacity 1.2s ease, filter 600ms ease;
+}
+
+/* "Focus first" restriction: the scene darkens slightly by veiling the painting,
+   never the panels, so every contrast ratio above still holds. The chip is the
+   marker (data-restriction-active); the chip and its countdown stay the real signal. */
+.wp-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--veil);
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+body:has([data-restriction-active]) .wp-veil {
+  opacity: 1;
+}
+body:has([data-restriction-active]) .wp-layer {
+  filter: saturate(0.85);
+}
+
+/* When the theme changes, the panels change colour with their variables over 300 ms
+   instead of snapping while the painting is still fading. The class is on <html>
+   only for the moment of the change (WallpaperStage adds and removes it). */
+@media (prefers-reduced-motion: no-preference) {
+  /* not the stage itself: its layers keep their own, longer opacity fade */
+  :root.theme-fade :not(.wp-stage, .wp-layer, .wp-veil),
+  :root.theme-fade :not(.wp-stage, .wp-layer, .wp-veil)::before,
+  :root.theme-fade :not(.wp-stage, .wp-layer, .wp-veil)::after {
+    transition: background-color 300ms ease, color 300ms ease, border-color 300ms ease, fill 300ms ease, stroke 300ms ease !important;
+  }
+}
+
 /* ── Diary editor (Tiptap) ──────────────────────────────────────────────────
    Tailwind preflight strips headings/lists, so the editor gets its own small
    prose scale. Everything reads from theme tokens, so both themes just work. */

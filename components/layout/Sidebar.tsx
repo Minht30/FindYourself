@@ -33,7 +33,7 @@ export default function Sidebar({ categories }: { categories: SidebarCategory[] 
         aria-label="Sidebar"
         className={`${
           open ? "flex fixed inset-y-0 left-0 z-[60] w-[290px] max-w-[85vw] shadow-2xl" : "hidden"
-        } md:flex md:static md:z-auto md:w-auto md:max-w-none md:shadow-none flex-col gap-5 p-4 bg-bg-elevated border-r border-[var(--border)] overflow-y-auto`}
+        } md:flex md:static md:z-auto md:w-auto md:max-w-none md:shadow-none flex-col gap-5 p-4 bg-bg-elevated md:bg-glass-panel border-r md:border md:rounded-2xl border-[var(--border)] overflow-y-auto`}
       >
       <nav aria-label="Pages" className="flex flex-col gap-0.5 pb-3 border-b border-[var(--border)]">
         {PAGES.map(({ href, label, Icon }) => {

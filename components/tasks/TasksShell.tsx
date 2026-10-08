@@ -36,13 +36,13 @@ export function TasksShell({
       <div className="flex flex-col lg:flex-row lg:items-start gap-5">
         <div className="flex-1 min-w-0 space-y-4">{children}</div>
         {(side || open) && (
-          <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-3 lg:sticky lg:top-[76px] lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
+          <div className="w-full lg:w-[340px] shrink-0 flex flex-col gap-3 lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-112px)] lg:overflow-y-auto">
             {side}
             {open && (
               <aside
                 id={DRAWER_ID}
                 aria-label="Tasks"
-                className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-4"
+                className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-4"
               >
                 {drawer}
               </aside>

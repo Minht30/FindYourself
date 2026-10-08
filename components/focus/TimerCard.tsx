@@ -125,7 +125,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
   return (
     <section
       aria-label="Pomodoro timer"
-      className="relative rounded-3xl border border-[var(--border)] bg-bg-elevated shadow-card px-4 sm:px-8 pt-6 pb-7 w-full max-w-[460px]"
+      className="relative rounded-3xl border border-[var(--border)] bg-glass-card shadow-card px-4 sm:px-8 pt-6 pb-7 w-full max-w-[460px]"
     >
       {/* Pick what to start. Locked while a timer is running or paused: switching
           would silently end it, so that takes a Reset first. */}

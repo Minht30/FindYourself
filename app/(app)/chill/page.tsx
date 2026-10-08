@@ -59,7 +59,7 @@ export default async function ChillPage() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6">
-      <header>
+      <header className="plate">
         <h1 className="font-display text-3xl">Chill</h1>
         <p className="text-ink-secondary mt-1">Rain on the window, a quiet cafe. Leave it running.</p>
       </header>

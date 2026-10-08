@@ -140,7 +140,7 @@ export default async function TodayPage({ searchParams }: Props) {
         />
       }
     >
-      <div className="flex items-baseline gap-4 flex-wrap">
+      <div className="plate flex items-baseline gap-4 flex-wrap">
         <h1 className="font-display text-3xl">Timetable</h1>
         <span className="font-mono text-sm text-ink-muted">{formatWeekRangeIso(mondayISO)}</span>
         <div className="ml-auto flex items-center gap-2 font-ui text-sm flex-wrap">
@@ -171,7 +171,7 @@ export default async function TodayPage({ searchParams }: Props) {
 
       <WinsClock timeZone={timeZone} open={winsOpen} />
       {(blocks ?? []).length === 0 ? (
-        <p data-empty-week className="font-ui text-sm text-ink-secondary">
+        <p data-empty-week className="plate w-fit font-ui text-sm text-ink-secondary">
           Nothing scheduled this week. Drag on the grid to add your first block.
         </p>
       ) : null}
@@ -183,7 +183,7 @@ export default async function TodayPage({ searchParams }: Props) {
         categories={(categories ?? []) as CategoryDTO[]}
       />
 
-      <p className="text-ink-muted text-xs font-ui">
+      <p className="plate w-fit text-ink-muted text-xs font-ui">
         <strong>Drag empty space</strong> to create · <strong>click a block</strong> to edit ·{" "}
         <strong>drag the body</strong> to move · <strong>drag top/bottom edges</strong> to resize ·{" "}
         <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> cancels

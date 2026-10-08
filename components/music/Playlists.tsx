@@ -53,7 +53,7 @@ export default function Playlists() {
   }
 
   return (
-    <section aria-label="Playlists" className="flex flex-col gap-4">
+    <section aria-label="Playlists" className="plate py-4 flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-lg">Playlists</h2>
         <p data-testid="playlist-count" className="text-xs text-ink-secondary">
@@ -135,7 +135,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
     <li
       data-testid="playlist"
       data-playlist-id={playlist.id}
-      className="rounded-lg bg-bg-elevated border border-[var(--border)] p-3 shadow-card flex flex-col gap-2"
+      className="rounded-lg bg-glass-card border border-[var(--border)] p-3 shadow-card flex flex-col gap-2"
     >
       <div className="flex flex-wrap items-center gap-2">
         {editing ? (

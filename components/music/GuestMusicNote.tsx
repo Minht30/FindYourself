@@ -5,7 +5,7 @@ export default function GuestMusicNote() {
     <section
       aria-label="Your music"
       data-guest-music-note
-      className="rounded-2xl bg-bg-elevated border border-[var(--border)] shadow-card p-5 font-ui"
+      className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 font-ui"
     >
       <h2 className="font-display text-xl mb-1">Your music</h2>
       <p className="text-[14px] text-ink-secondary">

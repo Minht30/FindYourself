@@ -81,7 +81,7 @@ export default function Suggestions({ mine }: { mine: readonly MySuggestion[] })
   const field = "mt-1 rounded border border-[var(--border-strong)] bg-bg-elevated px-2 py-1.5 text-sm text-ink-primary";
 
   return (
-    <section aria-label="Suggest a track" className="flex flex-col gap-4">
+    <section aria-label="Suggest a track" className="plate py-4 flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-display text-lg">Suggest a track</h2>
         <p className="text-xs text-ink-secondary">
@@ -177,7 +177,7 @@ function MyRow({ s }: { s: MySuggestion }) {
     <li
       data-testid="my-suggestion"
       data-status={s.status}
-      className="rounded-lg bg-bg-elevated border border-[var(--border)] p-3 shadow-card flex flex-col gap-1.5"
+      className="rounded-lg bg-glass-card border border-[var(--border)] p-3 shadow-card flex flex-col gap-1.5"
     >
       <div className="flex flex-wrap items-center gap-2">
         <p className="font-ui font-medium text-sm flex-1 min-w-0 truncate">

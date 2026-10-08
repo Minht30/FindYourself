@@ -8,7 +8,7 @@ import "./globals.css";
 // layout would have supplied).
 export default function GlobalError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <html lang="en" data-theme="sunny-cafe">
+    <html lang="en" data-theme="monstadt">
       <body>
         <main className="min-h-screen flex items-center justify-center px-6 py-16">
           <section

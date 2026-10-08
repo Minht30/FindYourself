@@ -446,6 +446,6 @@ const DAY_SCENE: SceneDef = {
 // One scene per theme. Stage 2 replaces these two entries (Monstadt by day,
 // Liyue by night) and the engine does not change; v1.5 adds more scenes.
 export const SCENES: Record<ThemeName, SceneDef> = {
-  "sunny-cafe": DAY_SCENE,
-  "netcafe-night": NIGHT_SCENE,
+  monstadt: DAY_SCENE,
+  "nodkrai-night": NIGHT_SCENE,
 };

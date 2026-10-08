@@ -2,10 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 
-export type ThemeName = "sunny-cafe" | "netcafe-night";
+export type ThemeName = "monstadt" | "nodkrai-night";
 
 // The theme lives on <html data-theme>. useSyncExternalStore gives the server
-// (and the hydrating client) "sunny-cafe", then switches to the real value, so
+// (and the hydrating client) "monstadt", then switches to the real value, so
 // there is no hydration mismatch and it follows the toggle live.
 function subscribeTheme(cb: () => void) {
   const mo = new MutationObserver(cb);
@@ -13,10 +13,10 @@ function subscribeTheme(cb: () => void) {
   return () => mo.disconnect();
 }
 const themeSnapshot = (): ThemeName =>
-  document.documentElement.getAttribute("data-theme") === "netcafe-night" ? "netcafe-night" : "sunny-cafe";
+  document.documentElement.getAttribute("data-theme") === "nodkrai-night" ? "nodkrai-night" : "monstadt";
 
 export function useTheme(): ThemeName {
-  return useSyncExternalStore(subscribeTheme, themeSnapshot, () => "sunny-cafe");
+  return useSyncExternalStore(subscribeTheme, themeSnapshot, () => "monstadt");
 }
 
 const REDUCED = "(prefers-reduced-motion: reduce)";

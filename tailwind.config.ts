@@ -9,7 +9,7 @@ const tone = (cssVar: string) => `color-mix(in srgb, var(${cssVar}) calc(<alpha-
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
-  darkMode: ["class", "[data-theme='netcafe-night']"],
+  darkMode: ["class", "[data-theme='nodkrai-night']"],
   theme: {
     extend: {
       colors: {
@@ -29,6 +29,7 @@ const config: Config = {
           DEFAULT: tone("--accent"),
           soft: tone("--accent-soft"),
           strong: tone("--accent-strong"),
+          line: tone("--accent-line"),
         },
         cat: {
           deep: tone("--cat-deep"),
@@ -37,10 +38,19 @@ const config: Config = {
           rest: tone("--cat-rest"),
           personal: tone("--cat-personal"),
           ink: tone("--cat-ink"),
+          dot: {
+            deep: tone("--cat-dot-deep"),
+            meeting: tone("--cat-dot-meeting"),
+            learn: tone("--cat-dot-learn"),
+            rest: tone("--cat-dot-rest"),
+            personal: tone("--cat-dot-personal"),
+          },
         },
         success: tone("--success"),
         warning: tone("--warning"),
         danger: tone("--danger"),
+        // Opaque field border (3:1 on every surface); `border-input` in markup.
+        input: tone("--border-input"),
       },
       fontFamily: {
         display: ["var(--font-display)"],

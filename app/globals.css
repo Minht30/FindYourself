@@ -3,89 +3,119 @@
 @tailwind utilities;
 
 /* ============ FindYourself design tokens ============ */
-/* Sunny Cafe (day) — default */
+/* Two modes, two regions each (docs/THEME_HANDOFF.md). Code ships Monstadt (day)
+   and Nod-Krai (night); Liyue and Natlan are added later as their own blocks.
+   Text colours are held to WCAG AA (4.5:1) on every surface and the field border
+   to 3:1 by lib/contrast.test.ts. */
+
+/* Monstadt (day) — default */
 :root,
-:root[data-theme="sunny-cafe"] {
-  --bg-base: #FDF8EE;
-  --bg-elevated: #FFFFFF;
-  --bg-overlay: #FFF9EC;
-  --bg-window: #FFE9BE;
-  --bg-alt: #F9F2E3;
+:root[data-theme="monstadt"] {
+  --bg-base: #F9F4E8;
+  --bg-elevated: #FCF9F0;
+  --bg-overlay: #F7F2E5;
+  --bg-window: #F9E3AB;
+  --bg-alt: #F2F1E7;
 
-  --ink-primary: #2A2018;
-  /* Text colours are held to WCAG AA (4.5:1) on every day surface; see docs/DESIGN_SYSTEM.md */
-  --ink-secondary: #604F3B;
-  --ink-muted: #796752;
+  --ink-primary: #1E384F;
+  --ink-secondary: #3A5368;
+  --ink-muted: #42586B;
 
-  --accent: #F5C243;
-  --accent-soft: #FFE082;
+  --accent: #F7CF78;
+  --accent-soft: #F9E3AB;
   --accent-strong: #8C5A00;
+  --accent-line: rgba(247, 207, 120, 0.6);
 
-  --cat-deep: #A8C4A2;
-  --cat-meeting: #F4B48A;
-  --cat-learn: #C7B8E0;
-  --cat-rest: #A8CDE0;
-  --cat-personal: #EBB0BC;
-  --cat-ink: #2A2018;
+  --cat-deep: #CCDFBD;
+  --cat-meeting: #FDE6B2;
+  --cat-learn: #E1D1ED;
+  --cat-rest: #C3DDF2;
+  --cat-personal: #FED6DB;
+  --cat-ink: #1E384F;
+  /* The saturated twin of each category, for dots and small marks on a panel. */
+  --cat-dot-deep: #9BC293;
+  --cat-dot-meeting: #F7CF78;
+  --cat-dot-learn: #C1B2EA;
+  --cat-dot-rest: #7BBDEE;
+  --cat-dot-personal: #F5ACBB;
 
-  --success: #699756;
-  --warning: #BA8027;
-  --danger: #A7513C;
+  --success: #3A6E2C;
+  --warning: #855209;
+  --danger: #A8402C;
 
-  --border: rgba(42, 32, 24, 0.08);
-  --border-strong: rgba(42, 32, 24, 0.16);
-  --glow: 0 0 24px rgba(245, 194, 67, 0.35);
-  --shadow-card: 0 2px 8px rgba(42, 32, 24, 0.06), 0 8px 24px rgba(42, 32, 24, 0.08);
+  --border: rgba(122, 98, 56, 0.22);
+  --border-strong: rgba(122, 98, 56, 0.38);
+  /* Opaque, for form fields: WCAG 1.4.11 asks 3:1 and --border is far below it. */
+  --border-input: #857052;
+  --glow: 0 0 24px rgba(247, 207, 120, 0.4);
+  --shadow-card: 0 2px 8px rgba(30, 56, 79, 0.06), 0 8px 24px rgba(30, 56, 79, 0.08);
 
+  /* Diary year map: steps 1 to 3 (step 4 is --heat-max). Day mixes the accent
+     toward the surface; night has its own ramp below. */
+  --heat-1: color-mix(in srgb, var(--accent) 30%, var(--bg-alt));
+  --heat-2: color-mix(in srgb, var(--accent) 55%, var(--bg-alt));
+  --heat-3: color-mix(in srgb, var(--accent) 80%, var(--bg-alt));
+  --heat-max: var(--accent-strong);
+
+  /* Both themes use the same type: Lora for words, Inter for the interface. */
   --font-display: var(--font-lora), Georgia, serif;
   --font-body: var(--font-lora), Georgia, serif;
   --font-ui: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
-/* Netcafe After Dark (night) */
-:root[data-theme="netcafe-night"] {
-  --bg-base: #0B0F1A;
-  --bg-elevated: #131826;
-  --bg-overlay: #1B2135;
-  --bg-window: #1E2540;
-  --bg-alt: #10141F;
+/* Nod-Krai (night) */
+:root[data-theme="nodkrai-night"] {
+  --bg-base: #0A1450;
+  --bg-elevated: #101C5E;
+  --bg-overlay: #0D1856;
+  --bg-window: #1A2A72;
+  --bg-alt: #081043;
 
-  --ink-primary: #E8EEFF;
-  --ink-secondary: #9AA5C4;
-  --ink-muted: #848CA7;
+  --ink-primary: #EAF2FF;
+  --ink-secondary: #C2D2F2;
+  --ink-muted: #A8BAE0;
 
   --accent: #F4D03F;
-  --accent-soft: #FFF08A;
+  --accent-soft: #FFE9A0;
   --accent-strong: #F4D03F;
+  --accent-line: rgba(244, 208, 63, 0.6);
 
-  --cat-deep: #7DD3FC;
-  --cat-meeting: #FDA4AF;
-  --cat-learn: #C4B5FD;
-  --cat-rest: #6EE7B7;
-  --cat-personal: #F0ABFC;
-  --cat-ink: #0B0F1A;
+  --cat-deep: #8CC0FF;
+  --cat-meeting: #F4D58A;
+  --cat-learn: #C3B2F5;
+  --cat-rest: #8FE0D8;
+  --cat-personal: #F5AFC6;
+  --cat-ink: #0A1450;
+  --cat-dot-deep: #8CC0FF;
+  --cat-dot-meeting: #F4D58A;
+  --cat-dot-learn: #C3B2F5;
+  --cat-dot-rest: #8FE0D8;
+  --cat-dot-personal: #F5AFC6;
 
-  --success: #6EE7B7;
+  --success: #7FE0B0;
   --warning: #F4D03F;
-  --danger: #FCA5A5;
+  --danger: #FF9E8C;
 
-  --border: rgba(232, 238, 255, 0.10);
-  --border-strong: rgba(232, 238, 255, 0.20);
-  --glow: 0 0 20px rgba(244, 208, 63, 0.5), 0 0 40px rgba(244, 208, 63, 0.2);
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(232, 238, 255, 0.04);
+  --border: rgba(234, 242, 255, 0.14);
+  --border-strong: rgba(234, 242, 255, 0.26);
+  --border-input: #7088CC;
+  --glow: 0 0 20px rgba(244, 208, 63, 0.4), 0 0 40px rgba(244, 208, 63, 0.15);
+  --shadow-card: 0 4px 24px rgba(3, 6, 30, 0.55), inset 0 1px 0 rgba(234, 242, 255, 0.05);
 
-  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-ui: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), monospace;
+  /* Dim to moon yellow; step 1 is about 3:1 against the panel, so it stays
+     distinct from an empty cell. */
+  --heat-1: #4466B0;
+  --heat-2: #6C93D8;
+  --heat-3: #8CC0FF;
+  --heat-max: #FFE9A0;
 }
 
 /* Base */
 html {
   color-scheme: light;
 }
-:root[data-theme="netcafe-night"] {
+:root[data-theme="nodkrai-night"] {
   color-scheme: dark;
 }
 
@@ -101,22 +131,6 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
-}
-
-/* Netcafe subtle scanline */
-:root[data-theme="netcafe-night"] body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: repeating-linear-gradient(
-    180deg,
-    rgba(232, 238, 255, 0.015) 0,
-    rgba(232, 238, 255, 0.015) 1px,
-    transparent 1px,
-    transparent 3px
-  );
 }
 
 /* ── Diary editor (Tiptap) ──────────────────────────────────────────────────
@@ -161,17 +175,11 @@ body {
   pointer-events: none;
 }
 
-/* Diary heatmap: the "most written" step. Sunny deepens toward honey-brown;
-   Netcafe brightens toward the soft neon, since at night "more" should glow. */
-:root,
-:root[data-theme="sunny-cafe"] { --heat-max: var(--accent-strong); }
-:root[data-theme="netcafe-night"] { --heat-max: var(--accent-soft); }
-
 /* ── Pixel palette (Focus) ───────────────────────────────────────────────────
    The cafe cat, the coffee-cup tally and the timer track. Sprites read these
    tokens, so one set of grids serves both themes. */
 :root,
-:root[data-theme="sunny-cafe"] {
+:root[data-theme="monstadt"] {
   --pix-outline: #3b2a1e;
   --pix-fur: #e9a24f;
   --pix-fur-shade: #c77f32;
@@ -187,7 +195,7 @@ body {
   --pix-track-lit: var(--accent);
   --pix-break: #8fbf9a;
 }
-:root[data-theme="netcafe-night"] {
+:root[data-theme="nodkrai-night"] {
   --pix-outline: #07090f;
   --pix-fur: #f2b84b;
   --pix-fur-shade: #c98a24;
@@ -204,7 +212,7 @@ body {
   --pix-break: #6ee7b7;
 }
 /* After dark the cat gets a soft canary rim, the yellow through-line. */
-:root[data-theme="netcafe-night"] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
+:root[data-theme="nodkrai-night"] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
 
 /* Frame animation without JS: every frame is a <g>, hidden by default, and
    shown for its own 1/N slice of the cycle. Negative space before the delay
@@ -267,15 +275,15 @@ body {
   --pix-china: #fff6e5;
   --pix-china-inside: #c9b48f;
 }
-:root[data-theme="netcafe-night"] [data-focus-surface] {
-  --fm-bg: #05070d;
-  --ink-primary: #e8eeff;
-  --ink-secondary: #9aa5c4;
-  --ink-muted: #8a94b4;
-  --bg-alt: rgba(232, 238, 255, 0.07);
-  --border: rgba(232, 238, 255, 0.12);
-  --border-strong: rgba(232, 238, 255, 0.26);
-  --pix-track: rgba(232, 238, 255, 0.14);
+:root[data-theme="nodkrai-night"] [data-focus-surface] {
+  --fm-bg: #050A2E;
+  --ink-primary: #EAF2FF;
+  --ink-secondary: #C2D2F2;
+  --ink-muted: #A8BAE0;
+  --bg-alt: rgba(234, 242, 255, 0.07);
+  --border: rgba(234, 242, 255, 0.14);
+  --border-strong: rgba(234, 242, 255, 0.26);
+  --pix-track: rgba(234, 242, 255, 0.14);
 }
 /* The cat gets its canary rim in the dark room, whatever the theme. */
 [data-focus-surface] .pix-cat { filter: drop-shadow(0 0 3px var(--accent)); }
@@ -289,7 +297,7 @@ body {
    Icon colours for the layer sprites, and the slider. Placeholder-grade: the
    real look is redrawn in Stage 2. */
 :root,
-:root[data-theme="sunny-cafe"] {
+:root[data-theme="monstadt"] {
   --pix-cloud: #e6f0f7;
   --pix-water: #4f9fd6;
   --pix-flame: #ef7d3a;
@@ -297,7 +305,7 @@ body {
   --pix-flame-deep: #c8452f;
   --pix-key-dark: #3b2a1e;
 }
-:root[data-theme="netcafe-night"] {
+:root[data-theme="nodkrai-night"] {
   --pix-cloud: #c9d8ff;
   --pix-water: #7cc4ff;
   --pix-flame: #ff8a3d;

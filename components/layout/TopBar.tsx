@@ -12,7 +12,7 @@ import { useNav } from "./NavContext";
 // focusSlot: the "🔒 Focus first" reminder, rendered on the server by the
 // layout. Hidden on /chill, which is deliberately free of tasks and timers.
 export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
-  const [theme, setTheme] = useState<"sunny-cafe" | "netcafe-night">("sunny-cafe");
+  const [theme, setTheme] = useState<"monstadt" | "nodkrai-night">("monstadt");
 
   const pathname = usePathname();
   const router = useRouter();
@@ -26,12 +26,12 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const current = (document.documentElement.getAttribute("data-theme") as typeof theme) || "sunny-cafe";
+    const current = (document.documentElement.getAttribute("data-theme") as typeof theme) || "monstadt";
     setTheme(current);
   }, []);
 
   function toggleTheme() {
-    const next = theme === "netcafe-night" ? "sunny-cafe" : "netcafe-night";
+    const next = theme === "nodkrai-night" ? "monstadt" : "nodkrai-night";
     document.documentElement.setAttribute("data-theme", next);
     setTheme(next);
     try {
@@ -39,7 +39,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
     } catch {}
   }
 
-  const isNight = theme === "netcafe-night";
+  const isNight = theme === "nodkrai-night";
   // Chill is for being, not planning: no Today button, no search.
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
@@ -91,7 +91,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
       <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
         <span>{isNight ? "🌃" : "☀️"}</span>
-        <span className="hidden md:inline">{isNight ? "Netcafe" : "Sunny"}</span>
+        <span className="hidden md:inline">{isNight ? "Nod-Krai" : "Monstadt"}</span>
       </button>
     </header>
   );

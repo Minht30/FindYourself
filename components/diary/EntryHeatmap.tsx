@@ -26,14 +26,13 @@ function level(chars: number): 0 | 1 | 2 | 3 | 4 {
   return 4;
 }
 
-// color-mix rather than Tailwind opacity modifiers: the theme tokens are
-// plain CSS variables, and mixing toward the surface keeps every step
-// readable in both Sunny Cafe and Netcafe.
+// The steps are theme tokens (--heat-1 to --heat-max in globals.css): day mixes
+// the accent toward the surface, night is a ramp from dim blue to moon yellow.
 const LEVEL_BG = [
   "var(--bg-alt)",
-  "color-mix(in srgb, var(--accent) 30%, var(--bg-alt))",
-  "color-mix(in srgb, var(--accent) 55%, var(--bg-alt))",
-  "color-mix(in srgb, var(--accent) 80%, var(--bg-alt))",
+  "var(--heat-1)",
+  "var(--heat-2)",
+  "var(--heat-3)",
   "var(--heat-max)",
 ];
 

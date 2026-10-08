@@ -112,9 +112,13 @@ export default function MiniMonth() {
                 const cell = `mx-auto my-px w-7 h-7 rounded-full flex items-center justify-center text-[12px] tabular-nums transition ${
                   isToday
                     ? "bg-accent text-cat-ink font-bold"
-                    : c.inMonth
-                      ? "text-ink-primary hover:bg-accent-soft"
-                      : "text-ink-muted hover:bg-accent-soft"
+                    : // On the accent-soft fill (the selected week, or a hover) the text is cat-ink:
+                      // at night the page inks are light, and so is the fill.
+                      selectedRow
+                      ? `${c.inMonth ? "text-cat-ink" : "text-cat-ink/70"} hover:bg-accent-soft`
+                      : c.inMonth
+                        ? "text-ink-primary hover:bg-accent-soft hover:text-cat-ink"
+                        : "text-ink-muted hover:bg-accent-soft hover:text-cat-ink"
                 } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-transparent" : ""}`;
                 return (
                   <div key={c.iso} role="gridcell">

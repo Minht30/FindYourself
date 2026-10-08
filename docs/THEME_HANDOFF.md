@@ -2,6 +2,12 @@
 
 Written 2026-10-08 (Session 70) so the next session can start coding without re-deriving anything. Figma file: `cfavJs3bXchFO6b9kSVhxw`. Companion notes: `docs/NODKRAI_NIGHT_BRIEF.md` (the night theme, art and drafts), `docs/DESIGN_BRIEF.md` section 5b (Monstadt), `docs/DECISIONS.md` (Session 70).
 
+## 0. Progress (update as steps land)
+
+- **Step 1 done (2026-10-08, branch `design/stage2-themes`):** `lib/theme.ts` and `lib/theme.test.ts` (resolver, day or night by the clock in the person's zone, parsing that names its refusal: `bad_mode`, `bad_region`, `region_unavailable`; 21 tests including 17:59, 18:00, 05:59, 06:00 and clock changes); migration `supabase/migrations/20261008053000_phase10_theme_preferences.sql` and SQL test `supabase/tests/phase10_theme_preferences.sql`. **The migration is written but not applied to the Supabase project yet** (ask Minh first, then apply and run the SQL test; expected results are in the test file). Full gate green: typecheck, lint, 774 tests.
+- **Moved to step 3:** the cookie helpers (`fy-theme-pref`, `fy-theme`, serialize, parse, `serverTheme`). `privacyFacts.test.ts` fails the moment a cookie name appears in code without being on the privacy page, so the helpers arrive in the same change that documents them (the old `fy-theme` is already documented as a device-storage key; that entry changes from storage to cookie).
+- Not started: steps 2 to 9.
+
 ## 1. What is decided
 
 | Question | Decision (Minh, 2026-10-08) |

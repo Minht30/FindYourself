@@ -99,3 +99,10 @@ export function parseThemePrefs(input: unknown): ThemePrefsResult {
   }
   return { ok: true, prefs: { mode: i.mode, dayRegion: i.dayRegion as DayRegion, nightRegion: i.nightRegion as NightRegion } };
 }
+
+// ── Names a person sees ─────────────────────────────────────────────
+export const THEME_LABELS: Record<ThemeName, string> = { monstadt: "Monstadt", "nodkrai-night": "Nod-Krai" };
+
+export function isThemeName(v: unknown): v is ThemeName {
+  return typeof v === "string" && (THEME_NAMES as readonly string[]).includes(v);
+}

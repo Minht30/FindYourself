@@ -5,6 +5,8 @@ import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
 import FocusProvider from "@/components/focus/FocusProvider";
 import MixerProvider from "@/components/mixer/MixerProvider";
 import TimeZoneSync from "@/components/layout/TimeZoneSync";
+import ThemeSync from "@/components/layout/ThemeSync";
+import { DEFAULT_THEME_PREFS, parseThemePrefs } from "@/lib/theme";
 import { NavProvider } from "@/components/layout/NavContext";
 import { ZoneProvider } from "@/components/layout/ZoneContext";
 import { getUserTimeZone } from "@/lib/today";
@@ -34,7 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("music_tracks").select(TRACK_COLUMNS).order("created_at"),
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
     // The zone the database counts days in (the streak); kept equal to the browser's.
-    supabase.from("profiles").select("timezone, timezone_manual").maybeSingle(),
+    supabase.from("profiles").select("timezone, timezone_manual, theme_mode, day_region, night_region").maybeSingle(),
     // The categories the sidebar lists (RLS: own rows only, in the person's order).
     supabase.from("categories").select("id, name, color").order("sort_order"),
   ]);
@@ -42,6 +44,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const known = new Set(tracks.map((t) => t.id));
   const playlists = (lists.data ?? []).map((p) => toPlaylist(p, known));
   const catalogue = mergeCatalogue(layers.data);
+  // The appearance choice kept on the profile; the cookie copy is what the server reads.
+  const themeParsed = parseThemePrefs({ mode: profile.data?.theme_mode, dayRegion: profile.data?.day_region, nightRegion: profile.data?.night_region });
+  const savedTheme = themeParsed.ok ? themeParsed.prefs : DEFAULT_THEME_PREFS;
   // A row whose `levels` is empty exists only because the player remembered a
   // track (saveCurrentTrack); no mix was ever saved, so it is "no saved mix".
   const hasMix =
@@ -61,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <MixerProvider catalogue={catalogue} initial={initial}>
       <MusicProvider tracks={tracks} playlists={playlists} initialTrackId={saved.data?.current_track_id ?? null}>
       <FocusProvider>
+        {profile.data ? <ThemeSync saved={savedTheme} /> : null}
         {profile.data?.timezone ? <TimeZoneSync savedZone={profile.data.timezone} manual={profile.data.timezone_manual === true} /> : null}
         <ZoneProvider zone={getUserTimeZone()}>
         <NavProvider>

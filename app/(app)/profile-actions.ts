@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { isValidFocusGoal } from "@/lib/rings";
-import { TZ_COOKIE, TZ_MANUAL_COOKIE, isKnownTimeZone, parseZoneSetting, type ZoneSettingInput } from "@/lib/timezone";
+import { TZ_COOKIE, TZ_MANUAL_COOKIE, isKnownTimeZone, parseZoneSetting, zoneFromCookie, type ZoneSettingInput } from "@/lib/timezone";
+import { resolveTheme, parseThemePrefs, type ThemePrefs } from "@/lib/theme";
+import { THEME_COOKIE, THEME_PREF_COOKIE, serializePrefs } from "@/lib/themeCookies";
+import { getNow } from "@/lib/today";
 
 export type SaveTimeZoneResult = { ok: true } | { ok: false; error: "unauthenticated" | "bad_timezone" | "db_error" };
 
@@ -90,4 +93,39 @@ export async function saveTimeZoneSetting(input: ZoneSettingInput): Promise<Save
 
   revalidatePath("/", "layout");
   return { ok: true, mode, zone };
+}
+
+export type SaveThemePrefsResult =
+  | { ok: true; prefs: ThemePrefs }
+  | { ok: false; error: "unauthenticated" | "bad_mode" | "bad_region" | "region_unavailable" | "db_error" };
+
+// Settings -> Appearance and the top bar chip. The choice goes on the profile (so
+// every device follows it) and into the two cookies the server reads, together, so
+// the very next render already paints the right theme. Anything the app cannot
+// draw is refused by name (parseThemePrefs) before the profile is touched; the
+// database re-checks it (constraints on `theme_mode`, `day_region`, `night_region`).
+export async function saveThemePrefs(input: unknown): Promise<SaveThemePrefsResult> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  const parsed = parseThemePrefs(input);
+  if (!parsed.ok) return { ok: false, error: parsed.reason };
+  const { prefs } = parsed;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ theme_mode: prefs.mode, day_region: prefs.dayRegion, night_region: prefs.nightRegion })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: error.code === "23514" ? "bad_region" : "db_error" };
+
+  const jar = cookies();
+  const options = { path: "/", maxAge: YEAR_SECONDS, sameSite: "lax" as const };
+  jar.set(THEME_PREF_COOKIE, serializePrefs(prefs), options);
+  jar.set(THEME_COOKIE, resolveTheme(prefs, getNow().getTime(), zoneFromCookie(jar.get(TZ_COOKIE)?.value) ?? "UTC"), options);
+
+  revalidatePath("/", "layout");
+  return { ok: true, prefs };
 }

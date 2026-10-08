@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, Settings } from "lucide-react";
@@ -8,12 +7,14 @@ import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
 import { useNav } from "./NavContext";
+import { saveThemePrefs } from "@/app/(app)/profile-actions";
+import { useTheme } from "@/components/scene/hooks";
+import { THEME_LABELS, dayNightOf, toggledMode } from "@/lib/theme";
+import { applyTheme, readPrefs, writePrefs } from "@/lib/themeClient";
 
 // focusSlot: the "🔒 Focus first" reminder, rendered on the server by the
 // layout. Hidden on /chill, which is deliberately free of tasks and timers.
 export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
-  const [theme, setTheme] = useState<"monstadt" | "nodkrai-night">("monstadt");
-
   const pathname = usePathname();
   const router = useRouter();
   const nav = useNav();
@@ -25,21 +26,26 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
     router.push(isDiary ? "/diary" : "/today");
   }
 
-  useEffect(() => {
-    const current = (document.documentElement.getAttribute("data-theme") as typeof theme) || "monstadt";
-    setTheme(current);
-  }, []);
+  // What is showing (read from <html>, so it follows Auto's clock too). The chip flips
+  // day and night by fixing the mode to the opposite; Settings puts it back to Auto.
+  const theme = useTheme();
+  const isNight = dayNightOf(theme) === "night";
 
-  function toggleTheme() {
-    const next = theme === "nodkrai-night" ? "monstadt" : "nodkrai-night";
-    document.documentElement.setAttribute("data-theme", next);
-    setTheme(next);
-    try {
-      localStorage.setItem("fy-theme", next);
-    } catch {}
+  async function toggleTheme() {
+    const before = readPrefs();
+    const next = { ...before, mode: toggledMode(dayNightOf(theme)) };
+    // Instant on this device, then saved on the profile so every device follows.
+    writePrefs(next);
+    applyTheme(next);
+    // A session that ended underneath the page gives no result at all (or a thrown
+    // call), not an { ok: false }: both count as "not saved".
+    const saved = await saveThemePrefs(next).catch(() => undefined);
+    if (!saved?.ok) {
+      // Not saved: go back to what it was rather than show a choice that will not stick.
+      writePrefs(before);
+      applyTheme(before);
+    }
   }
-
-  const isNight = theme === "nodkrai-night";
   // Chill is for being, not planning: no Today button, no search.
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
@@ -91,7 +97,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
 
       <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
         <span>{isNight ? "🌃" : "☀️"}</span>
-        <span className="hidden md:inline">{isNight ? "Nod-Krai" : "Monstadt"}</span>
+        <span className="hidden md:inline">{THEME_LABELS[theme]}</span>
       </button>
     </header>
   );

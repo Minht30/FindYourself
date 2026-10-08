@@ -1,8 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { isThemeName, type ThemeName } from "@/lib/theme";
 
-export type ThemeName = "monstadt" | "nodkrai-night";
+export type { ThemeName };
 
 // The theme lives on <html data-theme>. useSyncExternalStore gives the server
 // (and the hydrating client) "monstadt", then switches to the real value, so
@@ -12,8 +13,10 @@ function subscribeTheme(cb: () => void) {
   mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   return () => mo.disconnect();
 }
-const themeSnapshot = (): ThemeName =>
-  document.documentElement.getAttribute("data-theme") === "nodkrai-night" ? "nodkrai-night" : "monstadt";
+const themeSnapshot = (): ThemeName => {
+  const t = document.documentElement.getAttribute("data-theme");
+  return isThemeName(t) ? t : "monstadt";
+};
 
 export function useTheme(): ThemeName {
   return useSyncExternalStore(subscribeTheme, themeSnapshot, () => "monstadt");

@@ -34,7 +34,7 @@ export function SafeLink({ link, label = "Open link", testId }: { link: string; 
           href={v.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[var(--border-strong)] px-2.5 py-0.5 text-xs hover:bg-accent-soft"
+          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[var(--border-strong)] px-2.5 py-0.5 text-xs hover:bg-accent-soft hover:text-cat-ink"
         >
           {label}
           <ExternalLink size={11} aria-hidden />
@@ -192,7 +192,7 @@ function MyRow({ s }: { s: MySuggestion }) {
             type="button"
             disabled={pending}
             onClick={withdraw}
-            className="rounded-full border border-[var(--border-strong)] px-3 py-0.5 text-xs hover:bg-accent-soft"
+            className="rounded-full border border-[var(--border-strong)] px-3 py-0.5 text-xs hover:bg-accent-soft hover:text-cat-ink"
           >
             Withdraw
           </button>

@@ -30,7 +30,7 @@ export default function TryDemoButton() {
         type="button"
         disabled={pending}
         onClick={() => run(false)}
-        className="px-6 py-3 rounded-xl border border-accent text-ink-primary font-ui font-semibold hover:bg-accent-soft transition disabled:opacity-60"
+        className="px-6 py-3 rounded-xl border border-accent text-ink-primary font-ui font-semibold hover:bg-accent-soft hover:text-cat-ink transition disabled:opacity-60"
       >
         {pending ? "Setting up your demo…" : "Try the demo"}
       </button>

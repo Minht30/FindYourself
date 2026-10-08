@@ -171,7 +171,7 @@ export default function CategoriesEditor({
                   aria-label={`Move ${c.name} up`}
                   disabled={i === 0 || pending}
                   onClick={() => move(i, "up")}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-secondary"
                 >
                   <ArrowUp size={15} />
                 </button>
@@ -180,7 +180,7 @@ export default function CategoriesEditor({
                   aria-label={`Move ${c.name} down`}
                   disabled={i === items.length - 1 || pending}
                   onClick={() => move(i, "down")}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-secondary"
                 >
                   <ArrowDown size={15} />
                 </button>
@@ -195,7 +195,7 @@ export default function CategoriesEditor({
                     setMoveTo("");
                     setProblem(null);
                   }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft disabled:opacity-30 disabled:hover:bg-transparent"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-secondary"
                 >
                   <Trash2 size={15} />
                 </button>

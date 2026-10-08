@@ -61,7 +61,7 @@ function PickRow({ pick, isAdmin }: { pick: CommunityPick; isAdmin: boolean }) {
             disabled={pending}
             onClick={remove}
             aria-label={`Remove ${pick.title} from the community picks`}
-            className="rounded-full border border-[var(--border-strong)] px-3 py-0.5 text-xs hover:bg-accent-soft"
+            className="rounded-full border border-[var(--border-strong)] px-3 py-0.5 text-xs hover:bg-accent-soft hover:text-cat-ink"
           >
             Remove
           </button>
@@ -146,7 +146,7 @@ function ReviewRow({ s }: { s: PendingSuggestion }) {
           data-testid="review-reject"
           disabled={pending}
           onClick={() => review("reject")}
-          className="rounded-full border border-[var(--border-strong)] px-4 py-1.5 text-sm hover:bg-accent-soft"
+          className="rounded-full border border-[var(--border-strong)] px-4 py-1.5 text-sm hover:bg-accent-soft hover:text-cat-ink"
         >
           Reject
         </button>

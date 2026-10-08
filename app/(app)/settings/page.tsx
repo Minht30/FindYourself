@@ -3,10 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import CategoriesEditor, { type CategoryUsage, type EditableCategory } from "@/components/settings/CategoriesEditor";
 import FocusGoalSelect from "@/components/motivation/FocusGoalSelect";
+import AppearanceCard from "@/components/settings/AppearanceCard";
 import DeleteAccount from "@/components/settings/DeleteAccount";
 import TimeZoneSetting from "@/components/settings/TimeZoneSetting";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeFocusGoal } from "@/lib/rings";
+import { DEFAULT_THEME_PREFS, parseThemePrefs } from "@/lib/theme";
 
 export const metadata: Metadata = { title: "Settings — FindYourself" };
 export const dynamic = "force-dynamic";
@@ -30,10 +32,12 @@ export default async function SettingsPage() {
   if (!user) redirect("/login?next=/settings");
 
   const [{ data: profile }, { data: cats }, { data: usageRows }] = await Promise.all([
-    supabase.from("profiles").select("timezone, timezone_manual, daily_focus_goal_minutes").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("timezone, timezone_manual, daily_focus_goal_minutes, theme_mode, day_region, night_region").eq("id", user.id).maybeSingle(),
     supabase.from("categories").select("id, name, color").eq("user_id", user.id).order("sort_order").returns<EditableCategory[]>(),
     supabase.rpc("category_usage"),
   ]);
+
+  const themeParsed = parseThemePrefs({ mode: profile?.theme_mode, dayRegion: profile?.day_region, nightRegion: profile?.night_region });
 
   const usage: CategoryUsage = {};
   for (const r of (usageRows ?? []) as { category_id: string; blocks: number | string; tasks: number | string }[]) {
@@ -44,7 +48,7 @@ export default async function SettingsPage() {
     <div className="mx-auto max-w-2xl space-y-5 pb-10 font-ui">
       <header>
         <h1 className="font-display text-3xl">Settings</h1>
-        <p className="text-ink-secondary text-[15px] mt-1">Your account, your day and your categories.</p>
+        <p className="text-ink-secondary text-[15px] mt-1">Your account, how it looks, your day and your categories.</p>
       </header>
 
       <Section id="account" title="Account">
@@ -54,6 +58,10 @@ export default async function SettingsPage() {
             {user.email}
           </dd>
         </dl>
+      </Section>
+
+      <Section id="appearance" title="Appearance">
+        <AppearanceCard saved={themeParsed.ok ? themeParsed.prefs : DEFAULT_THEME_PREFS} />
       </Section>
 
       <Section id="timezone" title="Time zone">

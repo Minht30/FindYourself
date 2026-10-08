@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Settings } from "lucide-react";
+import { Menu, Moon, Settings, Sun } from "lucide-react";
 import TimerChip from "@/components/focus/TimerChip";
 import SoundButton from "@/components/mixer/SoundButton";
 import ClockLabel from "./ClockLabel";
@@ -95,8 +95,15 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         <Settings size={16} />
       </Link>
 
-      <button onClick={toggleTheme} className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:border-accent transition">
-        <span>{isNight ? "🌃" : "☀️"}</span>
+      {/* The scene showing now; one click fixes the opposite mode (Settings -> Appearance puts it back to Auto) */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={`${THEME_LABELS[theme]}, ${isNight ? "night" : "day"}. Switch to ${isNight ? "day" : "night"}.`}
+        title={`Switch to ${isNight ? "day" : "night"}`}
+        className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+      >
+        {isNight ? <Moon size={15} aria-hidden /> : <Sun size={15} aria-hidden />}
         <span className="hidden md:inline">{THEME_LABELS[theme]}</span>
       </button>
     </header>

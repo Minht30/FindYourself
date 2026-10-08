@@ -257,7 +257,7 @@ function TrackRow({ track }: { track: Track }) {
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft"
+              className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft hover:text-cat-ink"
             >
               Rename
             </button>

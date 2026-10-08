@@ -191,7 +191,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft"
+              className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft hover:text-cat-ink"
             >
               Rename
             </button>
@@ -240,7 +240,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
                   type="button"
                   aria-label={`Play ${t.title} from ${playlist.name}`}
                   onClick={() => play(id)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft"
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft hover:text-cat-ink"
                 >
                   <Play size={13} />
                 </button>
@@ -249,7 +249,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
                   aria-label={`Move ${t.title} up`}
                   disabled={pending || i === 0}
                   onClick={() => void move(i, "up")}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft disabled:opacity-30"
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30"
                 >
                   <ArrowUp size={14} />
                 </button>
@@ -258,7 +258,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
                   aria-label={`Move ${t.title} down`}
                   disabled={pending || i === playlist.trackIds.length - 1}
                   onClick={() => void move(i, "down")}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft disabled:opacity-30"
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30"
                 >
                   <ArrowDown size={14} />
                 </button>
@@ -267,7 +267,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
                   aria-label={`Remove ${t.title} from ${playlist.name}`}
                   disabled={pending}
                   onClick={() => void run(() => removeFromPlaylist({ playlistId: playlist.id, trackId: id }))}
-                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft disabled:opacity-30"
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-soft hover:text-cat-ink disabled:opacity-30"
                 >
                   <X size={14} />
                 </button>
@@ -303,7 +303,7 @@ function PlaylistCard({ playlist }: { playlist: Playlist }) {
               </option>
             ))}
           </select>
-          <button type="submit" disabled={pending || !adding} className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft disabled:opacity-40">
+          <button type="submit" disabled={pending || !adding} className="rounded-full border border-[var(--border-strong)] px-3 py-1 text-xs hover:bg-accent-soft hover:text-cat-ink disabled:opacity-40">
             Add
           </button>
         </form>

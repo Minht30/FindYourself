@@ -15,6 +15,7 @@ export const STORED_ITEMS: readonly StoredItem[] = [
   { key: "fy-tz", kind: "cookie", what: "Your time zone, so the server knows which day it is for you." },
   { key: "fy-tz-manual", kind: "cookie", what: "Only if you pick your own time zone in Settings: the zone you chose." },
   { key: "fy-tasks-drawer", kind: "cookie", what: "Whether the task drawer is open." },
+  { key: "fy-sidebar", kind: "cookie", what: "Whether you folded the sidebar into a slim strip of icons." },
   { key: "fy-theme-pref", kind: "cookie", what: "Your appearance choice: Day, Night or Auto, and the region you picked for each." },
   { key: "fy-theme", kind: "cookie", what: "The scene showing right now (day or night), so the page is painted in the right one before it loads." },
   { key: "fy-mixer", kind: "device storage", what: "Your ambient sound mix, so it is there before you sign in." },

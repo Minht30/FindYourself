@@ -1,4 +1,7 @@
 import { Suspense } from "react";
+import { cookies } from "next/headers";
+import ShellGrid from "@/components/layout/ShellGrid";
+import { SIDEBAR_COOKIE, parseSidebarCollapsed } from "@/lib/sidebar";
 import TopBar from "@/components/layout/TopBar";
 import Sidebar from "@/components/layout/Sidebar";
 import FocusFirstSlot from "@/components/tasks/FocusFirstSlot";
@@ -74,7 +77,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <WallpaperStage initial={theme} />
         <PreloadWallpaper theme={theme} />
         <ZoneProvider zone={getUserTimeZone()}>
-        <NavProvider>
+        <NavProvider initialCollapsed={parseSidebarCollapsed(cookies().get(SIDEBAR_COOKIE)?.value)}>
         <div className="min-h-screen flex flex-col">
           {/* TopBar reads searchParams for its week-nav arrows; Suspense keeps
               the surrounding shell static-renderable in Next.js 14. */}
@@ -88,10 +91,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             />
           </Suspense>
           {guest ? <DemoBanner /> : null}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3 p-3 min-h-0">
+          <ShellGrid>
             <Sidebar />
             <main className="overflow-auto p-1 md:p-0 min-w-0">{children}</main>
-          </div>
+          </ShellGrid>
           {/* Sticks to the bottom of the window and takes its own space at the end
               of the page, so it never covers a page's own controls */}
           <MiniPlayer />

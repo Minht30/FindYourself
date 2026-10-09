@@ -10,5 +10,5 @@ export const PHONE_MAX_WIDTH = 767;
 
 export const WALLPAPERS: Record<ThemeName, Wallpaper> = {
   monstadt: { src: "/assets/world/Monstadt_Day/monstadt-day.webp" },
-  "nodkrai-night": { src: "/assets/world/NodKrai_Night/nodkrai-night.webp", phoneSrc: "/assets/world/NodKrai_Night/nodkrai-night-960.webp" },
+  "nodkrai-night": { src: "/assets/world/NodKrai_Night/nodkrai-night.webp", phoneSrc: "/assets/world/NodKrai_Night/nodkrai-night-1600.webp" },
 };

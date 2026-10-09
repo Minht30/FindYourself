@@ -1904,3 +1904,13 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 **Not done / open:** sharper wallpapers (both; Monstadt is a 1623 x 640 stand-in); Liyue and Natlan; wind recordings; image credits and whether to keep the game place names; a screen-reader pass over the Appearance card; Minh's hands-on test; merging the branch into `main` (not done: needs Minh).
 
 ---
+
+## 2026-10-09 - Session 72: sharper art
+
+**Minh asked** for the blurry and stretched pictures to be sharpened. **Measured first** (in the running app at 1440 x 900, how large each picture is drawn compared with its own pixels): the Monstadt wallpaper was drawn x1.42 its size (stretched and soft); every other picture was drawn smaller than its pixels, so enlarging those would not help on a normal screen.
+
+**Changed:** the Monstadt wallpaper is now 3652 x 1440 (was 1623 x 640; same shape, so the scene coordinates did not change), made with Real-ESRGAN (`realesrgan-x4plus-anime`, 4x, then Lanczos down; chosen over the general model by eye) and saved at the highest WebP quality under the 600 KB per-file test (562 KB). Where a larger original already existed it was used instead of inventing detail: the aurora (1669 x 870, with lossy alpha to keep it near 100 KB), the frost flower (976 x 1124), the fan-flower head (420 x 420). The day cloud was upscaled to 1400 x 956 (colour and transparency done separately: the tool tiles an image that has an alpha channel). The Nod-Krai phone picture is now 1600 x 900 taken from the 2560 picture (was 960 x 540, which a phone drew at up to x4.8); the file is renamed `nodkrai-night-1600.webp` and the stylesheet and `lib/wallpapers.ts` follow. After: the Monstadt wallpaper is drawn at x0.63 (sharp on screens up to about 1.6x pixel density). Public assets total 2.02 MB (limit 2.5 MB). 881 tests, typecheck and lint pass.
+
+**Not changed:** the night wallpaper (2560 x 1440, drawn at x0.64), the night clouds, the small flower icons and the thumbnails (all drawn smaller than their pixels). **Limits:** an upscaler invents plausible detail; the Monstadt painting is still 2.5 : 1 (a true 16:9 needs a new generation). Performance on the landing page on a phone was not re-measured (the day picture is 562 KB instead of 234 KB; the budget decision is Minh's).
+
+---

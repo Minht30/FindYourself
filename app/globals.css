@@ -192,7 +192,7 @@ body {
 }
 @media (max-width: 767px) {
   .wp-layer[data-wp="nodkrai-night"][data-seen] {
-    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp");
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1600.webp");
   }
 }
 :root[data-theme="monstadt"] .wp-layer[data-wp="monstadt"][data-seen],
@@ -540,7 +540,7 @@ body:has([data-restriction-active]) .wp-layer {
 .ps-root[data-scene="monstadt"] .ps-wall { background-image: url("/assets/world/Monstadt_Day/monstadt-day.webp"); }
 .ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night.webp"); }
 @media (max-width: 767px) {
-  .ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp"); }
+  .ps-root[data-scene="nodkrai-night"] .ps-wall { background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1600.webp"); }
 }
 .ps-abs { position: absolute; pointer-events: none; }
 .ps-vignette { position: absolute; inset: 0; pointer-events: none; }
@@ -639,7 +639,7 @@ body:has([data-restriction-active]) .wp-layer {
 }
 @media (max-width: 767px) {
   :root[data-theme="nodkrai-night"] .hero-bg {
-    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-960.webp");
+    background-image: url("/assets/world/NodKrai_Night/nodkrai-night-1600.webp");
     background-position: 90% 50%;
   }
 }

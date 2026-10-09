@@ -178,7 +178,7 @@ Minh's plan (2026-10-05): **Stage 1** = all core functions (Phases 1-9 functiona
 - [x] "Darken when restricted" (the veil over the painting); decorated mini-month and the decoration-zones brainstorm were superseded by the painted stage
 - [x] Landing page final design and copy
 - [x] Review loop: coded on `design/stage2-themes` in nine tested steps, each checked in a browser (the record is `docs/THEME_HANDOFF.md`)
-- [ ] Open: sharper wallpapers (both; Monstadt is a stand-in), Liyue and Natlan, wind recordings and a sound settings panel, image credits and region naming, a screen-reader pass over the Appearance card, a hands-on test by Minh, merging `design/stage2-themes` into `main`
+- [ ] Open: sharper wallpapers (both; Monstadt is a stand-in), Liyue and Natlan, wind recordings and a sound settings panel, image credits and region naming, a screen-reader pass over the Appearance card, a hands-on test by Minh. `design/stage2-themes` was merged into `main` on 2026-10-08
 
 Phase 9's design-polish items (decoration zones, landing page, block / palette polish) fold into this stage instead of being done twice.
 

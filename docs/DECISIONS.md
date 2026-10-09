@@ -1914,3 +1914,15 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 **Not changed:** the night wallpaper (2560 x 1440, drawn at x0.64), the night clouds, the small flower icons and the thumbnails (all drawn smaller than their pixels). **Limits:** an upscaler invents plausible detail; the Monstadt painting is still 2.5 : 1 (a true 16:9 needs a new generation). Performance on the landing page on a phone was not re-measured (the day picture is 562 KB instead of 234 KB; the budget decision is Minh's).
 
 ---
+
+## 2026-10-09 - Session 73: Nod-Krai framing on very wide windows
+
+**Minh showed** the Chill page at about 2000 x 713 (2.8 : 1): the Nod-Krai painting was badly framed. **Cause (measured):** the painting is 16 : 9 and is zoomed to fill the width, then centred, so on a window that wide only the middle 62 % shows (the picture sat 212 px above the top edge): the moon was cut off entirely (centred, it leaves the screen from about 2.2 : 1), and the tower and lake were cropped.
+
+**Fix:** the wider the window, the higher the painting is pinned. `NIGHT_FRAMING` in `lib/scene/stage.ts` (seven steps from 2.0 : 1, pin 0.39, to 3.4 : 1, pin 0.10) is chosen so the moon always lands about 45 painting-px below the top of what is shown. The plain wallpaper behind the other pages and the landing hero use the same numbers through `--night-y` in `app/globals.css` (media queries on the window's aspect ratio), so the picture does not jump when you move between pages. Ordinary shapes (16 : 9, laptop, phone) are unchanged (pin 0.5). Tests: the moon stays in view for every shape from 1:2 to 4:1, the pin never goes down as the window widens, and the stylesheet's steps equal `NIGHT_FRAMING`. At 2.8 : 1 the picture now sits 64 px above the top edge instead of 212 px.
+
+**Cost:** on a window wider than about 2.3 : 1 the bottom of the painting (the lake and the lamp) is cropped; that is unavoidable without shrinking the painting. **Not changed (noticed):** on a phone the plain wallpaper is centred while the scene pins the painting to the right (0.9), so it can shift when you move between a scene page and another page.
+
+**Process note:** two sessions work in the same folder; a commit made while the other session had a branch checked out lands on that branch (it happened twice). Work on a branch in a separate worktree.
+
+---

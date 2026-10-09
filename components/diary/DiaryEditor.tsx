@@ -146,7 +146,7 @@ export default function DiaryEditor({
     shouldRerenderOnTransaction: false,
     editorProps: {
       attributes: {
-        class: "diary-prose min-h-[280px] focus:outline-none",
+        class: "diary-prose diary-min focus:outline-none",
         "aria-label": "Diary entry",
         "aria-multiline": "true",
         role: "textbox",
@@ -257,7 +257,7 @@ export default function DiaryEditor({
         <EditorContent editor={editor} />
       ) : (
         // Same footprint as the editor so the card doesn't jump on hydrate.
-        <div className="min-h-[280px]" aria-hidden />
+        <div className="diary-min" aria-hidden />
       )}
       <div className="flex items-center justify-between gap-3 pt-3 border-t border-[var(--border)] font-ui text-xs text-ink-muted">
         <span className="hidden sm:inline">

@@ -44,7 +44,7 @@ export default function MoodPicker({ date, initialMood }: Props) {
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
-      <span id={`mood-label-${date}`} className="font-ui text-xs uppercase tracking-wider text-ink-muted">
+      <span id={`mood-label-${date}`} className="font-ui text-xs min-[1400px]:text-sm uppercase tracking-wider text-ink-muted">
         Mood
       </span>
       <div role="group" aria-labelledby={`mood-label-${date}`} className="flex flex-wrap gap-2">
@@ -57,7 +57,7 @@ export default function MoodPicker({ date, initialMood }: Props) {
               aria-pressed={active}
               title={active ? `${m.label} (click again to clear)` : m.label}
               onClick={() => choose(m.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-ui text-sm transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 min-[1400px]:px-4 min-[1400px]:py-2 rounded-full border font-ui text-sm min-[1400px]:text-base transition ${
                 active
                   ? "bg-accent-soft border-accent text-cat-ink shadow-glow"
                   : "border-[var(--border-strong)] text-ink-secondary hover:bg-accent-soft/60 hover:text-cat-ink hover:border-accent/60"

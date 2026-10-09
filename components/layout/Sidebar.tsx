@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Calendar, BookOpen, Timer, Music, Settings, LogOut } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import MiniMixer from "@/components/mixer/MiniMixer";
-import { categoryColor } from "@/lib/categories";
 import MiniMonth from "./MiniMonth";
 import { useNav } from "./NavContext";
 
@@ -18,9 +17,7 @@ const PAGES = [
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
-export type SidebarCategory = { id: string; name: string; color: string };
-
-export default function Sidebar({ categories }: { categories: SidebarCategory[] }) {
+export default function Sidebar() {
   const pathname = usePathname();
   const { open, close } = useNav();
 
@@ -60,21 +57,6 @@ export default function Sidebar({ categories }: { categories: SidebarCategory[] 
       <Suspense fallback={<div aria-hidden className="h-[236px]" />}>
         <MiniMonth />
       </Suspense>
-
-      <div className="flex items-center justify-between px-2">
-        <div className="text-[11px] font-ui font-semibold text-ink-muted uppercase tracking-wider">My categories</div>
-        <Link href="/settings#categories" className="text-[11px] font-ui text-ink-muted hover:text-ink-primary underline-offset-4 hover:underline">
-          Edit
-        </Link>
-      </div>
-      <div className="flex flex-col gap-0.5 -mt-3">
-        {categories.map((c) => (
-          <div key={c.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded text-sm font-ui text-ink-primary hover:bg-bg-alt">
-            <span className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: categoryColor(c) }} />
-            <span className="truncate">{c.name}</span>
-          </div>
-        ))}
-      </div>
 
       <MiniMixer />
 

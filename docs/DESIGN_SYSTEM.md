@@ -116,7 +116,7 @@ Line height 1.55 for body, 1.2 for headings.
 
 ## 9. Components
 
-**Shell:** TopBar (clock, Today, timer chip, Focus-first chip, sound, theme chip), Sidebar (pages, month, categories, mini mixer), MiniPlayer, WallpaperStage, ThemeClock, ThemeSync.
+**Shell:** TopBar (clock, Today, timer chip, Focus-first chip, sound, theme chip), Sidebar (pages, month, mini mixer; categories are managed in Settings only), MiniPlayer, WallpaperStage, ThemeClock, ThemeSync.
 
 **Timetable:** WeekGrid, TimeBlock, BlockPopover, MiniMonth. **Tasks:** TaskBoard, TasksShell, FocusFirstChip. **Diary:** DiaryEditor (Tiptap), MoodPicker, EntryHeatmap.
 

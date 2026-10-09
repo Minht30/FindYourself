@@ -71,10 +71,10 @@ export default async function DiaryDayPage({ params }: Props) {
   const next = shiftISODate(date, 1);
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="diary-page max-w-4xl min-[1400px]:max-w-6xl min-[1900px]:max-w-[84rem] space-y-6">
       <div className="plate flex items-baseline gap-4 flex-wrap">
-        <h1 className="font-display text-3xl">Diary</h1>
-        <span className="font-mono text-sm text-ink-muted">{formatLongDate(date)}</span>
+        <h1 className="font-display text-3xl min-[1400px]:text-4xl">Diary</h1>
+        <span className="font-mono text-sm min-[1400px]:text-base text-ink-muted">{formatLongDate(date)}</span>
         <nav aria-label="Day navigation" className="ml-auto flex items-center gap-2 font-ui text-sm">
           <Link href={`/diary/${prev}`} className={pill} aria-label="Previous day">
             ‹ Prev
@@ -101,7 +101,7 @@ export default async function DiaryDayPage({ params }: Props) {
         </nav>
       </div>
 
-      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-6 md:p-8 min-h-[320px]">
+      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-6 md:p-8 min-[1400px]:p-10 min-h-[320px]">
         {error ? (
           <p role="alert" className="font-ui text-sm text-ink-secondary">
             Couldn&apos;t load this day&apos;s entry. Try refreshing.
@@ -128,7 +128,7 @@ export default async function DiaryDayPage({ params }: Props) {
         )}
       </section>
 
-      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 md:p-6">
+      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 md:p-6 min-[1400px]:p-8">
         <EntryHeatmap today={today} selected={date} entries={heatmap} />
       </section>
     </div>

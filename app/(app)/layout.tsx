@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     data: { user },
   } = await supabase.auth.getUser();
   const guest = isGuest(user);
-  const [layers, saved, music, lists, profile, cats] = await Promise.all([
+  const [layers, saved, music, lists, profile] = await Promise.all([
     supabase.from("ambient_layers").select("key, label, kind, default_level, sort_order"),
     // The mix this user left (RLS returns only their own row, or none).
     supabase.from("mixer_state").select("levels, master_volume, muted, current_track_id").maybeSingle(),
@@ -40,8 +40,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     supabase.from("playlists").select("id, name, playlist_tracks(track_id, position)").order("created_at"),
     // The zone the database counts days in (the streak); kept equal to the browser's.
     supabase.from("profiles").select("timezone, timezone_manual, theme_mode, day_region, night_region").maybeSingle(),
-    // The categories the sidebar lists (RLS: own rows only, in the person's order).
-    supabase.from("categories").select("id, name, color").order("sort_order"),
   ]);
   const tracks = (music.data ?? []).map(toTrack);
   const known = new Set(tracks.map((t) => t.id));
@@ -91,7 +89,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Suspense>
           {guest ? <DemoBanner /> : null}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-3 p-3 min-h-0">
-            <Sidebar categories={cats.data ?? []} />
+            <Sidebar />
             <main className="overflow-auto p-1 md:p-0 min-w-0">{children}</main>
           </div>
           {/* Sticks to the bottom of the window and takes its own space at the end

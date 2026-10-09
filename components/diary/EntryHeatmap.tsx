@@ -14,6 +14,10 @@ type Props = {
 };
 
 const WEEKS = 53;
+// The year grid: a label column, then one column per week. It stretches to the
+// card, and below 720 px it keeps a floor of 10 px a square and scrolls instead.
+const GRID_WIDTH = "min-w-[720px]";
+const GRID_ROW = `${GRID_WIDTH} grid grid-cols-[28px_repeat(53,minmax(0,1fr))] min-[1400px]:grid-cols-[36px_repeat(53,minmax(0,1fr))] gap-[3px]`;
 const WEEKDAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", ""];
 const MONTH_FMT = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" });
 
@@ -101,22 +105,22 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
-        <h2 className="font-display text-xl">Your year in pages</h2>
-        <span className="font-mono text-xs text-ink-muted">
+        <h2 className="font-display text-xl min-[1400px]:text-2xl">Your year in pages</h2>
+        <span className="font-mono text-xs min-[1400px]:text-sm text-ink-muted">
           {written === 0
             ? "No pages yet. Your first entry will colour the first square."
             : `${written} ${written === 1 ? "day" : "days"} written in the last 12 months`}
         </span>
       </div>
 
-      <div ref={scroller} className="overflow-x-auto pb-1">
+      <div ref={scroller} className="overflow-x-auto pb-1 pr-8">
         {/* Month labels (decorative; every cell carries its full date). */}
-        <div aria-hidden className="flex w-max gap-[3px] mb-[3px]">
-          <span className="w-[28px] shrink-0" />
+        <div aria-hidden className={`${GRID_ROW} mb-[3px]`}>
+          <span />
           {weekStarts.map((ws, w) => (
-            <span key={ws} className="relative w-[10px] h-4 shrink-0">
+            <span key={ws} className="relative h-4 min-[1400px]:h-5">
               {monthLabels[w] && (
-                <span className="absolute left-0 bottom-0 font-mono text-[10px] text-ink-muted whitespace-nowrap">
+                <span className="absolute left-0 bottom-0 font-mono text-[10px] min-[1400px]:text-xs text-ink-muted whitespace-nowrap">
                   {monthLabels[w]}
                 </span>
               )}
@@ -128,24 +132,24 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
           role="grid"
           aria-label="Diary entries over the last 12 months"
           onKeyDown={onKeyDown}
-          className="flex w-max flex-col gap-[3px]"
+          className={`${GRID_WIDTH} flex flex-col gap-[3px]`}
         >
           {WEEKDAY_LABELS.map((label, d) => (
-            <div key={d} role="row" className="flex gap-[3px]">
-              <span aria-hidden className="w-[28px] shrink-0 font-mono text-[10px] leading-[10px] text-ink-muted">
+            <div key={d} role="row" className={GRID_ROW}>
+              <span aria-hidden className="self-center font-mono text-[10px] min-[1400px]:text-xs text-ink-muted">
                 {label}
               </span>
               {weekStarts.map((ws) => {
                 const date = shiftISODate(ws, d);
                 if (date > today) {
-                  return <span key={date} role="gridcell" aria-hidden className="w-[10px] h-[10px] shrink-0" />;
+                  return <span key={date} role="gridcell" aria-hidden />;
                 }
                 const day = entries[date];
                 const lvl = level(day?.chars ?? 0);
                 const isSelected = date === selected;
                 const label = describe(date, day);
                 return (
-                  <span key={date} role="gridcell" aria-selected={isSelected} className="shrink-0">
+                  <span key={date} role="gridcell" aria-selected={isSelected}>
                     <Link
                       ref={(el) => {
                         if (el) cells.current.set(date, el);
@@ -157,7 +161,7 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
                       onFocus={() => setFocusDate(date)}
                       aria-label={label}
                       title={label}
-                      className={`block w-[10px] h-[10px] rounded-[3px] transition hover:scale-125 ${
+                      className={`block w-full aspect-square rounded-[3px] min-[1400px]:rounded-[4px] transition hover:scale-110 ${
                         lvl === 0 ? "border border-[var(--border)]" : ""
                       } ${
                         isSelected
@@ -176,12 +180,12 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-1.5 font-mono text-[10px] text-ink-muted" aria-hidden>
+      <div className="flex items-center justify-end gap-1.5 font-mono text-[10px] min-[1400px]:text-xs text-ink-muted" aria-hidden>
         <span className="mr-1">Less</span>
         {LEVEL_BG.map((bg, i) => (
           <span
             key={i}
-            className={`w-[10px] h-[10px] rounded-[3px] ${i === 0 ? "border border-[var(--border)]" : ""}`}
+            className={`w-[10px] h-[10px] min-[1400px]:w-[14px] min-[1400px]:h-[14px] rounded-[3px] ${i === 0 ? "border border-[var(--border)]" : ""}`}
             style={{ background: bg }}
           />
         ))}

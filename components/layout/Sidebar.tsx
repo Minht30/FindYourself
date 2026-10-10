@@ -3,9 +3,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BookOpen, Timer, Music, Settings, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Calendar, BookOpen, Timer, Music, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Flower2, Leaf, Moon, Tag, Users } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import MiniMixer from "@/components/mixer/MiniMixer";
+import { categoryColor } from "@/lib/categories";
+import { categoryIconKey, type CategoryIconKey } from "@/lib/categoryIcons";
 import MiniMonth from "./MiniMonth";
 import { useNav } from "./NavContext";
 
@@ -17,14 +19,23 @@ const PAGES = [
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
+export type SidebarCategory = { id: string; name: string; color: string };
+
+const CATEGORY_ICONS: Record<CategoryIconKey, typeof Leaf> = { leaf: Leaf, people: Users, book: BookOpen, moon: Moon, flower: Flower2, tag: Tag };
+
+// The categories list belongs to the pages that work with blocks: the Timetable and Focus. Chill,
+// the Diary and Settings (where categories are edited) do not show it.
+const SHOWS_CATEGORIES = ["/today", "/focus"];
+
 // On a desktop the person can fold the sidebar into a slim rail of icons (the
 // wallpaper gets the room). Everything stays mounted, only hidden, so the mini
 // mixer and the month keep their state. Phones never fold: there it is a drawer.
-export default function Sidebar() {
+export default function Sidebar({ categories }: { categories: SidebarCategory[] }) {
   const pathname = usePathname();
   const { open, close, collapsed, toggleCollapsed } = useNav();
   // Applies to the folded desktop rail only (the `md:` prefix keeps the phone drawer whole).
   const hideInRail = collapsed ? "md:hidden" : "";
+  const showCategories = SHOWS_CATEGORIES.some((p) => pathname === p || pathname?.startsWith(p + "/"));
 
   return (
     <>
@@ -98,6 +109,30 @@ export default function Sidebar() {
             <MiniMonth />
           </Suspense>
         </div>
+
+        {showCategories && categories.length > 0 ? (
+          <section aria-label="My categories" data-testid="sidebar-categories" className={`font-ui ${hideInRail}`}>
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">My categories</h2>
+              <Link href="/settings#categories" className="text-[11px] text-ink-muted hover:text-ink-primary underline-offset-4 hover:underline">
+                Edit
+              </Link>
+            </div>
+            <ul className="mt-1.5 flex flex-col gap-0.5">
+              {categories.map((c) => {
+                const Icon = CATEGORY_ICONS[categoryIconKey(c)];
+                return (
+                  <li key={c.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-sm text-ink-primary hover:bg-bg-alt">
+                    <span className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-cat-ink" style={{ background: categoryColor(c) }}>
+                      <Icon size={11} strokeWidth={2} aria-hidden />
+                    </span>
+                    <span className="truncate">{c.name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
 
         <div className={hideInRail}>
           <MiniMixer />

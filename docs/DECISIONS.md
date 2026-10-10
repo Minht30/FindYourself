@@ -1958,3 +1958,5 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 - **Marcellus** is loaded for Nod-Krai's headings, logo and navigation through `--font-heading` (Lora by day); numbers stay in Lora.
 - **`--bg-window`** (the Chill and scene background) is pale blue by day (was butter yellow). The "meeting" category stays its yellow pastel, as it is in the Figma frames.
 - **Landing page screenshots retaken** in the new style (six 720 x 455 WebP files, 30 to 56 KB each), from the test account with temporary demo content (removed afterwards).
+
+**Session 74 (e): the sidebar categories list is back, on some pages only.** Minh wanted the "My categories" list (it was dropped everywhere in `2288920`) on the Timetable and Focus pages and gone on Chill, the Diary and Settings. `Sidebar` takes the categories again (the layout re-reads them) and `SHOWS_CATEGORIES = ["/today", "/focus"]` decides. Each row is the category's colour with its Timetable icon; "Edit" goes to Settings -> Categories. Hidden in the folded rail. Focus is included because only Chill, Diary and Settings were named as dropped: say if Focus should drop it too.

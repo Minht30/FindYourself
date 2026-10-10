@@ -61,7 +61,7 @@ export default function MiniPlayer() {
             type="button"
             data-testid="mp-start"
             onClick={() => playList(tracks.map((t) => t.id), null, LIBRARY)}
-            className="inline-flex items-center gap-2 rounded-full bg-accent text-cat-ink font-ui font-semibold text-sm px-4 py-2 shadow-glow hover:bg-accent-soft transition"
+            className="btn-primary inline-flex items-center gap-2 rounded-full font-ui font-semibold text-sm px-4 py-2"
           >
             <Play size={15} />
             Play my music
@@ -79,7 +79,7 @@ export default function MiniPlayer() {
               data-testid="mp-play"
               aria-label={playing ? "Pause music" : "Play music"}
               onClick={togglePlay}
-              className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center bg-accent text-cat-ink shadow-glow hover:bg-accent-soft transition"
+              className="btn-primary shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
             >
               {playing ? <Pause size={18} /> : <Play size={18} />}
             </button>

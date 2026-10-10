@@ -189,7 +189,7 @@ export default function TimerCard({ linkSlot }: { linkSlot?: ReactNode }) {
         <button
           type="button"
           onClick={toggle}
-          className="min-w-[168px] h-12 px-6 rounded-full bg-accent text-cat-ink font-ui font-semibold text-[15px] shadow-glow hover:brightness-105 active:translate-y-px transition flex items-center justify-center gap-2"
+          className="btn-primary min-w-[168px] h-12 px-6 rounded-full font-ui font-semibold text-[15px] active:translate-y-px flex items-center justify-center gap-2"
         >
           {running ? <Pause size={18} /> : <Play size={18} />}
           {running ? "Pause" : startLabel}

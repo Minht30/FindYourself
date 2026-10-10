@@ -21,10 +21,12 @@
   --ink-secondary: #3A5368;
   --ink-muted: #42586B;
 
-  --accent: #F7CF78;
-  --accent-soft: #F9E3AB;
-  --accent-strong: #8C5A00;
-  --accent-line: rgba(247, 207, 120, 0.6);
+  /* No yellow in Monstadt: the accent is the sky (buttons, rings, the year map ramp), the soft accent
+     the pale blue of the active page, the strong accent a deep blue that reads as text and as a focus ring. */
+  --accent: #7DB4DE;
+  --accent-soft: #CFE1E6;
+  --accent-strong: #24527C;
+  --accent-line: rgba(79, 144, 200, 0.6);
 
   --cat-deep: #CCDFBD;
   --cat-meeting: #FDE6B2;
@@ -47,7 +49,7 @@
   --border-strong: rgba(122, 98, 56, 0.38);
   /* Opaque, for form fields: WCAG 1.4.11 asks 3:1 and --border is far below it. */
   --border-input: #857052;
-  --glow: 0 0 24px rgba(247, 207, 120, 0.4);
+  --glow: 0 0 20px rgba(79, 144, 200, 0.35);
   --shadow-card: 0 2px 8px rgba(30, 56, 79, 0.06), 0 8px 24px rgba(30, 56, 79, 0.08);
 
   /* Diary year map: steps 1 to 3 (step 4 is --heat-max). Day mixes the accent
@@ -69,7 +71,7 @@
      alpha and the blur to the text colours). The frame pieces and the watermark are pictures
      named here; a piece set to "none" with size 0 is simply not drawn. Monstadt: cream paper,
      a silver-blue hairline with a faint second line, a small sparkle in each corner, a wind-rose
-     in the foot. Figma has this paper at 78 %; the brown accent text needs 90 % or more. */
+     in the foot. Figma has this paper at 78 %; the muted ink needs 81 % and the red (danger) text 89 %. */
   --paper-top: #FCF9F0;
   --paper-bottom: #FAF6EA;
   --paper-a: 92%;
@@ -131,6 +133,10 @@
   --nav-radius: 999px;
   --nav-shape: none;
   --nav-mark-img: url("/assets/ui/frame/monstadt-sparkle.svg");
+  --primary-from: #8EC0E8;
+  --primary-to: #6AA6D6;
+  --primary-rim: #4A86B8;
+  --primary-shadow: 0 2px 5px rgba(36, 82, 124, 0.35);
   --logo-ink: #24527C;
   --today-bg: #3578B0;
   --today-ink: #FFFFFF;
@@ -151,10 +157,12 @@
   --ink-secondary: #C2D2F2;
   --ink-muted: #A8BAE0;
 
-  --accent: #F4D03F;
-  --accent-soft: #FFE9A0;
-  --accent-strong: #F4D03F;
-  --accent-line: rgba(244, 208, 63, 0.6);
+  /* The accent is indigo, as in the design (the moon yellow stays for warnings only): buttons are
+     the periwinkle, the strong accent the lighter one that reads on the dark room. */
+  --accent: #7B98FF;
+  --accent-soft: #A9BEFF;
+  --accent-strong: #9FB6FF;
+  --accent-line: rgba(123, 152, 255, 0.6);
 
   --cat-deep: #8CC0FF;
   --cat-meeting: #F4D58A;
@@ -175,7 +183,7 @@
   --border: rgba(234, 242, 255, 0.14);
   --border-strong: rgba(234, 242, 255, 0.26);
   --border-input: #7088CC;
-  --glow: 0 0 20px rgba(244, 208, 63, 0.4), 0 0 40px rgba(244, 208, 63, 0.15);
+  --glow: 0 0 20px rgba(123, 152, 255, 0.45), 0 0 40px rgba(123, 152, 255, 0.15);
   --shadow-card: 0 4px 24px rgba(3, 6, 30, 0.55), inset 0 1px 0 rgba(234, 242, 255, 0.05);
 
   /* Dim to moon yellow; step 1 is about 3:1 against the panel, so it stays
@@ -183,7 +191,7 @@
   --heat-1: #4466B0;
   --heat-2: #6C93D8;
   --heat-3: #8CC0FF;
-  --heat-max: #FFE9A0;
+  --heat-max: #D6E0FF;
 
   /* Panels: light frost paper in the moon frame (Figma "Theme styles"). One scale, --fs, sizes
      every frame piece (the pieces are stored at 0.72 of the original and shown at 0.36). The
@@ -250,6 +258,10 @@
   --nav-radius: 0px;
   --nav-shape: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
   --nav-mark-img: url("/assets/ui/frame/nodkrai-sparkle.svg");
+  --primary-from: #A9BEFF;
+  --primary-to: #7B98FF;
+  --primary-rim: #5F7FE8;
+  --primary-shadow: 0 2px 8px rgba(123, 152, 255, 0.45);
   --logo-ink: #FFFFFF;
   --today-bg: #4A68E0;
   --today-ink: #FFFFFF;
@@ -420,6 +432,17 @@ body {
     margin-top: -7px;
     background: var(--nav-mark-img) center / contain no-repeat;
     pointer-events: none;
+  }
+  /* the main button of a view (Play, Start): the theme's gradient with a rim, dark ink on it */
+  .btn-primary {
+    background: linear-gradient(to bottom, var(--primary-from), var(--primary-to));
+    border: 1px solid var(--primary-rim);
+    color: var(--cat-ink);
+    box-shadow: var(--primary-shadow);
+    transition: filter 150ms ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.07);
   }
   .mm-today {
     background: var(--today-bg);

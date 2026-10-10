@@ -174,10 +174,11 @@ describe("the paper the Figma frames show, measured", () => {
     const surface = blend(rawToken(THEME_SELECTORS["nodkrai-night"], "paper-bottom"), BLURRED_EXTREMES["nodkrai-night"].dark, 0.46);
     expect(contrastRatio(t["ink-primary"], surface)).toBeLessThan(4.5);
   });
-  it("Monstadt at 78 %: the brown accent text falls below 4.5:1", () => {
+  it("Monstadt at 78 %: the muted ink and the red (danger) text fall below 4.5:1", () => {
     const { t } = PAPER_TOKENS.monstadt;
     const surface = blend(rawToken(THEME_SELECTORS.monstadt, "paper-bottom"), BLURRED_EXTREMES.monstadt.dark, 0.78);
-    expect(contrastRatio(t["accent-strong"], surface)).toBeLessThan(4.5);
+    expect(contrastRatio(t["ink-muted"], surface)).toBeLessThan(4.5);
+    expect(contrastRatio(t["danger"], surface)).toBeLessThan(4.5);
   });
 });
 

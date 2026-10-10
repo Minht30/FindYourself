@@ -35,7 +35,7 @@ export default function MixerPanel() {
               primeAudio();
               play();
             }}
-            className="inline-flex items-center gap-2 rounded-full bg-accent text-cat-ink font-ui font-semibold px-6 py-3 shadow-glow hover:bg-accent-soft transition"
+            className="btn-primary inline-flex items-center gap-2 rounded-full font-ui font-semibold px-6 py-3"
           >
             <Play size={18} />
             Begin

@@ -209,6 +209,24 @@ describe("the chrome differs per theme (the check can fail)", () => {
   });
 });
 
+describe.each([
+  ["monstadt", THEMES.monstadt],
+  ["nodkrai-night", THEMES["nodkrai-night"]],
+] as const)("%s primary button and accents", (_name, t) => {
+  it("keeps the ink on both ends of the primary button gradient at 4.5:1", () => {
+    for (const k of ["primary-from", "primary-to", "accent", "accent-soft"]) {
+      expect(t[k], k).toMatch(HEX);
+      expect(contrastRatio(t["cat-ink"], t[k]), `cat-ink on ${k}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+  it("has a rim for the button that is darker than its fill (so the button has an edge)", () => {
+    expect(luminance(t["primary-rim"])).toBeLessThan(luminance(t["primary-to"]));
+  });
+  it("no longer uses the old yellow as an accent", () => {
+    for (const k of ["accent", "accent-soft", "accent-strong"]) expect(["#F7CF78", "#F9E3AB", "#F4D03F", "#FFE9A0", "#8C5A00"]).not.toContain(t[k]);
+  });
+});
+
 describe("the focus ring", () => {
   it("is drawn in accent-strong, the accent that holds contrast on every surface (the pale accent is 1.4:1 on the day cream)", () => {
     expect(css).toMatch(/\*:focus-visible\s*\{\s*outline:\s*2px solid var\(--accent-strong\)/);

@@ -106,11 +106,26 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <h2 className="font-display text-xl min-[1400px]:text-2xl">Your year in pages</h2>
-        <span className="font-mono text-xs min-[1400px]:text-sm text-ink-muted">
-          {written === 0
-            ? "No pages yet. Your first entry will colour the first square."
-            : `${written} ${written === 1 ? "day" : "days"} written in the last 12 months`}
-        </span>
+        {/* the count and the legend share the header's right side, as in the design: the foot of the
+            panel carries the watermark, and text over a drawing is hard to read */}
+        <div className="ml-auto flex flex-col items-end gap-1.5">
+          <span className="font-mono text-xs min-[1400px]:text-sm text-ink-muted">
+            {written === 0
+              ? "No pages yet. Your first entry will colour the first square."
+              : `${written} ${written === 1 ? "day" : "days"} written in the last 12 months`}
+          </span>
+          <div className="flex items-center gap-1.5 font-mono text-[11px] min-[1400px]:text-xs text-ink-secondary" aria-hidden>
+            <span className="mr-1">Less</span>
+            {LEVEL_BG.map((bg, i) => (
+              <span
+                key={i}
+                className={`w-[11px] h-[11px] min-[1400px]:w-[14px] min-[1400px]:h-[14px] rounded-[3px] ${i === 0 ? "border border-[var(--border-strong)]" : ""}`}
+                style={{ background: bg }}
+              />
+            ))}
+            <span className="ml-1">More</span>
+          </div>
+        </div>
       </div>
 
       <div ref={scroller} className="overflow-x-auto pb-1 pr-8">
@@ -165,7 +180,7 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
                         lvl === 0 ? "border border-[var(--border)]" : ""
                       } ${
                         isSelected
-                          ? "outline outline-2 outline-offset-1 outline-[var(--ink-primary)]"
+                          ? "outline outline-2 outline-offset-2 outline-[var(--ink-primary)] shadow-[0_0_0_2px_var(--bg-elevated),0_0_0_6px_color-mix(in_srgb,var(--accent)_55%,transparent)] z-10 relative"
                           : date === today
                             ? "outline outline-1 outline-offset-1 outline-[var(--ink-muted)]"
                             : ""
@@ -178,18 +193,6 @@ export default function EntryHeatmap({ today, selected, entries }: Props) {
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="flex items-center justify-end gap-1.5 font-mono text-[10px] min-[1400px]:text-xs text-ink-muted" aria-hidden>
-        <span className="mr-1">Less</span>
-        {LEVEL_BG.map((bg, i) => (
-          <span
-            key={i}
-            className={`w-[10px] h-[10px] min-[1400px]:w-[14px] min-[1400px]:h-[14px] rounded-[3px] ${i === 0 ? "border border-[var(--border)]" : ""}`}
-            style={{ background: bg }}
-          />
-        ))}
-        <span className="ml-1">More</span>
       </div>
     </div>
   );

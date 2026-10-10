@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio, luminance } from "@/lib/contrast";
-import { PAPER_SELECTOR, THEME_SELECTORS, css, scoped, tokens } from "@/lib/cssTokens";
+import { blend, contrastRatio, luminance } from "@/lib/contrast";
+import { PAPER_SELECTOR, THEME_SELECTORS, css, percentToken, scoped, tokens } from "@/lib/cssTokens";
 
 // Reads the real theme tokens from the stylesheet and holds them to WCAG 2.1 AA:
 // 4.5:1 for text, 3:1 for graphics. Fails the moment a token drifts below.
@@ -142,6 +142,70 @@ describe("night paper extras (the light panels inside the dark theme)", () => {
   });
   it("would catch the night yellow on paper (the check can fail)", () => {
     expect(contrastRatio(night["accent-strong"], t["bg-elevated"])).toBeLessThan(3);
+  });
+});
+
+// The chrome: the sidebar and music bar, the top bar and its pills, the active page, the month's
+// today circle and week bar. Each theme names its own (a dark indigo sidebar at night, cream by
+// day); these hold the colours that sit on them to 4.5:1. Over the painting (the cream is 98 %,
+// the pills 78 %) see lib/glass.test.ts.
+describe.each([
+  ["monstadt", THEME_SELECTORS.monstadt],
+  ["nodkrai-night", THEME_SELECTORS["nodkrai-night"]],
+] as const)("%s chrome", (name, selector) => {
+  const t = THEMES[name];
+  const ends = [t["chrome-top"], t["chrome-bottom"]];
+
+  it("reads the chrome tokens (the parser works)", () => {
+    for (const k of ["chrome-top", "chrome-bottom", "topbar-top", "pill-bg", "pill-hover", "pill-ink", "nav-fill", "nav-rim", "nav-ink", "today-bg", "today-ink", "week-bar", "week-ink", "logo-ink"]) {
+      expect(t[k], k).toMatch(HEX);
+    }
+  });
+
+  it("keeps the page inks at 4.5:1 on both ends of the sidebar (the muted ink is the tightest)", () => {
+    for (const end of ends) {
+      for (const ink of ["ink-primary", "ink-secondary", "ink-muted", "accent-strong", "danger"]) {
+        expect(contrastRatio(t[ink], end), `${ink} on chrome ${end}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("keeps the logo and the active page's text at 4.5:1", () => {
+    for (const end of ends) expect(contrastRatio(t["logo-ink"], end), "logo on chrome").toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t["nav-ink"], t["nav-fill"]), "nav-ink on nav-fill").toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps the pill text at 4.5:1 on a pill and on a hovered pill", () => {
+    expect(contrastRatio(t["pill-ink"], t["pill-bg"])).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(t["pill-ink"], t["pill-hover"])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps the numbers on the today circle at 4.5:1 (Figma's circles are 3.4:1 and 3.8:1, so they are a step deeper here)", () => {
+    expect(contrastRatio(t["today-ink"], t["today-bg"])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("keeps the days on the week bar at 4.5:1, in the month and (at 75 %) outside it, over both ends of the sidebar", () => {
+    const alpha = percentToken(selector, "week-a");
+    for (const end of ends) {
+      const bar = blend(t["week-bar"], end, alpha);
+      expect(contrastRatio(t["week-ink"], bar), `week-ink on bar over ${end}`).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(blend(t["week-ink"], bar, 0.75), bar), `out-of-month day on bar over ${end}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
+
+describe("the chrome differs per theme (the check can fail)", () => {
+  it("the day sidebar is light and the night one is dark", () => {
+    expect(luminance(THEMES.monstadt["chrome-top"])).toBeGreaterThan(0.6);
+    expect(luminance(THEMES["nodkrai-night"]["chrome-top"])).toBeLessThan(0.1);
+  });
+  it("the day top bar is a bar and the night one is not (its fill is fully clear)", () => {
+    expect(percentToken(THEME_SELECTORS.monstadt, "topbar-a")).toBeGreaterThan(0.9);
+    expect(percentToken(THEME_SELECTORS["nodkrai-night"], "topbar-a")).toBe(0);
+  });
+  it("white numbers on Figma's own today circles would not hold (so the deeper blues are needed)", () => {
+    expect(contrastRatio("#FFFFFF", "#4F90C8")).toBeLessThan(4.5);
+    expect(contrastRatio("#FFFFFF", "#5B7BF0")).toBeLessThan(4.5);
   });
 });
 

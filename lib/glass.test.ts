@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blend, contrastRatio } from "@/lib/contrast";
-import { PAPER_SELECTOR, THEME_SELECTORS, css, paperAlpha, paperBlur, rawToken, scoped, tokens } from "@/lib/cssTokens";
+import { PAPER_SELECTOR, THEME_SELECTORS, css, paperAlpha, paperBlur, percentToken, rawToken, scoped, tokens } from "@/lib/cssTokens";
 
 // Panels are see-through over the painting, so a text colour is judged on the panel
 // colour laid over the worst parts of the wallpaper behind it. The worst parts below
@@ -116,6 +116,46 @@ describe.each(Object.entries(BLURRED_EXTREMES))("%s: text on paper over the blur
         const surface = blend(paper, g, alpha);
         for (const mark of ["success", "warning"]) expect(contrastRatio(t[mark], surface), `${mark} on paper ${paper} over ${g}`).toBeGreaterThanOrEqual(3);
       }
+    }
+  });
+});
+
+// ── Chrome over the painting ─────────────────────────────────────────────────
+// The sidebar and music bar are a wash at --chrome-a (98 % cream by day, opaque indigo at night),
+// the top bar at --topbar-a (a cream bar by day, none at night), the pills at --pill-a (100 % by
+// day, 78 % at night). None of them is blurred, so the sharp extremes above apply.
+describe.each(Object.entries(WALLPAPER_EXTREMES))("%s: chrome over the worst of the wallpaper", (name, extremes) => {
+  const selector = THEME_SELECTORS[name as keyof typeof THEME_SELECTORS];
+  const t = tokens(selector);
+
+  it("keeps the page inks at 4.5:1 on the sidebar and the music bar, both ends, over the darkest and the brightest ground", () => {
+    const alpha = percentToken(selector, "chrome-a");
+    for (const g of [extremes.dark, extremes.bright]) {
+      for (const end of [t["chrome-top"], t["chrome-bottom"]]) {
+        const surface = blend(end, g, alpha);
+        for (const ink of ["ink-primary", "ink-secondary", "ink-muted", "accent-strong", "danger"]) {
+          expect(contrastRatio(t[ink], surface), `${ink} on chrome ${end} over ${g}`).toBeGreaterThanOrEqual(4.5);
+        }
+        expect(contrastRatio(t["logo-ink"], surface), `logo on chrome over ${g}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("keeps the text on a pill, and on a hovered pill, at 4.5:1 over the darkest and the brightest ground", () => {
+    const alpha = percentToken(selector, "pill-a");
+    for (const g of [extremes.dark, extremes.bright]) {
+      for (const bg of [t["pill-bg"], t["pill-hover"]]) {
+        expect(contrastRatio(t["pill-ink"], blend(bg, g, alpha)), `pill-ink on ${bg} over ${g}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("keeps the text on the top bar itself (where it has a fill) at 4.5:1", () => {
+    const alpha = percentToken(selector, "topbar-a");
+    if (alpha === 0) return; // no bar: the text sits on pills, held above
+    for (const g of [extremes.dark, extremes.bright]) {
+      const surface = blend(t["topbar-top"], g, alpha);
+      for (const ink of ["ink-primary", "ink-secondary", "ink-muted"]) expect(contrastRatio(t[ink], surface), `${ink} on top bar over ${g}`).toBeGreaterThanOrEqual(4.5);
     }
   });
 });

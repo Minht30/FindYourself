@@ -53,7 +53,7 @@ export default function MiniPlayer() {
       aria-label="Music player"
       data-testid="mini-player"
       data-state={!current ? "empty" : playing ? "playing" : "paused"}
-      className="sticky bottom-3 z-40 mx-3 mb-3 rounded-2xl bg-glass-card border border-[var(--border)] shadow-card px-3 sm:px-5 py-2"
+      className="chrome sticky bottom-3 z-40 mx-3 mb-3 rounded-[14px] px-3 sm:px-5 py-2"
     >
       {!current ? (
         <div className="flex items-center gap-3">

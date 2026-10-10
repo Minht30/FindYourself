@@ -102,6 +102,41 @@
   --panel-mark-x: 28px;
   --panel-mark-y: 24px;
   --panel-mark-opacity: 0.55;
+
+  /* Chrome (the sidebar, the top bar, the music bar): cream paper with a silver-blue hairline and a
+     sparkle in each corner, a pale-blue active page, a sky-blue today circle. The top bar is a
+     cream bar with white pills on it; Nod-Krai has no bar, only floating pills. */
+  --chrome-top: #F5F1E6;
+  --chrome-bottom: #F5F1E6;
+  --chrome-a: 98%;
+  --chrome-rim: rgba(140, 165, 192, 0.6);
+  --chrome-shadow: 0 14px 30px rgba(30, 56, 79, 0.2), 0 2px 6px rgba(30, 56, 79, 0.12);
+  --chrome-radius: 16px;
+  --chrome-mark-img: url("/assets/ui/frame/monstadt-sparkle.svg");
+  --topbar-top: #F5F1E6;
+  --topbar-a: 98%;
+  --topbar-rim: rgba(140, 165, 192, 0.6);
+  --topbar-shadow: var(--chrome-shadow);
+  --pill-bg: #FFFEFB;
+  --pill-a: 100%;
+  --pill-hover: #E4EFF2;
+  --pill-rim: #B9C7D4;
+  --pill-rim-hover: #6C93BA;
+  --pill-ink: #1E384F;
+  --clock-radius: 12px;
+  --nav-fill: #CFE1E6;
+  --nav-rim: #8FB2D0;
+  --nav-glow: rgba(79, 144, 200, 0.28);
+  --nav-ink: #1E384F;
+  --nav-radius: 999px;
+  --nav-shape: none;
+  --nav-mark-img: url("/assets/ui/frame/monstadt-sparkle.svg");
+  --logo-ink: #24527C;
+  --today-bg: #3578B0;
+  --today-ink: #FFFFFF;
+  --week-bar: #CFE1E6;
+  --week-a: 100%;
+  --week-ink: #1E384F;
 }
 
 /* Nod-Krai (night) */
@@ -187,6 +222,40 @@
   --panel-mark-x: 48px;
   --panel-mark-y: 40px;
   --panel-mark-opacity: 1;
+
+  /* Chrome: a dark indigo sidebar and music bar, no top bar (floating dark pills), a pointed glowing
+     lozenge for the active page, an indigo today circle and week bar. */
+  --chrome-top: #0B2C9F;
+  --chrome-bottom: #050F46;
+  --chrome-a: 100%;
+  --chrome-rim: rgba(159, 182, 255, 0.5);
+  --chrome-shadow: 0 10px 28px rgba(2, 6, 42, 0.5);
+  --chrome-radius: 20px;
+  --chrome-mark-img: none;
+  --topbar-top: #071056;
+  --topbar-a: 0%;
+  --topbar-rim: transparent;
+  --topbar-shadow: none;
+  --pill-bg: #071056;
+  --pill-a: 78%;
+  --pill-hover: #1A2A8A;
+  --pill-rim: rgba(159, 182, 255, 0.4);
+  --pill-rim-hover: rgba(159, 182, 255, 0.8);
+  --pill-ink: #FFFFFF;
+  --clock-radius: 999px;
+  --nav-fill: #2F4DB8;
+  --nav-rim: #9FB6FF;
+  --nav-glow: rgba(123, 152, 255, 0.5);
+  --nav-ink: #FFFFFF;
+  --nav-radius: 0px;
+  --nav-shape: polygon(14px 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0 50%);
+  --nav-mark-img: url("/assets/ui/frame/nodkrai-sparkle.svg");
+  --logo-ink: #FFFFFF;
+  --today-bg: #4A68E0;
+  --today-ink: #FFFFFF;
+  --week-bar: #8FA8FF;
+  --week-a: 30%;
+  --week-ink: #FFFFFF;
 }
 
 /* Nod-Krai content sits on LIGHT paper while the sidebar and top bar stay dark, so the colour
@@ -273,6 +342,99 @@ body {
 @layer components {
   .plate {
     @apply rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 shadow-card;
+  }
+}
+
+/* ── Chrome ──────────────────────────────────────────────────────────────────
+   The sidebar and the music bar (.chrome), the top bar and its pills (.topbar, .pill), the active
+   page (.nav-on) and the month's today circle and week bar. One set of classes; the theme blocks
+   say what each looks like. Phones keep the plain drawer: .chrome is applied from md up. */
+@layer components {
+  .chrome {
+    position: relative;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--chrome-top) var(--chrome-a), transparent),
+      color-mix(in srgb, var(--chrome-bottom) var(--chrome-a), transparent)
+    );
+    border: 1px solid var(--chrome-rim);
+    border-radius: var(--chrome-radius);
+    box-shadow: var(--chrome-shadow);
+  }
+  .chrome-marks::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      var(--chrome-mark-img) left 12px top 12px / 13px 13px no-repeat,
+      var(--chrome-mark-img) right 12px top 12px / 13px 13px no-repeat,
+      var(--chrome-mark-img) left 12px bottom 12px / 13px 13px no-repeat,
+      var(--chrome-mark-img) right 12px bottom 12px / 13px 13px no-repeat;
+  }
+  .topbar {
+    background: color-mix(in srgb, var(--topbar-top) var(--topbar-a), transparent);
+    border: 1px solid var(--topbar-rim);
+    border-radius: var(--chrome-radius);
+    box-shadow: var(--topbar-shadow);
+  }
+  .pill {
+    background: color-mix(in srgb, var(--pill-bg) var(--pill-a), transparent);
+    border: 1px solid var(--pill-rim);
+    color: var(--pill-ink);
+    transition: background-color 200ms ease, border-color 200ms ease;
+  }
+  a.pill:hover,
+  button.pill:hover {
+    background: color-mix(in srgb, var(--pill-hover) var(--pill-a), transparent);
+    border-color: var(--pill-rim-hover);
+  }
+  .pill-clock {
+    border-radius: var(--clock-radius);
+  }
+  /* the active page: a fill in the theme's shape (a pill by day, a pointed lozenge at night) with a
+     1px rim drawn by four drop-shadows (so the rim follows any shape) and a soft glow */
+  .nav-on {
+    position: relative;
+    isolation: isolate;
+    color: var(--nav-ink);
+    filter: drop-shadow(1px 0 0 var(--nav-rim)) drop-shadow(-1px 0 0 var(--nav-rim)) drop-shadow(0 1px 0 var(--nav-rim))
+      drop-shadow(0 -1px 0 var(--nav-rim)) drop-shadow(0 0 7px var(--nav-glow));
+  }
+  .nav-on::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--nav-fill);
+    border-radius: var(--nav-radius);
+    clip-path: var(--nav-shape);
+  }
+  .nav-mark {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    background: var(--nav-mark-img) center / contain no-repeat;
+    pointer-events: none;
+  }
+  .mm-today {
+    background: var(--today-bg);
+    color: var(--today-ink);
+    /* a ring in the circle's own ink, so it still stands out on the week bar of the same hue */
+    box-shadow: 0 0 0 1.5px var(--today-ink), 0 0 8px var(--nav-glow);
+  }
+  .mm-week {
+    background: color-mix(in srgb, var(--week-bar) var(--week-a), transparent);
+  }
+  .mm-week-day {
+    color: var(--week-ink);
+  }
+  .mm-week-out {
+    color: color-mix(in srgb, var(--week-ink) 75%, transparent);
   }
 }
 

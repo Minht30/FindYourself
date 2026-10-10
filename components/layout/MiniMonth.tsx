@@ -74,7 +74,7 @@ export default function MiniMonth() {
             type="button"
             aria-label="Previous month"
             onClick={() => setOffset((o) => o - 1)}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition"
           >
             <ChevronLeft size={15} />
           </button>
@@ -82,7 +82,7 @@ export default function MiniMonth() {
             type="button"
             aria-label="Next month"
             onClick={() => setOffset((o) => o + 1)}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition"
           >
             <ChevronRight size={15} />
           </button>
@@ -104,21 +104,21 @@ export default function MiniMonth() {
               key={week[0].iso}
               role="row"
               data-selected-row={selectedRow ? "true" : "false"}
-              className={`grid grid-cols-7 rounded-full ${selectedRow ? "bg-accent-soft" : ""}`}
+              className={`grid grid-cols-7 rounded-full ${selectedRow ? "mm-week" : ""}`}
             >
               {week.map((c) => {
                 const isToday = c.iso === today;
                 const disabled = isDayDisabled(pathname, c.iso, today);
                 const cell = `mx-auto my-px w-7 h-7 rounded-full flex items-center justify-center text-[12px] tabular-nums transition ${
                   isToday
-                    ? "bg-accent text-cat-ink font-bold"
-                    : // On the accent-soft fill (the selected week, or a hover) the text is cat-ink:
-                      // at night the page inks are light, and so is the fill.
+                    ? "mm-today font-bold"
+                    : // On the week bar the text takes the bar's own ink (--week-ink): by day the bar is
+                      // pale and the ink dark, at night the bar is indigo and the ink white.
                       selectedRow
-                      ? `${c.inMonth ? "text-cat-ink" : "text-cat-ink/70"} hover:bg-accent-soft`
+                      ? `${c.inMonth ? "mm-week-day" : "mm-week-out"} hover:bg-[var(--nav-fill)] hover:text-[color:var(--nav-ink)]`
                       : c.inMonth
-                        ? "text-ink-primary hover:bg-accent-soft hover:text-cat-ink"
-                        : "text-ink-muted hover:bg-accent-soft hover:text-cat-ink"
+                        ? "text-ink-primary hover:bg-[var(--nav-fill)] hover:text-[color:var(--nav-ink)]"
+                        : "text-ink-muted hover:bg-[var(--nav-fill)] hover:text-[color:var(--nav-ink)]"
                 } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-transparent" : ""}`;
                 return (
                   <div key={c.iso} role="gridcell">

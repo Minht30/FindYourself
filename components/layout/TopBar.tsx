@@ -50,7 +50,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
   const isChill = Boolean(pathname?.startsWith("/chill"));
 
   return (
-    <header className="sticky top-3 z-50 mx-3 mt-3 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] rounded-2xl bg-glass-card border border-[var(--border)] shadow-card isolate">
+    <header className="topbar sticky top-3 z-50 mx-3 mt-3 flex items-center gap-3 px-4 md:px-5 py-2.5 min-h-[60px] isolate">
       {/* Phones: opens the sidebar as a drawer. From 768 px up the sidebar is always visible, so no button. */}
       <button
         type="button"
@@ -58,12 +58,12 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         aria-expanded={nav.open}
         aria-controls="app-sidebar"
         onClick={nav.toggle}
-        className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition"
+        className="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition"
       >
         <Menu size={20} />
       </button>
 
-      <div className="flex items-center gap-2.5 font-display font-bold text-lg mr-2">
+      <div className="md:hidden flex items-center gap-2.5 font-display font-bold text-lg mr-2">
         <div className="w-8 h-8 rounded-[10px] flex items-center justify-center text-cat-ink font-mono font-bold text-[13px] shadow-glow" style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-soft))" }}>
           FY
         </div>
@@ -75,12 +75,12 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
       {!isChill && (
         <button
           onClick={goToday}
-          className="px-4 py-1.5 rounded-full border border-[var(--border-strong)] text-ink-primary font-ui text-sm hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+          className="pill px-4 py-1.5 rounded-full font-ui text-sm"
         >
           Today
         </button>
       )}
-      <ClockLabel className="font-display text-lg md:text-xl truncate min-w-0 flex-shrink" />
+      <ClockLabel className="pill pill-clock font-display text-lg md:text-xl truncate min-w-0 flex-shrink px-4 py-1" />
 
       <div className="flex-1" />
 
@@ -91,7 +91,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
       {/* Always visible, on every page and every width (DESIGN_SYSTEM section 7) */}
       <SoundButton />
 
-      <Link href="/settings" aria-label="Settings" className="hidden md:flex w-9 h-9 rounded-full items-center justify-center text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition">
+      <Link href="/settings" aria-label="Settings" className="pill hidden md:flex w-9 h-9 rounded-full items-center justify-center">
         <Settings size={16} />
       </Link>
 
@@ -101,7 +101,7 @@ export default function TopBar({ focusSlot }: { focusSlot?: React.ReactNode }) {
         onClick={toggleTheme}
         aria-label={`${THEME_LABELS[theme]}, ${isNight ? "night" : "day"}. Switch to ${isNight ? "day" : "night"}.`}
         title={`Switch to ${isNight ? "day" : "night"}`}
-        className="px-3.5 py-2 rounded-full bg-bg-alt border border-[var(--border)] text-ink-primary text-[13px] font-ui flex items-center gap-1.5 hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+        className="pill px-3.5 py-2 rounded-full text-[13px] font-ui flex items-center gap-1.5"
       >
         {isNight ? <Moon size={15} aria-hidden /> : <Sun size={15} aria-hidden />}
         <span className="hidden md:inline">{THEME_LABELS[theme]}</span>

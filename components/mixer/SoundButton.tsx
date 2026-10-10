@@ -23,11 +23,7 @@ export default function SoundButton() {
       aria-pressed={status === "off" ? undefined : status === "muted"}
       title={label}
       data-sound={status}
-      className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-        status === "on"
-          ? "bg-accent-soft text-cat-ink hover:bg-accent"
-          : "text-ink-secondary hover:bg-accent-soft hover:text-cat-ink"
-      }`}
+      className="pill w-9 h-9 rounded-full flex items-center justify-center data-[sound=on]:border-[var(--pill-rim-hover)] data-[sound=on]:shadow-[0_0_8px_var(--nav-glow)]"
     >
       {status === "on" ? <Volume2 size={17} /> : <VolumeX size={17} />}
     </button>

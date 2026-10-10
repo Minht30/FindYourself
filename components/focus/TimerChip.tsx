@@ -24,7 +24,7 @@ export default function TimerChip() {
       href="/focus"
       aria-label={`${label}. Open Focus`}
       title={label}
-      className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border border-[var(--border-strong)] bg-bg-alt text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+      className="pill flex items-center gap-2 pl-2 pr-3 py-1 rounded-full"
     >
       <Spirit state={status === "paused" ? "pause" : isBreak ? "sleep" : "run"} size={22} inline />
       <ClockDigits text={clock} className="text-[13px]" />

@@ -36,11 +36,20 @@ export default function Sidebar() {
         data-collapsed={collapsed ? "true" : undefined}
         className={`${
           open ? "flex fixed inset-y-0 left-0 z-[60] w-[290px] max-w-[85vw] shadow-2xl" : "hidden"
-        } md:flex md:static md:z-auto md:w-auto md:max-w-none md:shadow-none flex-col gap-5 ${
+        } md:flex md:relative md:z-auto md:w-auto md:max-w-none flex-col gap-5 ${
           collapsed ? "p-4 md:p-2 md:items-center" : "p-4"
-        } bg-bg-elevated md:bg-glass-panel border-r md:border md:rounded-2xl border-[var(--border)] overflow-y-auto overflow-x-hidden`}
+        } max-md:bg-bg-elevated max-md:border-r max-md:border-[var(--border)] max-md:shadow-2xl md:chrome md:chrome-marks overflow-y-auto overflow-x-hidden`}
       >
-        {/* Desktop only: fold the sidebar into the rail, or open it again */}
+        {/* Desktop only: the logo, and the button that folds the sidebar into the rail (or opens it again) */}
+        <div className={`hidden md:flex items-center ${collapsed ? "justify-center" : "justify-between pl-1"}`}>
+          {collapsed ? null : (
+            <span className="flex items-center gap-2.5 font-display text-[25px] leading-none text-[color:var(--logo-ink)]">
+              <svg aria-hidden viewBox="0 0 36 36" width="34" height="34" className="shrink-0">
+                <path fill="currentColor" d="M18 1.5L21.2 14.8L34.5 18L21.2 21.2L18 34.5L14.8 21.2L1.5 18L14.8 14.8Z" />
+              </svg>
+              FindYourself
+            </span>
+          )}
         <button
           type="button"
           onClick={toggleCollapsed}
@@ -48,12 +57,11 @@ export default function Sidebar() {
           aria-expanded={!collapsed}
           aria-controls="app-sidebar"
           title={collapsed ? "Show sidebar" : "Hide sidebar"}
-          className={`hidden md:flex items-center justify-center w-9 h-9 rounded-full text-ink-secondary hover:bg-accent-soft hover:text-cat-ink transition ${
-            collapsed ? "" : "self-end -mb-3"
-          }`}
+          className="flex items-center justify-center w-9 h-9 rounded-full text-ink-secondary hover:bg-bg-alt hover:text-ink-primary transition"
         >
           {collapsed ? <PanelLeftOpen size={18} aria-hidden /> : <PanelLeftClose size={18} aria-hidden />}
         </button>
+        </div>
 
         <nav
           aria-label="Pages"
@@ -68,16 +76,17 @@ export default function Sidebar() {
                 aria-current={active ? "page" : undefined}
                 aria-label={label}
                 title={collapsed ? label : undefined}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-full font-ui text-sm font-medium transition ${
+                className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-full font-ui text-sm font-medium transition ${
                   collapsed ? "md:justify-center md:w-11 md:h-11 md:p-0" : ""
                 } ${
                   active
-                    ? "bg-accent-soft text-cat-ink font-semibold"
+                    ? "nav-on font-semibold"
                     : "text-ink-secondary hover:bg-bg-alt hover:text-ink-primary"
                 }`}
               >
                 <Icon size={18} aria-hidden />
                 <span className={hideInRail}>{label}</span>
+                {active ? <i aria-hidden className={`nav-mark ${hideInRail}`} /> : null}
               </Link>
             );
           })}

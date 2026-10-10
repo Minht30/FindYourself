@@ -43,6 +43,13 @@ export function rawToken(selector: string, name: string): string {
   return m[1].trim();
 }
 
+// Any `--name: 82%` token as 0.82 (the chrome and the pills use the same form as the paper).
+export function percentToken(selector: string, name: string): number {
+  const m = rawToken(selector, name).match(/^(\d+)%$/);
+  if (!m) throw new Error(`--${name} in ${selector} is not a whole percentage`);
+  return Number(m[1]) / 100;
+}
+
 // `--paper-a: 82%` as 0.82, and `--paper-blur: 10px` as 10.
 export function paperAlpha(selector: string): number {
   const m = rawToken(selector, "paper-a").match(/^(\d+)%$/);

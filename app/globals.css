@@ -62,6 +62,46 @@
   --font-body: var(--font-lora), Georgia, serif;
   --font-ui: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
+
+  /* Panels (components/ui/Panel.tsx): the one panel every page uses. The same markup in both
+     themes; these tokens decide how it looks. Paper is a top-to-bottom wash laid over the
+     painting at --paper-a, behind a backdrop blur of --paper-blur (lib/glass.test.ts holds the
+     alpha and the blur to the text colours). The frame pieces and the watermark are pictures
+     named here; a piece set to "none" with size 0 is simply not drawn. Monstadt: cream paper,
+     a silver-blue hairline with a faint second line, a small sparkle in each corner, a wind-rose
+     in the foot. Figma has this paper at 78 %; the brown accent text needs 90 % or more. */
+  --paper-top: #FCF9F0;
+  --paper-bottom: #FAF6EA;
+  --paper-a: 92%;
+  --paper-blur: 8px;
+  --paper-rim: rgba(127, 152, 184, 0.6);
+  --paper-rule: rgba(127, 152, 184, 0.28);
+  --paper-radius: 16px;
+  --paper-shadow: var(--shadow-card);
+  --paper-inset-x: 0px;
+  --paper-inset-y: 0px;
+  --panel-pad-x: 32px;
+  --panel-pad-y: 28px;
+  --frame-corner-img: url("/assets/ui/frame/monstadt-sparkle.svg");
+  --frame-corner-size: 13px;
+  --frame-corner-off: 9px;
+  --frame-edge-h-img: none;
+  --frame-edge-h-thick: 0px;
+  --frame-edge-h-off: 0px;
+  --frame-edge-v-img: none;
+  --frame-edge-v-thick: 0px;
+  --frame-edge-v-off: 0px;
+  --frame-medal-h-img: none;
+  --frame-medal-h-w: 0px;
+  --frame-medal-h-h: 0px;
+  --frame-medal-v-img: none;
+  --frame-medal-v-w: 0px;
+  --frame-medal-v-h: 0px;
+  --panel-mark-img: url("/assets/ui/frame/monstadt-windrose.svg");
+  --panel-mark-size: 50px;
+  --panel-mark-x: 28px;
+  --panel-mark-y: 24px;
+  --panel-mark-opacity: 0.55;
 }
 
 /* Nod-Krai (night) */
@@ -109,6 +149,88 @@
   --heat-2: #6C93D8;
   --heat-3: #8CC0FF;
   --heat-max: #FFE9A0;
+
+  /* Panels: light frost paper in the moon frame (Figma "Theme styles"). One scale, --fs, sizes
+     every frame piece (the pieces are stored at 0.72 of the original and shown at 0.36). The
+     paper is 82 % here, not the 70 % in Figma: at 70 % the muted ink falls below 4.5:1 over the
+     darkest part of the blurred painting (lib/glass.test.ts). */
+  --fs: 0.36;
+  --paper-top: #F6F7FD;
+  --paper-bottom: #E8EBF9;
+  --paper-a: 82%;
+  --paper-blur: 10px;
+  --paper-rim: transparent;
+  --paper-rule: transparent;
+  --paper-radius: 8px;
+  --paper-shadow: 0 0 14px rgba(150, 165, 255, 0.45), 0 16px 30px rgba(2, 6, 42, 0.5);
+  --paper-inset-x: calc(53 * var(--fs) * 1px);
+  --paper-inset-y: calc(45 * var(--fs) * 1px);
+  --panel-pad-x: 56px;
+  --panel-pad-y: 40px;
+  --frame-corner-img: url("/assets/ui/frame/nodkrai-moon-corner.webp");
+  --frame-corner-size: calc(150 * var(--fs) * 1px);
+  --frame-corner-off: 0px;
+  --frame-edge-h-img: url("/assets/ui/frame/nodkrai-moon-edge-h.webp");
+  --frame-edge-h-thick: calc(47 * var(--fs) * 1px);
+  --frame-edge-h-off: calc(21 * var(--fs) * 1px);
+  --frame-edge-v-img: url("/assets/ui/frame/nodkrai-moon-edge-v.webp");
+  --frame-edge-v-thick: calc(51 * var(--fs) * 1px);
+  --frame-edge-v-off: calc(28 * var(--fs) * 1px);
+  --frame-medal-h-img: url("/assets/ui/frame/nodkrai-moon-medal-h.webp");
+  --frame-medal-h-w: calc(274 * var(--fs) * 1px);
+  --frame-medal-h-h: calc(97 * var(--fs) * 1px);
+  --frame-medal-v-img: url("/assets/ui/frame/nodkrai-moon-medal-v.webp");
+  --frame-medal-v-w: calc(94 * var(--fs) * 1px);
+  --frame-medal-v-h: calc(186 * var(--fs) * 1px);
+  --panel-mark-img: url("/assets/ui/frame/nodkrai-moon-mark.svg");
+  --panel-mark-size: 50px;
+  --panel-mark-x: 48px;
+  --panel-mark-y: 40px;
+  --panel-mark-opacity: 1;
+}
+
+/* Nod-Krai content sits on LIGHT paper while the sidebar and top bar stay dark, so the colour
+   tokens are re-declared inside a paper surface (the same trick as the Focus Mode overlay):
+   everything that reads a token (text, buttons, the diary editor, the year map) follows
+   without knowing. Ink steps are the Figma ones; the accent becomes indigo (yellow is
+   unreadable on pale paper); success, warning and danger are the deep versions. */
+:root[data-theme="nodkrai-night"] [data-surface="paper"] {
+  color-scheme: light;
+  --bg-base: #EEF1FB;
+  --bg-elevated: #F6F7FD;
+  --bg-overlay: #F1F3FC;
+  --bg-window: #D6DDF7;
+  --bg-alt: #DEE3F6;
+
+  --ink-primary: #141C5E;
+  --ink-secondary: #2A3790;
+  --ink-muted: #3A4799;
+
+  --accent: #8EA2EC;
+  --accent-soft: #C3CCF4;
+  --accent-strong: #2A3790;
+  --accent-line: rgba(87, 114, 222, 0.6);
+
+  --cat-dot-deep: #5E9FEE;
+  --cat-dot-meeting: #D9A92E;
+  --cat-dot-learn: #8E7AE0;
+  --cat-dot-rest: #3FB3A6;
+  --cat-dot-personal: #E0709A;
+
+  --success: #1F6B47;
+  --warning: #7A5200;
+  --danger: #8F3020;
+
+  --border: rgba(42, 55, 144, 0.22);
+  --border-strong: rgba(42, 55, 144, 0.38);
+  --border-input: #4F60AE;
+  --glow: 0 0 18px rgba(142, 162, 236, 0.45);
+  --shadow-card: 0 2px 8px rgba(20, 28, 94, 0.08), 0 8px 24px rgba(20, 28, 94, 0.1);
+
+  --heat-1: #C3CCF4;
+  --heat-2: #8EA2EC;
+  --heat-3: #5772DE;
+  --heat-max: #2A3790;
 }
 
 /* Base */
@@ -152,6 +274,121 @@ body {
   .plate {
     @apply rounded-2xl border border-[var(--border)] bg-glass-card px-4 py-3 shadow-card;
   }
+}
+
+/* ── Panels ──────────────────────────────────────────────────────────────────
+   components/ui/Panel.tsx. One structure for every theme: the paper, the frame pieces, the
+   watermark, the content. Tokens (see the theme blocks) decide what each draws. Corners and
+   medals are drawn once and mirrored with scale(); the edges tile. */
+.panel {
+  position: relative;
+  isolation: isolate;
+  /* colour is inherited as a computed value, so the page's light ink would pass straight through
+     a paper scope: restate it here, where the scope's own --ink-primary is in force */
+  color: var(--ink-primary);
+}
+.panel-paper {
+  position: absolute;
+  inset: var(--paper-inset-y) var(--paper-inset-x);
+  z-index: 0;
+  border-radius: var(--paper-radius);
+  border: 1px solid var(--paper-rim);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--paper-top) var(--paper-a), transparent),
+    color-mix(in srgb, var(--paper-bottom) var(--paper-a), transparent)
+  );
+  -webkit-backdrop-filter: blur(var(--paper-blur));
+  backdrop-filter: blur(var(--paper-blur));
+  box-shadow: var(--paper-shadow);
+}
+.panel-paper::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid var(--paper-rule);
+  border-radius: calc(var(--paper-radius) - 6px);
+  pointer-events: none;
+}
+.panel-mark {
+  position: absolute;
+  right: var(--panel-mark-x);
+  bottom: var(--panel-mark-y);
+  z-index: 1;
+  width: var(--panel-mark-size);
+  height: var(--panel-mark-size);
+  background: var(--panel-mark-img) center / contain no-repeat;
+  opacity: var(--panel-mark-opacity);
+  pointer-events: none;
+}
+.panel-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.panel-frame > i {
+  position: absolute;
+  display: block;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.pf-corner {
+  width: var(--frame-corner-size);
+  height: var(--frame-corner-size);
+  background-image: var(--frame-corner-img);
+}
+.pf-tl { top: var(--frame-corner-off); left: var(--frame-corner-off); }
+.pf-tr { top: var(--frame-corner-off); right: var(--frame-corner-off); transform: scaleX(-1); }
+.pf-bl { bottom: var(--frame-corner-off); left: var(--frame-corner-off); transform: scaleY(-1); }
+.pf-br { bottom: var(--frame-corner-off); right: var(--frame-corner-off); transform: scale(-1, -1); }
+.pf-edge-h {
+  left: var(--frame-corner-size);
+  right: var(--frame-corner-size);
+  height: var(--frame-edge-h-thick);
+  background-image: var(--frame-edge-h-img);
+  background-repeat: repeat-x !important;
+  background-size: auto 100% !important;
+}
+.pf-top { top: var(--frame-edge-h-off); }
+.pf-bottom { bottom: var(--frame-edge-h-off); transform: scaleY(-1); }
+.pf-edge-v {
+  top: var(--frame-corner-size);
+  bottom: var(--frame-corner-size);
+  width: var(--frame-edge-v-thick);
+  background-image: var(--frame-edge-v-img);
+  background-repeat: repeat-y !important;
+  background-size: 100% auto !important;
+}
+.pf-left { left: var(--frame-edge-v-off); }
+.pf-right { right: var(--frame-edge-v-off); transform: scaleX(-1); }
+.pf-medal-h {
+  left: 50%;
+  width: var(--frame-medal-h-w);
+  height: var(--frame-medal-h-h);
+  margin-left: calc(var(--frame-medal-h-w) / -2);
+  background-image: var(--frame-medal-h-img);
+}
+.pf-medal-t { top: 0; }
+.pf-medal-b { bottom: 0; transform: scaleY(-1); }
+.pf-medal-v {
+  top: 50%;
+  width: var(--frame-medal-v-w);
+  height: var(--frame-medal-v-h);
+  margin-top: calc(var(--frame-medal-v-h) / -2);
+  background-image: var(--frame-medal-v-img);
+}
+.pf-medal-l { left: 0; }
+.pf-medal-r { right: 0; transform: scaleX(-1); }
+.panel-body {
+  position: relative;
+  z-index: 2;
+  padding: var(--panel-pad-y) var(--panel-pad-x);
+}
+/* a phone: a smaller frame and a narrower margin, so the writing keeps its width */
+@media (max-width: 639px) {
+  :root[data-theme="nodkrai-night"] { --fs: 0.26; --panel-pad-x: 30px; --panel-pad-y: 28px; --panel-mark-size: 36px; --panel-mark-x: 30px; --panel-mark-y: 28px; }
+  :root:not([data-theme="nodkrai-night"]) { --panel-pad-x: 18px; --panel-pad-y: 18px; --panel-mark-size: 36px; }
 }
 
 /* ── Wallpaper stage ─────────────────────────────────────────────────────────

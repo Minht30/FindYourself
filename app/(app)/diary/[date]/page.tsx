@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import DiaryEditor from "@/components/diary/DiaryEditor";
 import MoodPicker from "@/components/diary/MoodPicker";
 import EntryHeatmap, { type HeatmapDay } from "@/components/diary/EntryHeatmap";
+import Panel from "@/components/ui/Panel";
 import type { DiaryMood } from "@/lib/moods";
 import { getUserTimeZone } from "@/lib/today";
 import { formatLongDate, isValidISODate, isoWeekdayMon0, shiftISODate, todayInTimeZone } from "@/lib/dates";
@@ -101,7 +102,7 @@ export default async function DiaryDayPage({ params }: Props) {
         </nav>
       </div>
 
-      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-6 md:p-8 min-[1400px]:p-10 min-h-[320px]">
+      <Panel bodyClassName="min-h-[320px]">
         {error ? (
           <p role="alert" className="font-ui text-sm text-ink-secondary">
             Couldn&apos;t load this day&apos;s entry. Try refreshing.
@@ -126,11 +127,11 @@ export default async function DiaryDayPage({ params }: Props) {
             />
           </div>
         )}
-      </section>
+      </Panel>
 
-      <section className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-5 md:p-6 min-[1400px]:p-8">
+      <Panel>
         <EntryHeatmap today={today} selected={date} entries={heatmap} />
-      </section>
+      </Panel>
     </div>
   );
 }

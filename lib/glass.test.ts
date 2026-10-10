@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { blend, contrastRatio } from "@/lib/contrast";
-import { THEME_SELECTORS, css, tokens } from "@/lib/cssTokens";
+import { PAPER_SELECTOR, THEME_SELECTORS, css, paperAlpha, paperBlur, rawToken, scoped, tokens } from "@/lib/cssTokens";
 
 // Panels are see-through over the painting, so a text colour is judged on the panel
 // colour laid over the worst parts of the wallpaper behind it. The worst parts below
@@ -64,6 +64,103 @@ describe("blend", () => {
     expect(blend("#102030", "#F0E0D0", 1)).toBe("#102030");
     expect(blend("#102030", "#F0E0D0", 0)).toBe("#F0E0D0");
     expect(blend("#000000", "#FFFFFF", 0.5)).toBe("#808080");
+  });
+});
+
+// ── Paper panels (components/ui/Panel.tsx) ───────────────────────────────────
+// A panel's paper is a wash of two colours laid over the painting at --paper-a, behind a backdrop
+// blur. The blur matters: it averages the painting, so the grounds a glyph can sit on are far
+// less extreme than the sharp picture (the brightest part of the Nod-Krai painting falls from
+// 0.96 to 0.50 relative luminance behind a 10 px blur). So the paper is judged over the blurred
+// extremes: the darkest and brightest 0.1 % of each wallpaper after a gaussian blur of the panel's
+// own radius, the most extreme of the same three window shapes as above (1440 x 900, 2560 x 900,
+// 430 x 860). Re-measure when a wallpaper or a blur changes.
+const BLURRED_EXTREMES = {
+  monstadt: { blur: 8, dark: "#0A181B", bright: "#FDFCEB" },
+  "nodkrai-night": { blur: 10, dark: "#040D4A", bright: "#A7BBF6" },
+} as const;
+
+// the ink colours as a text colour on a paper surface: the day tokens, or the night block under the paper scope
+const PAPER_TOKENS = {
+  monstadt: { selector: THEME_SELECTORS.monstadt, t: tokens(THEME_SELECTORS.monstadt) },
+  "nodkrai-night": { selector: THEME_SELECTORS["nodkrai-night"], t: scoped(THEME_SELECTORS["nodkrai-night"], PAPER_SELECTOR) },
+} as const;
+
+describe.each(Object.entries(BLURRED_EXTREMES))("%s: text on paper over the blurred painting", (name, ground) => {
+  const { selector, t } = PAPER_TOKENS[name as keyof typeof PAPER_TOKENS];
+  const alpha = paperAlpha(selector);
+  const papers = [rawToken(selector, "paper-top"), rawToken(selector, "paper-bottom")];
+
+  it("reads the paper tokens (the parser works) and a paper that is mostly there but still see-through", () => {
+    for (const c of papers) expect(c).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    expect(alpha).toBeGreaterThan(0.5);
+    expect(alpha).toBeLessThan(1);
+  });
+
+  it("is measured with the blur the panel really has", () => {
+    expect(paperBlur(selector)).toBe(ground.blur);
+  });
+
+  it("keeps every text colour at 4.5:1 on the top and the bottom of the paper, over the darkest and the brightest ground", () => {
+    for (const g of [ground.dark, ground.bright]) {
+      for (const paper of papers) {
+        const surface = blend(paper, g, alpha);
+        for (const ink of INKS) expect(contrastRatio(t[ink], surface), `${ink} on paper ${paper} over ${g}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it("keeps the success and warning marks at 3:1", () => {
+    for (const g of [ground.dark, ground.bright]) {
+      for (const paper of papers) {
+        const surface = blend(paper, g, alpha);
+        for (const mark of ["success", "warning"]) expect(contrastRatio(t[mark], surface), `${mark} on paper ${paper} over ${g}`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+});
+
+describe("the paper the Figma frames show, measured", () => {
+  // Figma has Nod-Krai paper at 70 % (Diary) and 46 % (Timetable panel) and Monstadt at 78 %. They
+  // look right and fail: the first number that holds is the one in globals.css, and what this
+  // measures is the gap, so a decision to go lower is made knowing it.
+  it("Nod-Krai at 70 %: the muted ink falls below 4.5:1 over the darkest blurred painting", () => {
+    const { t } = PAPER_TOKENS["nodkrai-night"];
+    const surface = blend(rawToken(THEME_SELECTORS["nodkrai-night"], "paper-bottom"), BLURRED_EXTREMES["nodkrai-night"].dark, 0.7);
+    expect(contrastRatio(t["ink-muted"], surface)).toBeLessThan(4.5);
+  });
+  it("Nod-Krai at 46 % (the Timetable panel): even the heading ink misses 4.5:1", () => {
+    const { t } = PAPER_TOKENS["nodkrai-night"];
+    const surface = blend(rawToken(THEME_SELECTORS["nodkrai-night"], "paper-bottom"), BLURRED_EXTREMES["nodkrai-night"].dark, 0.46);
+    expect(contrastRatio(t["ink-primary"], surface)).toBeLessThan(4.5);
+  });
+  it("Monstadt at 78 %: the brown accent text falls below 4.5:1", () => {
+    const { t } = PAPER_TOKENS.monstadt;
+    const surface = blend(rawToken(THEME_SELECTORS.monstadt, "paper-bottom"), BLURRED_EXTREMES.monstadt.dark, 0.78);
+    expect(contrastRatio(t["accent-strong"], surface)).toBeLessThan(4.5);
+  });
+});
+
+describe("the paper's frame and watermark tokens", () => {
+  const FRAME_PICTURES = ["frame-corner-img", "frame-edge-h-img", "frame-edge-v-img", "frame-medal-h-img", "frame-medal-v-img", "panel-mark-img"];
+  it.each(Object.values(THEME_SELECTORS))("%s names every piece (a piece it does not draw is 'none' with size 0)", (selector) => {
+    for (const name of FRAME_PICTURES) expect(rawToken(selector, name), name).toMatch(/^(none|url\("\/assets\/ui\/frame\/[a-z0-9-]+\.(webp|svg)"\))$/);
+    for (const [img, size] of [
+      ["frame-edge-h-img", "frame-edge-h-thick"],
+      ["frame-edge-v-img", "frame-edge-v-thick"],
+      ["frame-medal-h-img", "frame-medal-h-w"],
+      ["frame-medal-v-img", "frame-medal-v-w"],
+    ]) {
+      // a picture that is not there has no size (or the empty box would still push the layout)
+      if (rawToken(selector, img) === "none") expect(rawToken(selector, size), size).toBe("0px");
+      else expect(rawToken(selector, size), size).not.toBe("0px");
+    }
+  });
+  it("the Nod-Krai frame is sized by one scale, --fs", () => {
+    const sel = THEME_SELECTORS["nodkrai-night"];
+    for (const name of ["frame-corner-size", "frame-edge-h-thick", "frame-edge-v-thick", "frame-medal-h-w", "frame-medal-v-h", "paper-inset-x"]) {
+      expect(rawToken(sel, name), name).toContain("var(--fs)");
+    }
   });
 });
 

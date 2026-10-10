@@ -1926,3 +1926,17 @@ Minh clicked "Try the demo" in an incognito window (on the live site); the guest
 **Process note:** two sessions work in the same folder; a commit made while the other session had a branch checked out lands on that branch (it happened twice). Work on a branch in a separate worktree.
 
 ---
+
+## 2026-10-10 - Session 74: theme styles from Figma, first code step (Nod-Krai paper tokens, shared Panel, tests)
+
+**Brief (Minh):** code the approved "Theme styles" Figma page as ONE set of components driven by theme tokens, never per-theme markup; start with the Nod-Krai light-paper tokens and the shared panel and frame component, then extend `contrast`, `glass` and `assets` tests. Branch `feat/theme-styles-tokens`, not pushed or merged.
+
+**Built:** (1) `components/ui/Panel.tsx`: the same markup in both themes (paper, watermark, 12 frame pieces, body). Everything it draws comes from tokens in `app/globals.css` (`--paper-*`, `--frame-*`, `--panel-mark-*`); a piece a theme does not draw is `none` with size 0. Nod-Krai: the approved moon frame (the five Figma pieces, stored at 0.72 and shown at 0.36 through one scale, `--fs`) and a crescent watermark; Monstadt: cream paper, a silver-blue hairline and faint second line, a sparkle in each corner, a wind-rose in the foot. (2) Nod-Krai content is light paper while the sidebar and top bar stay dark: the colour tokens are re-declared inside `[data-surface="paper"]` (ink #141C5E / #2A3790 / #3A4799, indigo accent, deep success / warning / danger, indigo year-map ramp). (3) The Diary and Year-in-pages sections now use Panel. Pieces and watermarks are in `public/assets/ui/frame/` (about 22 KB for Nod-Krai).
+
+**Decisions I made (change any of them):**
+- **Nod-Krai paper is 82 %, not the 70 % in Figma** (46 % on the Timetable panel, 14 % on its grid, are not coded yet). Measured over the blurred painting (the 10 px backdrop blur averages the picture: its brightest part falls from 0.96 to 0.50 luminance, so the old sharp extremes were wrong for panels), the first alpha at which every ink holds 4.5:1 is 81 %. At 70 % the muted ink is 3.5:1 over the darkest part; at 46 % even the heading ink is 3.4:1 (4.2:1 with the grid on top). Same precedent as Session 71 (day glass 90 % not 82 %). `lib/glass.test.ts` records the Figma values as "the check can fail" cases. Options for the Timetable: darker ink for the day headers, a more opaque header strip, or accept large-text 3:1 for the headings only.
+- **Monstadt paper stays at 92 %** (Figma 78 %): the brown accent text is 3.2:1 at 78 % over the darkest blurred painting.
+- **Year-map ramp keeps the Figma pastel** (1.24, 1.93, 3.37, 8.02 against the empty cell): steps 1 and 2 are under 3:1 (WCAG 1.4.11); the cells carry their date and word count as text. Say if you want step 1 darkened to hold 3:1.
+- Frame pieces are Minh's approved Figma pieces, not my recolour of the original (mine came out greyer and darker).
+
+**Next (not done):** panel heading inside the paper (quill icon, title, date), the pointed nav lozenge, event card with category icon, rings, the glass week grid on the Timetable page, the Monstadt look for the rest, Nod-Krai Timetable alphas. The Diary page header ("plate") is still the old dark plate above the paper.

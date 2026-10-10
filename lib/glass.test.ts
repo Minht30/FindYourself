@@ -160,6 +160,50 @@ describe.each(Object.entries(WALLPAPER_EXTREMES))("%s: chrome over the worst of 
   });
 });
 
+// ── The Timetable's surfaces ─────────────────────────────────────────────────
+// The panel is more see-through than a page panel (--paper-a-airy), the week grid more again
+// (--grid-a, laid over the panel). Text never sits straight on them: the heading, the day names
+// and the hour column are on strips (.panel-strip) at the normal paper alpha, which the paper
+// tests above hold. What this measures: the values are the Figma ones, they are below the paper
+// alpha, and text laid straight on the stacked panel and grid would not hold (the strips are
+// needed). The side cards (.card-paper) are near-solid paper and are held to 4.5:1 here.
+describe.each(Object.entries(BLURRED_EXTREMES))("%s: the Timetable's see-through surfaces", (name, ground) => {
+  const { selector, t } = PAPER_TOKENS[name as keyof typeof PAPER_TOKENS];
+  const airy = percentToken(selector, "paper-a-airy");
+  const grid = percentToken(selector, "grid-a");
+  const bottom = rawToken(selector, "paper-bottom");
+
+  it("has the Figma values: the panel clearly more see-through than a page panel, the grid more again", () => {
+    expect(grid).toBeLessThan(airy);
+    expect(airy).toBeLessThan(paperAlpha(selector));
+    expect(airy).toBe(name === "monstadt" ? 0.66 : 0.46);
+    expect(grid).toBe(name === "monstadt" ? 0.22 : 0.14);
+  });
+
+  it("would not hold text laid straight on the panel and the grid (so the strips are needed)", () => {
+    const stacked = blend(bottom, blend(bottom, ground.dark, airy), grid);
+    const worst = Math.min(...INKS.map((ink) => contrastRatio(t[ink], stacked)));
+    expect(worst).toBeLessThan(4.5);
+  });
+
+  it("puts the strips at the normal paper alpha (the strip colour reads --paper-a-strip, which is --paper-a)", () => {
+    expect(css).toMatch(/--paper-a-strip:\s*var\(--paper-a\)/);
+    expect(css).toMatch(/\.panel-strip\s*\{[^}]*var\(--paper-a-strip\)/);
+    expect(css).toMatch(/\.panel-airy\s*\{\s*--paper-a:\s*var\(--paper-a-airy\)/);
+  });
+
+  it("keeps every text colour at 4.5:1 on a side card, over the darkest and the brightest sharp ground", () => {
+    const cardAlpha = percentToken(selector, "card-a");
+    const extremes = WALLPAPER_EXTREMES[name as keyof typeof WALLPAPER_EXTREMES];
+    for (const g of [extremes.dark, extremes.bright]) {
+      for (const paper of [rawToken(selector, "paper-top"), bottom]) {
+        const surface = blend(paper, g, cardAlpha);
+        for (const ink of INKS) expect(contrastRatio(t[ink], surface), `${ink} on card ${paper} over ${g}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+});
+
 describe("the paper the Figma frames show, measured", () => {
   // Figma has Nod-Krai paper at 70 % (Diary) and 46 % (Timetable panel) and Monstadt at 78 %. They
   // look right and fail: the first number that holds is the one in globals.css, and what this

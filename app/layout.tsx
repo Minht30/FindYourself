@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Lora, Inter, JetBrains_Mono } from "next/font/google";
+import { Lora, Inter, JetBrains_Mono, Marcellus } from "next/font/google";
 import "./globals.css";
 import ThemeClock from "@/components/layout/ThemeClock";
 import { themeInitScript } from "@/lib/themeScript";
@@ -10,6 +10,14 @@ const lora = Lora({
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   variable: "--font-lora",
+  display: "swap",
+});
+
+// Nod-Krai's headings, navigation and logo (Marcellus draws a 1 like a capital I, so numbers stay in Lora)
+const marcellus = Marcellus({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-marcellus",
   display: "swap",
 });
 
@@ -43,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-theme={theme}
-      className={`${lora.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${lora.variable} ${marcellus.variable} ${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>

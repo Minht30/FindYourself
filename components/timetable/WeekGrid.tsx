@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PawPrint } from "lucide-react";
+import { BookOpen, Flower2, Leaf, Moon, PawPrint, Tag, Users } from "lucide-react";
 import {
   DAY_END_HOUR,
   DAY_START_HOUR,
@@ -15,6 +15,9 @@ import { dayIsoOf, dayOfMonth, formatWallMinutes, minutesIntoDay, wallToInstant,
 import { createBlock, moveBlock } from "@/app/(app)/today/actions";
 import BlockPopover from "./BlockPopover";
 import { categoryColor } from "@/lib/categories";
+import { categoryIconKey, type CategoryIconKey } from "@/lib/categoryIcons";
+
+const ICONS: Record<CategoryIconKey, typeof Leaf> = { leaf: Leaf, people: Users, book: BookOpen, moon: Moon, flower: Flower2, tag: Tag };
 
 export type TimeBlockDTO = {
   id: string;
@@ -200,10 +203,10 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-glass-panel shadow-card overflow-hidden select-none">
+    <div className="glass-grid select-none">
       {/* Header row */}
       <div
-        className="grid border-b border-[var(--border)] bg-bg-alt"
+        className="panel-strip grid border-b border-[var(--border)]"
         style={{ gridTemplateColumns: `72px repeat(7, minmax(0, 1fr))` }}
       >
         <div className="p-2 text-[11px] font-mono text-ink-muted uppercase tracking-wider">
@@ -225,8 +228,8 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
                 {DAY_NAMES[i]}
               </span>
               <span
-                className={`font-display text-xl ${
-                  today ? "text-accent-strong font-bold" : "text-ink-primary"
+                className={`font-body text-xl leading-none flex items-center justify-center ${
+                  today ? "mm-today w-9 h-9 rounded-full font-bold" : "text-ink-primary h-9"
                 }`}
               >
                 {dayOfMonth(day)}
@@ -242,7 +245,7 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
         style={{ gridTemplateColumns: `72px repeat(7, minmax(0, 1fr))` }}
       >
         {/* Time axis */}
-        <div className="border-r border-[var(--border)]">
+        <div className="panel-strip border-r border-[var(--border)]">
           {hourRows.map((h) => (
             <div
               key={h}
@@ -293,6 +296,7 @@ export default function WeekGrid({ weekStart, timeZone, blocks, categories }: Pr
                   day={day}
                   timeZone={timeZone}
                   category={b.category_id ? catById.get(b.category_id) : undefined}
+                  past={now !== null && Date.parse(b.ends_at) < now.getTime()}
                   onOpen={(anchor) => setEditing({ block: b, anchor })}
                   onError={setErrorMsg}
                 />
@@ -377,6 +381,7 @@ function BlockCard({
   day,
   timeZone,
   category,
+  past,
   onOpen,
   onError,
 }: {
@@ -384,6 +389,7 @@ function BlockCard({
   day: string;
   timeZone: string;
   category: CategoryDTO | undefined;
+  past: boolean;
   onOpen: (anchor: DOMRect) => void;
   onError: (msg: string | null) => void;
 }) {
@@ -542,14 +548,22 @@ function BlockCard({
       style={{
         top: `${top}px`,
         height: `${heightPx}px`,
-        background: colorVar,
+        // a soft wash from lighter to the category colour; a block that is over is lightened toward
+        // the paper (its text stays solid, so it keeps its contrast)
+        background: past
+          ? `linear-gradient(160deg, color-mix(in srgb, var(--paper-top) 65%, ${colorVar}), color-mix(in srgb, var(--paper-top) 50%, ${colorVar}))`
+          : `linear-gradient(160deg, color-mix(in srgb, #fff 38%, ${colorVar}), ${colorVar})`,
         borderLeftColor: "rgba(0,0,0,0.25)",
       }}
       title={`${block.title}\n${timeLabel}`}
     >
       <div className="px-2 py-1.5">
-        <div className="text-[12px] font-ui font-semibold leading-tight truncate">
-          {block.title || "(untitled)"}
+        <div className="flex items-center gap-1.5 text-[12px] font-ui font-semibold leading-tight">
+          {(() => {
+            const Icon = ICONS[categoryIconKey(category)];
+            return <Icon size={12} strokeWidth={2} aria-hidden className="shrink-0 opacity-80" />;
+          })()}
+          <span className="truncate">{block.title || "(untitled)"}</span>
         </div>
         <div className="text-[10px] font-mono opacity-80 leading-tight">{timeLabel}</div>
       </div>

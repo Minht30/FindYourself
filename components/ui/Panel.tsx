@@ -7,6 +7,8 @@ import type { ComponentPropsWithoutRef, ElementType } from "react";
 // Nod-Krai's paper is light inside a dark theme, so its tokens are re-declared there (data-surface).
 type Props<T extends ElementType> = {
   as?: T;
+  /** More see-through paper, for the Timetable (its text sits on .panel-strip bands). */
+  airy?: boolean;
   className?: string;
   bodyClassName?: string;
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className">;
@@ -26,10 +28,10 @@ const PIECES = [
   "pf-medal-v pf-medal-r",
 ] as const;
 
-export default function Panel<T extends ElementType = "section">({ as, className, bodyClassName, children, ...rest }: Props<T>) {
+export default function Panel<T extends ElementType = "section">({ as, airy, className, bodyClassName, children, ...rest }: Props<T>) {
   const Tag: ElementType = as ?? "section";
   return (
-    <Tag data-surface="paper" className={`panel${className ? ` ${className}` : ""}`} {...rest}>
+    <Tag data-surface="paper" className={`panel${airy ? " panel-airy" : ""}${className ? ` ${className}` : ""}`} {...rest}>
       <div className="panel-paper" aria-hidden="true" />
       <div className="panel-mark" aria-hidden="true" />
       <div className="panel-frame" aria-hidden="true">

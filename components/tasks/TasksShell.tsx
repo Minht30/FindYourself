@@ -42,7 +42,8 @@ export function TasksShell({
               <aside
                 id={DRAWER_ID}
                 aria-label="Tasks"
-                className="rounded-2xl bg-glass-card border border-[var(--border)] shadow-card p-4"
+                data-surface="paper"
+                className="card-paper p-4"
               >
                 {drawer}
               </aside>
@@ -64,11 +65,7 @@ export function TasksToggle({ openCount }: { openCount: number }) {
       onClick={toggle}
       aria-expanded={open}
       aria-controls={open ? DRAWER_ID : undefined}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition ${
-        open
-          ? "bg-accent-soft border-accent text-cat-ink"
-          : "border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent"
-      }`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${open ? "btn-primary" : "btn-soft"}`}
     >
       <ListTodo size={15} aria-hidden />
       Tasks

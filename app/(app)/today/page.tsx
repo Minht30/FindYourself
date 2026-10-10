@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Panel from "@/components/ui/Panel";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import WeekGrid, { CategoryDTO, TimeBlockDTO } from "@/components/timetable/WeekGrid";
@@ -140,8 +141,9 @@ export default async function TodayPage({ searchParams }: Props) {
         />
       }
     >
-      <div className="plate flex items-baseline gap-4 flex-wrap">
-        <h1 className="font-display text-3xl">Timetable</h1>
+      <Panel airy bodyClassName="space-y-3">
+      <div className="panel-strip rounded-xl px-4 py-2.5 flex items-baseline gap-4 flex-wrap">
+        <h1 className="font-heading text-3xl">Timetable</h1>
         <span className="font-mono text-sm text-ink-muted">{formatWeekRangeIso(mondayISO)}</span>
         <div className="ml-auto flex items-center gap-2 font-ui text-sm flex-wrap">
           <TasksToggle openCount={tasks.length} />
@@ -149,19 +151,19 @@ export default async function TodayPage({ searchParams }: Props) {
           <nav className="flex items-center gap-2">
             <a
               href={`/today?week=${prev}`}
-              className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+              className="btn-soft px-3 py-1.5 rounded-full"
             >
               ‹ Prev
             </a>
             <a
               href="/today"
-              className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+              className="btn-soft px-3 py-1.5 rounded-full"
             >
               This week
             </a>
             <a
               href={`/today?week=${next}`}
-              className="px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition"
+              className="btn-soft px-3 py-1.5 rounded-full"
             >
               Next ›
             </a>
@@ -171,7 +173,7 @@ export default async function TodayPage({ searchParams }: Props) {
 
       <WinsClock timeZone={timeZone} open={winsOpen} />
       {(blocks ?? []).length === 0 ? (
-        <p data-empty-week className="plate w-fit font-ui text-sm text-ink-secondary">
+        <p data-empty-week className="panel-strip rounded-xl px-4 py-2 w-fit font-ui text-sm text-ink-secondary">
           Nothing scheduled this week. Drag on the grid to add your first block.
         </p>
       ) : null}
@@ -183,11 +185,12 @@ export default async function TodayPage({ searchParams }: Props) {
         categories={(categories ?? []) as CategoryDTO[]}
       />
 
-      <p className="plate w-fit text-ink-muted text-xs font-ui">
+      <p className="panel-strip rounded-xl px-4 py-2 w-fit text-ink-muted text-xs font-ui">
         <strong>Drag empty space</strong> to create · <strong>click a block</strong> to edit ·{" "}
         <strong>drag the body</strong> to move · <strong>drag top/bottom edges</strong> to resize ·{" "}
         <kbd className="font-mono border border-[var(--border)] px-1 rounded">Esc</kbd> cancels
       </p>
+      </Panel>
     </TasksShell>
   );
 }

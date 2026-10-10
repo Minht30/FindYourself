@@ -54,7 +54,7 @@ export default function CopyYesterdayButton({ timeZone }: { timeZone: string }) 
       onClick={onClick}
       disabled={status.kind === "loading"}
       title={status.kind === "error" ? status.msg : "Duplicate every block from yesterday onto today"}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary text-sm font-ui hover:bg-accent-soft hover:text-cat-ink hover:border-accent disabled:opacity-60 transition"
+      className="btn-soft flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-ui disabled:opacity-60"
     >
       <Copy size={13} strokeWidth={2} />
       {label}

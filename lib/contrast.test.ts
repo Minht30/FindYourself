@@ -222,6 +222,12 @@ describe.each([
   it("has a rim for the button that is darker than its fill (so the button has an edge)", () => {
     expect(luminance(t["primary-rim"])).toBeLessThan(luminance(t["primary-to"]));
   });
+  it("keeps the soft button's own ink (Prev, Today, Next) at 4.5:1 on both ends of its fill, wherever it sits", () => {
+    for (const k of ["soft-top", "soft-bottom"]) {
+      expect(t[k], k).toMatch(HEX);
+      expect(contrastRatio(t["soft-ink"], t[k]), `soft-ink on ${k}`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
   it("no longer uses the old yellow as an accent", () => {
     for (const k of ["accent", "accent-soft", "accent-strong"]) expect(["#F7CF78", "#F9E3AB", "#F4D03F", "#FFE9A0", "#8C5A00"]).not.toContain(t[k]);
   });

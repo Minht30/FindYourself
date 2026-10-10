@@ -14,7 +14,7 @@
   --bg-base: #F9F4E8;
   --bg-elevated: #FCF9F0;
   --bg-overlay: #F7F2E5;
-  --bg-window: #F9E3AB;
+  --bg-window: #D5E6EE;
   --bg-alt: #F2F1E7;
 
   --ink-primary: #1E384F;
@@ -64,6 +64,8 @@
   --font-body: var(--font-lora), Georgia, serif;
   --font-ui: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
+  /* Headings, the logo and the navigation: Lora by day, Marcellus at night. */
+  --font-heading: var(--font-lora), Georgia, serif;
 
   /* Panels (components/ui/Panel.tsx): the one panel every page uses. The same markup in both
      themes; these tokens decide how it looks. Paper is a top-to-bottom wash laid over the
@@ -76,6 +78,16 @@
   --paper-bottom: #FAF6EA;
   --paper-a: 92%;
   --paper-blur: 8px;
+  /* the Timetable's panel and week grid are more see-through than a page panel (Figma 66 % and 22 %) */
+  --paper-a-airy: 66%;
+  --grid-a: 22%;
+  --card-a: 92%;
+  --card-rim: rgba(140, 165, 192, 0.45);
+  --card-radius: 16px;
+  --soft-top: #FFFEFB;
+  --soft-bottom: #F6F1E4;
+  --soft-rim: #B9C7D4;
+  --soft-ink: #1E384F;
   --paper-rim: rgba(127, 152, 184, 0.6);
   --paper-rule: rgba(127, 152, 184, 0.28);
   --paper-radius: 16px;
@@ -198,10 +210,20 @@
      paper is 82 % here, not the 70 % in Figma: at 70 % the muted ink falls below 4.5:1 over the
      darkest part of the blurred painting (lib/glass.test.ts). */
   --fs: 0.36;
+  --font-heading: var(--font-marcellus), Georgia, serif;
   --paper-top: #F6F7FD;
   --paper-bottom: #E8EBF9;
   --paper-a: 82%;
   --paper-blur: 10px;
+  --paper-a-airy: 46%;
+  --grid-a: 14%;
+  --card-a: 94%;
+  --card-rim: rgba(159, 182, 255, 0.55);
+  --card-radius: 12px;
+  --soft-top: #FFFFFF;
+  --soft-bottom: #EEF1FC;
+  --soft-rim: #C0C9EC;
+  --soft-ink: #141C5E;
   --paper-rim: transparent;
   --paper-rule: transparent;
   --paper-radius: 8px;
@@ -458,6 +480,56 @@ body {
   }
   .mm-week-out {
     color: color-mix(in srgb, var(--week-ink) 75%, transparent);
+  }
+}
+
+/* ── Timetable surfaces ──────────────────────────────────────────────────────
+   The Timetable's panel is more see-through than a page panel (.panel-airy: --paper-a-airy) and the
+   week grid inside it more again (.glass-grid: --grid-a). Text never sits straight on them: the
+   heading, the day names and the hour column sit on .panel-strip, paper at the normal --paper-a
+   (lib/glass.test.ts holds it), and the grid cells carry only gridlines and cards. Side cards are
+   .card-paper: near-solid paper with the paper's ink, light at night too. */
+:root {
+  --paper-a-strip: var(--paper-a);
+}
+@layer components {
+  .panel-airy {
+    --paper-a: var(--paper-a-airy);
+  }
+  .panel-strip {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--paper-top) var(--paper-a-strip), transparent),
+      color-mix(in srgb, var(--paper-bottom) var(--paper-a-strip), transparent)
+    );
+  }
+  .glass-grid {
+    background: color-mix(in srgb, var(--paper-top) var(--grid-a), transparent);
+    border: 1px solid var(--border-strong);
+    border-radius: calc(var(--paper-radius) + 2px);
+    overflow: hidden;
+  }
+  .card-paper {
+    color: var(--ink-primary);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--paper-top) var(--card-a), transparent),
+      color-mix(in srgb, var(--paper-bottom) var(--card-a), transparent)
+    );
+    border: 1px solid var(--card-rim);
+    border-radius: var(--card-radius);
+    box-shadow: var(--paper-shadow);
+  }
+  .btn-soft {
+    background: linear-gradient(to bottom, var(--soft-top), var(--soft-bottom));
+    border: 1px solid var(--soft-rim);
+    color: var(--soft-ink);
+    box-shadow: 0 1px 2px rgba(30, 56, 79, 0.14);
+    transition: filter 150ms ease, border-color 150ms ease;
+  }
+  .btn-soft:hover {
+    filter: brightness(0.97);
+    border-color: var(--accent-strong);
   }
 }
 

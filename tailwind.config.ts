@@ -59,6 +59,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ["var(--font-display)"],
+        heading: ["var(--font-heading)"],
         body: ["var(--font-body)"],
         ui: ["var(--font-ui)"],
         mono: ["var(--font-mono)"],

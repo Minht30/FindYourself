@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { NotebookPen } from "lucide-react";
+import { Feather, NotebookPen } from "lucide-react";
 import type { JSONContent } from "@tiptap/react";
 import { createClient } from "@/lib/supabase/server";
 import DiaryEditor from "@/components/diary/DiaryEditor";
@@ -25,8 +25,7 @@ type DiaryEntryDTO = {
   updated_at: string;
 };
 
-const pill =
-  "px-3 py-1.5 rounded-full border border-accent/60 text-ink-primary hover:bg-accent-soft hover:text-cat-ink hover:border-accent transition";
+const pill = "btn-soft px-3 py-1.5 rounded-full";
 const pillDisabled =
   "px-3 py-1.5 rounded-full border border-[var(--border)] text-ink-muted cursor-not-allowed";
 
@@ -73,36 +72,38 @@ export default async function DiaryDayPage({ params }: Props) {
 
   return (
     <div className="diary-page max-w-4xl min-[1400px]:max-w-6xl min-[1900px]:max-w-[84rem] space-y-6">
-      <div className="plate flex items-baseline gap-4 flex-wrap">
-        <h1 className="font-display text-3xl min-[1400px]:text-4xl">Diary</h1>
-        <span className="font-mono text-sm min-[1400px]:text-base text-ink-muted">{formatLongDate(date)}</span>
-        <nav aria-label="Day navigation" className="ml-auto flex items-center gap-2 font-ui text-sm">
-          <Link href={`/diary/${prev}`} className={pill} aria-label="Previous day">
-            ‹ Prev
-          </Link>
-          {isToday ? (
-            <span className={pillDisabled} aria-current="date">
-              Today
-            </span>
-          ) : (
-            <Link href={`/diary/${today}`} className={pill}>
-              Today
+      <Panel bodyClassName="min-h-[320px] space-y-5">
+        <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
+          <Feather size={34} strokeWidth={1.5} aria-hidden className="text-ink-secondary" />
+          <div>
+            <h1 className="font-heading text-3xl min-[1400px]:text-4xl leading-tight">Diary</h1>
+            <span className="font-mono text-sm min-[1400px]:text-base text-ink-muted">{formatLongDate(date)}</span>
+          </div>
+          <nav aria-label="Day navigation" className="ml-auto flex items-center gap-2 font-ui text-sm">
+            <Link href={`/diary/${prev}`} className={pill} aria-label="Previous day">
+              ‹ Prev
             </Link>
-          )}
-          {/* No writing ahead of time: stop at today. */}
-          {date >= today ? (
-            <span className={pillDisabled} aria-disabled="true">
-              Next ›
-            </span>
-          ) : (
-            <Link href={`/diary/${next}`} className={pill} aria-label="Next day">
-              Next ›
-            </Link>
-          )}
-        </nav>
-      </div>
-
-      <Panel bodyClassName="min-h-[320px]">
+            {isToday ? (
+              <span className={pillDisabled} aria-current="date">
+                Today
+              </span>
+            ) : (
+              <Link href={`/diary/${today}`} className={pill}>
+                Today
+              </Link>
+            )}
+            {/* No writing ahead of time: stop at today. */}
+            {date >= today ? (
+              <span className={pillDisabled} aria-disabled="true">
+                Next ›
+              </span>
+            ) : (
+              <Link href={`/diary/${next}`} className={pill} aria-label="Next day">
+                Next ›
+              </Link>
+            )}
+          </nav>
+        </div>
         {error ? (
           <p role="alert" className="font-ui text-sm text-ink-secondary">
             Couldn&apos;t load this day&apos;s entry. Try refreshing.
